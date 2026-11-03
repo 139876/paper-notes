@@ -1,0 +1,15 @@
+# Obsidian 个人界面状态（跨设备不同步）
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+
+# macOS
+.DS_Store
+
+# 临时文件
+*~
+*.swp
+
+# 本地备份区（不推送到 GitHub）
+_backup/
