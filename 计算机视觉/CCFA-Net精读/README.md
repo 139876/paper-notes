@@ -128,10 +128,10 @@
 paper-notes/                      # 仓库根：三个精读项目
 ├── README.md                     # 顶层索引
 ├── 00-索引 MOC.md                # 四篇论文推进清单
-├── CCFA/
-│   ├── CCFA.md
+├── 计算机视觉/
+│   ├── CCFA-Net.md
 │   ├── TVT_UAV_跨场景泛化与感知友好去雾_研究方案.md
-│   ├── obsidian-CCFA-Net精读/    # ← 本项目
+│   ├── CCFA-Net精读/    # ← 本项目
 │   │   ├── 00-索引 MOC.md          # 总索引 / 命名规则 / 学习路线
 │   │   ├── 01-论文速览.md           # 主张 + 相关工作地图 + Baseline 名词表
 │   │   ├── 02 ~ 07                 # 补充1-6：卷积 / padding / 池化 / 感受野 / PixelShuffle / 空间注意力
@@ -141,9 +141,9 @@ paper-notes/                      # 仓库根：三个精读项目
 │   │   ├── 20                      # 第12讲：批判性评价与选题
 │   │   ├── 21 ~ 23                 # 附录A/B/C：公式速查 / 复现清单 / 自测题库
 │   │   └── 附件/                   # 13 张示意图（PNG）
-│   └── obsidian-Cross-Modal-UAV精读/  # 第2篇 · 方法
-├── HSI/
-│   └── obsidian-跨域高光谱精读/    # 第4篇 · 理论
+│   └── Cross-Modal-UAV精读/  # 第2篇 · 方法
+├── 遥感/
+│   └── 跨域高光谱精读/    # 第4篇 · 理论
 ```
 
 ---
@@ -193,7 +193,7 @@ paper-notes/                      # 仓库根：三个精读项目
 - 自动策略：每 5 分钟自动提交并推送一次，启动时自动拉取
 - 手动操作：Obsidian 左侧 **Source Control** 面板 → `Sync` / `Push`
 
-> 兄弟项目：[Cross-Modal UAV 精读](https://github.com/139876/paper-notes/tree/main/CCFA/obsidian-Cross-Modal-UAV精读) · [跨域高光谱精读](https://github.com/139876/paper-notes/tree/main/HSI/obsidian-跨域高光谱精读)
+> 兄弟项目：[Cross-Modal UAV 精读](https://github.com/139876/paper-notes/tree/main/计算机视觉/Cross-Modal-UAV精读) · [跨域高光谱精读](https://github.com/139876/paper-notes/tree/main/遥感/跨域高光谱精读)
 
 > 所以 GitHub 上的提交历史，就是这批笔记的修改时间线。
 

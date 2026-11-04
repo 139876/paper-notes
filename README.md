@@ -11,10 +11,10 @@
 
 | # | 论文 | 角色 | 精读产出 |
 |---|---|---|---|
-| 1 | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [00-索引 MOC](CCFA/obsidian-CCFA-Net%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md) · [详细索引](CCFA/obsidian-CCFA-Net%E7%B2%BE%E8%AF%BB/README.md) |
-| 2 | Cross-Modal Object Detection via UAV | 方法 | [00-索引 MOC](CCFA/obsidian-Cross-Modal-UAV%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md) |
+| 1 | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [00-索引 MOC](计算机视觉/CCFA-Net%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md) · [详细索引](计算机视觉/CCFA-Net%E7%B2%BE%E8%AF%BB/README.md) |
+| 2 | Cross-Modal Object Detection via UAV | 方法 | [00-索引 MOC](计算机视觉/Cross-Modal-UAV%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md) |
 | 3 | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | 进行中 |
-| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](HSI/obsidian-%E8%B7%A8%E5%9F%9F%E9%AB%98%E5%85%89%E8%B0%B1%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md) |
+| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](遥感/%E8%B7%A8%E5%9F%9F%E9%AB%98%E5%85%89%E8%B0%B1%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md) |
 
 ---
 
@@ -29,7 +29,7 @@
 
 > 像素级的好看 ≠ 任务级的有用 —— 去雾指标涨了，检测反而跌，这是全文的立身之本。
 
-[→ 进入项目](CCFA/obsidian-CCFA-Net%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md)  ·  [详细索引](CCFA/obsidian-CCFA-Net%E7%B2%BE%E8%AF%BB/README.md)
+[→ 进入项目](计算机视觉/CCFA-Net%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md)  ·  [详细索引](计算机视觉/CCFA-Net%E7%B2%BE%E8%AF%BB/README.md)
 
 ### 2️⃣ Cross-Modal UAV 精读 · 方法
 
@@ -40,7 +40,7 @@
 
 > 模态鸿沟怎么跨？答案不是特征对齐，是**预测模仿** —— 让 IR 分支去模仿 RGB 分支的输出。
 
-[→ 进入项目](CCFA/obsidian-Cross-Modal-UAV%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md)
+[→ 进入项目](计算机视觉/Cross-Modal-UAV%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md)
 
 ### 3️⃣ 跨域高光谱精读 · 理论
 
@@ -50,7 +50,7 @@
 
 > 两个损失同时上：变量一致（JVC）守光谱，锚结构不变（ASI）守几何。
 
-[→ 进入项目](HSI/obsidian-%E8%B7%A8%E5%9F%9F%E9%AB%98%E5%85%89%E8%B0%B1%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md)
+[→ 进入项目](遥感/%E8%B7%A8%E5%9F%9F%E9%AB%98%E5%85%89%E8%B0%B1%E7%B2%BE%E8%AF%BB/00-%E7%B4%A2%E5%BC%95%20MOC.md)
 
 ---
 
@@ -60,13 +60,13 @@
 paper-notes/
 ├── README.md                       # 本文件
 ├── 00-索引 MOC.md                  # 四篇论文的推进清单
-├── CCFA/
-│   ├── CCFA.md                     # CCFA-Net 论文正文笔记
+├── 计算机视觉/
+│   ├── CCFA-Net.md                 # CCFA-Net 论文正文笔记
 │   ├── TVT_UAV_跨场景泛化与感知友好去雾_研究方案.md
-│   ├── obsidian-CCFA-Net精读/      # 项目 1 · 背景 + baseline
-│   └── obsidian-Cross-Modal-UAV精读/ # 项目 2 · 方法
-└── HSI/
-    └── obsidian-跨域高光谱精读/      # 项目 3 · 理论
+│   ├── CCFA-Net精读/               # 项目 1 · 背景 + baseline
+│   └── Cross-Modal-UAV精读/        # 项目 2 · 方法
+└── 遥感/
+    └── 跨域高光谱精读/             # 项目 3 · 理论
 ```
 
 ---

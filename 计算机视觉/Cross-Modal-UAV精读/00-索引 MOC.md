@@ -10,7 +10,7 @@ status: 进行中
 > [!info] 这是 Obsidian Vault
 > 用 Obsidian 打开本文件夹：**Open folder as vault**
 > 数学公式用行内式与独立居中式两种写法，由 Obsidian 内置 MathJax 渲染。
-> 配套汇报 PPT 见 [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-论文汇报.pptx]]。
+> 配套汇报 PPT 见 [[paper-notes/计算机视觉/Cross-Modal-UAV精读/附件/Cross-Modal-UAV-论文汇报.pptx]]。
 
 ---
 
@@ -24,7 +24,7 @@ status: 进行中
 | 期刊 | IEEE Transactions on Vehicular Technology, **Vol. 72, No. 8**, pp. 10894–10905, **Aug. 2023** |
 | DOI | [10.1109/TVT.2023.3262129](https://doi.org/10.1109/TVT.2023.3262129) |
 | 数据集 | DroneVehicle（28,439 对 IR-RGB） |
-| 在阅读清单中的位置 | [[paper-notes/00-索引 MOC]] 第 2 篇 · **方法** 篇（[[paper-notes/CCFA/obsidian-CCFA-Net精读/00-索引 MOC]] 是背景篇） |
+| 在阅读清单中的位置 | [[paper-notes/00-索引 MOC]] 第 2 篇 · **方法** 篇（[[paper-notes/计算机视觉/CCFA-Net精读/00-索引 MOC]] 是背景篇） |
 
 **一句话总结**
 
@@ -38,25 +38,25 @@ status: 进行中
 
 ```
  阶段零 · 建立直觉（30 min）
-   └─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/01-论文速览]]                训练用 IR、部署用 RGB 到底怎么做
+   └─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/01-论文速览]]                训练用 IR、部署用 RGB 到底怎么做
 
  阶段一 · 补齐领域知识（本文最大空白）
-   ├─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/02-第1讲-知识蒸馏与模态鸿沟]]     ★ 必读 · KD 基础 + 核心洞察
-   ├─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/03-第2讲-基线与旋转框检测]]      ★ 必读 · Oriented R-CNN 三部件
-   ├─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/04-第3讲-SFI选择性特征模仿]]     ★ 论文创新点①
-   └─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/05-第4讲-API自适应预测模仿]]     ★ 论文创新点②
+   ├─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/02-第1讲-知识蒸馏与模态鸿沟]]     ★ 必读 · KD 基础 + 核心洞察
+   ├─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/03-第2讲-基线与旋转框检测]]      ★ 必读 · Oriented R-CNN 三部件
+   ├─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/04-第3讲-SFI选择性特征模仿]]     ★ 论文创新点①
+   └─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/05-第4讲-API自适应预测模仿]]     ★ 论文创新点②
 
  阶段二 · 工程落地
-   ├─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/06-第5讲-总目标训练流程与部署]]  ★ Algorithm 1 + 部署时删什么
-   └─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/07-第6讲-实验设置与主结果解读]]  ★ 数字怎么读
+   ├─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/06-第5讲-总目标训练流程与部署]]  ★ Algorithm 1 + 部署时删什么
+   └─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/07-第6讲-实验设置与主结果解读]]  ★ 数字怎么读
 
  阶段三 · 研究者视角
-   ├─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/08-第7讲-消融与定性结果精读]]    ★ 三个消融 + 定性对比
-   └─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]]  ★ 找选题从这里开始
+   ├─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/08-第7讲-消融与定性结果精读]]    ★ 三个消融 + 定性对比
+   └─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]]  ★ 找选题从这里开始
 
  附录
-   ├─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/10-附录-公式速查手册]]
-   └─► [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/11-附录-术语表与自测题库]]
+   ├─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/10-附录-公式速查手册]]
+   └─► [[paper-notes/计算机视觉/Cross-Modal-UAV精读/11-附录-术语表与自测题库]]
 ```
 
 ---
@@ -74,7 +74,7 @@ status: 进行中
 | π₁ 权重扫描 | 0→58.54 · **0.3→59.21** · 1→58.29 | 残差更有价值，但共性也不能丢 |
 | w_ciou 消融 | 全用 57.5 vs 全不用 56.9 | 增益偏小（+0.6），论文未夸大 |
 | IR vs RGB 标注数（训练集） | 316,411 vs 286,793 | 差 **29,618** 个 —— API 的实证依据 |
-| 硬件 | 2× Xeon E5-2695 v4 + 8× Tesla P100 | ⚠️ **不是** Jetson TX2，见 [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]] |
+| 硬件 | 2× Xeon E5-2695 v4 + 8× Tesla P100 | ⚠️ **不是** Jetson TX2，见 [[paper-notes/计算机视觉/Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]] |
 
 ---
 
@@ -105,21 +105,21 @@ status: 进行中
 
 | 文件 | 内容 |
 |---|---|
-| [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-论文汇报.pptx]] | 19 页 CCF-A 风格汇报 PPT（每页带演讲者备注） |
-| [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-完整讲解.md]] | 完整讲解稿（46 KB，五段式） |
-| [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-速查笔记.md]] | 一页速查卡 |
+| [[paper-notes/计算机视觉/Cross-Modal-UAV精读/附件/Cross-Modal-UAV-论文汇报.pptx]] | 19 页 CCF-A 风格汇报 PPT（每页带演讲者备注） |
+| [[paper-notes/计算机视觉/Cross-Modal-UAV精读/附件/Cross-Modal-UAV-完整讲解.md]] | 完整讲解稿（46 KB，五段式） |
+| [[paper-notes/计算机视觉/Cross-Modal-UAV精读/附件/Cross-Modal-UAV-速查笔记.md]] | 一页速查卡 |
 
 ---
 
 ## ✅ 学习进度
 
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/01-论文速览]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/02-第1讲-知识蒸馏与模态鸿沟]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/03-第2讲-基线与旋转框检测]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/04-第3讲-SFI选择性特征模仿]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/05-第4讲-API自适应预测模仿]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/06-第5讲-总目标训练流程与部署]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/07-第6讲-实验设置与主结果解读]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/08-第7讲-消融与定性结果精读]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]]
-- [ ] [[paper-notes/CCFA/obsidian-Cross-Modal-UAV精读/11-附录-术语表与自测题库]]（全部答完）
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/01-论文速览]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/02-第1讲-知识蒸馏与模态鸿沟]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/03-第2讲-基线与旋转框检测]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/04-第3讲-SFI选择性特征模仿]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/05-第4讲-API自适应预测模仿]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/06-第5讲-总目标训练流程与部署]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/07-第6讲-实验设置与主结果解读]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/08-第7讲-消融与定性结果精读]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]]
+- [ ] [[paper-notes/计算机视觉/Cross-Modal-UAV精读/11-附录-术语表与自测题库]]（全部答完）
