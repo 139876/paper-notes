@@ -125,16 +125,25 @@
 ## 📁 目录结构
 
 ```
-obsidian-CCFA-Net精读/
-├── 00-索引 MOC.md          # 总索引 / 命名规则 / 学习路线
-├── 01-论文速览.md           # 主张 + 相关工作地图 + Baseline 名词表
-├── 02 ~ 07                 # 补充1-6：卷积 / padding / 池化 / 感受野 / PixelShuffle / 空间注意力
-├── 08 ~ 11                 # 第1-3讲：去雾物理 / DCP 专项 / Lipschitz / 多任务梯度
-├── 12 ~ 16                 # 第4-8讲：架构推导 / CCDD / CFFM / MFAM / TOOD
-├── 17 ~ 19                 # 第9-11讲：数据集 / 评价指标 / 消融逐表
-├── 20                      # 第12讲：批判性评价与选题
-├── 21 ~ 23                 # 附录A/B/C：公式速查 / 复现清单 / 自测题库
-└── 附件/                   # 13 张示意图（PNG）
+paper-notes/                      # 仓库根：三个精读项目
+├── README.md                     # 顶层索引
+├── 00-索引 MOC.md                # 四篇论文推进清单
+├── CCFA/
+│   ├── CCFA.md
+│   ├── TVT_UAV_跨场景泛化与感知友好去雾_研究方案.md
+│   ├── obsidian-CCFA-Net精读/    # ← 本项目
+│   │   ├── 00-索引 MOC.md          # 总索引 / 命名规则 / 学习路线
+│   │   ├── 01-论文速览.md           # 主张 + 相关工作地图 + Baseline 名词表
+│   │   ├── 02 ~ 07                 # 补充1-6：卷积 / padding / 池化 / 感受野 / PixelShuffle / 空间注意力
+│   │   ├── 08 ~ 11                 # 第1-3讲：去雾物理 / DCP 专项 / Lipschitz / 多任务梯度
+│   │   ├── 12 ~ 16                 # 第4-8讲：架构推导 / CCDD / CFFM / MFAM / TOOD
+│   │   ├── 17 ~ 19                 # 第9-11讲：数据集 / 评价指标 / 消融逐表
+│   │   ├── 20                      # 第12讲：批判性评价与选题
+│   │   ├── 21 ~ 23                 # 附录A/B/C：公式速查 / 复现清单 / 自测题库
+│   │   └── 附件/                   # 13 张示意图（PNG）
+│   └── obsidian-Cross-Modal-UAV精读/  # 第2篇 · 方法
+├── HSI/
+│   └── obsidian-跨域高光谱精读/    # 第4篇 · 理论
 ```
 
 ---
@@ -175,12 +184,16 @@ obsidian-CCFA-Net精读/
 
 ## 🔄 自动同步
 
-本仓库由 **Obsidian Git** 插件自动同步，Obsidian 里的每一次修改都会自动 commit 并 push：
+本仓库由 **Obsidian Git** 插件自动同步，Obsidian 里的每一次修改都会自动 commit 并 push。
 
-- 仓库地址：`https://github.com/139876/ccfa-net-notes`
-- 同步范围：Obsidian 库中的 `paper-notes/CCFA/obsidian-CCFA-Net精读/` 目录
+本目录是 [paper-notes](https://github.com/139876/paper-notes) 仓库的 **项目 1/3**：
+
+- 仓库地址：`https://github.com/139876/paper-notes`
+- 同步范围：Obsidian 库中的 `paper-notes/` 整个目录（本项目 + 另外两个精读项目）
 - 自动策略：每 5 分钟自动提交并推送一次，启动时自动拉取
 - 手动操作：Obsidian 左侧 **Source Control** 面板 → `Sync` / `Push`
+
+> 兄弟项目：[Cross-Modal UAV 精读](https://github.com/139876/paper-notes/tree/main/CCFA/obsidian-Cross-Modal-UAV精读) · [跨域高光谱精读](https://github.com/139876/paper-notes/tree/main/HSI/obsidian-跨域高光谱精读)
 
 > 所以 GitHub 上的提交历史，就是这批笔记的修改时间线。
 
