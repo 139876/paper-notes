@@ -178,7 +178,7 @@ obsidian-CCFA-Net精读/
 本仓库由 **Obsidian Git** 插件自动同步，Obsidian 里的每一次修改都会自动 commit 并 push：
 
 - 仓库地址：`https://github.com/139876/ccfa-net-notes`
-- 同步范围：Obsidian 库中的 `week1/CCFA/obsidian-CCFA-Net精读/` 目录
+- 同步范围：Obsidian 库中的 `paper-notes/CCFA/obsidian-CCFA-Net精读/` 目录
 - 自动策略：每 5 分钟自动提交并推送一次，启动时自动拉取
 - 手动操作：Obsidian 左侧 **Source Control** 面板 → `Sync` / `Push`
 
