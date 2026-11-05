@@ -1,7 +1,7 @@
 > [!info] 相关笔记
 > 本篇 = 第 1 篇（**背景 + baseline**）。
-> 配套的 Obsidian 精读：[[paper-notes/计算机视觉/CCFA-Net精读/00-索引 MOC|CCFA-Net精读]]
-> 下一篇（第 2 篇 · **方法**）：[[paper-notes/计算机视觉/Cross-Modal-UAV精读/00-索引 MOC|Cross-Modal Object Detection via UAV]]
+> 配套的 Obsidian 精读：[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC|CCFA-Net精读]]
+> 下一篇（第 2 篇 · **方法**）：[[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC|Cross-Modal Object Detection via UAV]]
 
 ---
 

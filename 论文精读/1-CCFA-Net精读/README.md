@@ -169,12 +169,14 @@ paper-notes/                      # 仓库根：三个精读项目
 ├── README.md                     # 顶层索引
 ├── 00-索引 MOC.md                # 四篇论文推进清单
 ├── 计算机视觉/
-│   ├── CCFA-Net.md
-│   ├── TVT_UAV_跨场景泛化与感知友好去雾_研究方案.md
-│   ├── CCFA-Net精读/               # ← 本项目
-│   │   ├── 00-索引 MOC.md          # 总索引 / 三轨导航 / 三条阅读路线 / 进度
-│   │   ├── README.md               # 本文件（给 GitHub 读者看）
-│   │   ├── 01-公共基础知识/         # 🧱 轨 A：通用技术（换论文也成立）
+│   └── TVT_UAV_跨场景泛化与感知友好去雾_研究方案.md
+└── 论文精读/                      # ← 四篇论文统一在这里
+    ├── 00-总索引-四篇论文.md       # ★ 主索引
+    ├── 1-CCFA-Net精读/             # ← 本项目（第 1 篇）
+    │   ├── 00-索引 MOC.md          # 总索引 / 三轨导航 / 三条阅读路线 / 进度
+    │   ├── README.md               # 本文件（给 GitHub 读者看）
+    │   ├── CCFA-Net.md
+    │   ├── 01-公共基础知识/         # 🧱 轨 A：通用技术（换论文也成立）
 │   │   │   ├── 00-公共基础总览       # 这一轨怎么用 + 3 天速成方案
 │   │   │   ├── 01-卷积基础           # 卷积三超参数
 │   │   │   ├── 02-padding彻底理解    # padding 四件事
@@ -205,9 +207,9 @@ paper-notes/                      # 仓库根：三个精读项目
 │   │   │   ├── 13                    # 第12讲：批判性评价与选题
 │   │   │   └── 14 ~ 16               # 附录A/B/C：公式速查 / 复现清单 / 自测题库
 │   │   └── 附件/                    # 38 个附件（32 PNG + 6 WEBP）
-│   └── Cross-Modal-UAV精读/        # 第2篇 · 方法
-├── 遥感/
-│   └── 跨域高光谱精读/             # 第4篇 · 理论
+    ├── 2-Cross-Modal-UAV精读/       # 第2篇 · 方法
+    ├── 3-HazyDet精读/               # 第3篇 · 数据
+    └── 4-跨域高光谱精读/             # 第4篇 · 理论
 ```
 
 > **三轨之间是三向互链的**：
@@ -257,14 +259,14 @@ paper-notes/                      # 仓库根：三个精读项目
 
 本仓库由 **Obsidian Git** 插件自动同步，Obsidian 里的每一次修改都会自动 commit 并 push。
 
-本目录是 [paper-notes](https://github.com/139876/paper-notes) 仓库的 **项目 1/3**：
+本目录是 [paper-notes](https://github.com/139876/paper-notes) 仓库的 **项目 1/4**：
 
 - 仓库地址：`https://github.com/139876/paper-notes`
-- 同步范围：Obsidian 库中的 `paper-notes/` 整个目录（本项目 + 另外两个精读项目）
+- 同步范围：Obsidian 库中的 `paper-notes/` 整个目录（本项目 + 另外三个精读项目）
 - 自动策略：每 5 分钟自动提交并推送一次，启动时自动拉取
 - 手动操作：Obsidian 左侧 **Source Control** 面板 → `Sync` / `Push`
 
-> 兄弟项目：[Cross-Modal UAV 精读](https://github.com/139876/paper-notes/tree/main/计算机视觉/Cross-Modal-UAV精读) · [跨域高光谱精读](https://github.com/139876/paper-notes/tree/main/遥感/跨域高光谱精读)
+> 兄弟项目（现都在 `paper-notes/论文精读/` 下）：[第 2 篇 Cross-Modal UAV](https://github.com/139876/paper-notes/tree/main/论文精读/2-Cross-Modal-UAV精读) · [第 3 篇 HazyDet](https://github.com/139876/paper-notes/tree/main/论文精读/3-HazyDet精读) · [第 4 篇 跨域高光谱](https://github.com/139876/paper-notes/tree/main/论文精读/4-跨域高光谱精读)
 
 > 所以 GitHub 上的提交历史，就是这批笔记的修改时间线。
 
