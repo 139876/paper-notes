@@ -132,7 +132,7 @@ Mask R-CNN(17)          ATSS(20) ← 动态样本分配
 | `faster_rcnn` / `cascade_rcnn` / `dynamic_rcnn` / `libra_rcnn` | 两阶段 | Table 7 / 补充对比 |
 | `atts` / `fcos` / `gfl` / `vfnet` | 单阶段 anchor-free | FCOS 在 Table 2；ATSS 是 TOOD 的前身 |
 | `tood` | **本文采用** | 消融表的 baseline（mAP 50.8） |
-| `yolov3` / `yolox` | 单阶段实时 | Table 7 的轻量参照 |
+| `yolov3` / `yolox` | 单阶段实时 | **仓库备了配置，但论文 Table 2 / Table 7 都没报 YOLO** |
 | `centernet` | 无 anchor 的关键点派 | Table 2（47.2） |
 | `reppoints` | 无 anchor 的点集派 | — |
 | `detr` / `deform_detr` / `conditional_detr` / `dab_detr` / `ddod` / `sparse_rcnn` | DETR 系 | Table 2 里的 Deformable DETR（51.5） |
