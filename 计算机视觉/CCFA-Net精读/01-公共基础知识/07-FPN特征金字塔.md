@@ -79,6 +79,84 @@ $$
 
 ---
 
+### 7.2.1 逐行拆解：代码里到底怎么算的
+
+![[FPN-执行流程.png]]
+
+**执行顺序（关键：不是"边走边加"，而是"先全部横向，再自顶向下相加，最后统一平滑"）**
+
+1. **横向 1×1**：C3 / C4 / C5 各自过一个 1×1 卷积，通道统一成 256，得到 M3 / M4 / M5。
+2. **自顶向下相加**：从最深的 M5 开始，把 M5 上采样 2 倍加到 M4 上得到 M4'；
+   再把 M4' 上采样 2 倍加到 M3 上得到 M3'。
+3. **统一过 3×3**：M3' / M4' / M5' 各自过一个 3×3 卷积，得到 P3 / P4 / P5。
+4. **补 extra convs**：在 P5 上再叠两个 **stride=2 的 3×3 卷积**，得到 P6 / P7。
+
+> ⚠️ **最容易记错的一点**：上采样是**严格 2 倍**（不是 2 倍再加 1）。
+> 例：M5 是 42×25 → 上采样到 84×50 → 正好等于 M4 的尺寸 → 才能逐元素相加。
+> mmdet 里就是直接写 `size=laterals[i-1].shape[2:]`，让它自动对上，不用手算。
+
+**mmdet 官方 FPN 的骨架（伪代码）**
+
+（诚实说明：本机没有安装 mmdet，下面是按官方 `mmdet/models/necks/fpn.py` 的通用写法复述的，
+逻辑与本文仓库的配置能对上；但变量名和参数细节**以你本地实际版本为准**。）
+
+```python
+def forward(self, inputs):
+    # 1) 横向 1×1：C3/C4/C5 -> M3/M4/M5
+    laterals = [conv1x1(inputs[i]) for i, conv1x1 in enumerate(self.lateral_convs)]
+
+    # 2) 自顶向下：从深到浅，把深层上采样后加到浅层
+    for i in range(len(laterals) - 1, 0, -1):
+        up = F.interpolate(laterals[i],
+                           size=laterals[i-1].shape[2:],
+                           mode='nearest')          # 默认 nearest
+        laterals[i-1] = laterals[i-1] + up
+
+    # 3) 统一 3×3 平滑 -> P3/P4/P5
+    outs = [self.fpn_convs[i](laterals[i]) for i in range(len(laterals))]
+
+    # 4) extra convs（在 P5 输出上再叠两层 stride=2 的 3×3）-> P6/P7
+    if self.add_extra_convs == 'on_output':
+        extra_source = outs[-1]
+    for i in range(len(outs), self.num_outs):
+        outs.append(self.fpn_convs[i](extra_source))
+    return tuple(outs)
+```
+
+**参数量手算（out_channels = 256，本文配置）**
+
+| 部件 | 算式 | 参数量 |
+|---|---|---|
+| 横向 1×1 × 3 | (512 + 1024 + 2048)×256 + 3×256 | 约 0.92 M |
+| 3×3 × 3（P3 到 P5） | 3 × (256×256×9 + 256) | 约 1.77 M |
+| extra convs × 2（P6 / P7） | 2 × (256×256×9 + 256) | 约 1.18 M |
+| **合计** | — | **约 3.87 M** |
+
+> 📌 算完你就知道 FPN 有多"轻"：
+> 3.87M 参数，**不到 ResNet-50（25M）的六分之一**。
+> **FPN 不是用来提特征的，是用来"对齐尺度"的** ——
+> 所以工程上你可以放心把它挂在任何 backbone 后面，代价极小。
+
+**本文的 extra convs 为什么是 stride=2**
+
+- `add_extra_convs='on_output'` 且 `num_outs=5` ⇒ 在 P5 上连叠两个 stride=2 的 3×3。
+- 于是 P6 = 21×13（stride 64）、P7 = 11×7（stride 128）。
+- 这两层的意义：**给超大目标准备特征**（近处的车能占很大面积），
+  同时让 TOOD 的 TAL 有更多层可以跨层分配样本。
+
+**⚠️ 论文公式 vs mmdet 实现：一个必须知道的细微差别**
+
+| | 自顶向下时加的是哪一层 |
+|---|---|
+| **原始 FPN 论文 (Lin et al., 2017) Fig.3** | 加的是**已经过了 3×3 的 P(k+1)**（最终输出） |
+| **mmdet 的实现** | 加的是**只过了 1×1 的 lateral**（3×3 在最后统一做） |
+
+两者**数学上并不严格等价**（3×3 卷积会重新分配相邻位置的信息）。
+**本文代码跑的是 mmdet 的版本** ——
+所以你在论文里读公式、在代码里读实现时，不要以为它们一字不差，**以代码为准**。
+
+---
+
 ## 7.3 数字账 · 手算一遍（用本文的真实配置）
 
 输入 1333×800，`pad_size_divisor=32` → 实际送进网络的是 **1336×800**（这个坑见 [[02-padding彻底理解]]）。
