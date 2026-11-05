@@ -20,7 +20,7 @@ status: 进行中
 | **1** | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC\|00-索引 MOC]] · [[paper-notes/论文精读/1-CCFA-Net精读/README\|详细索引]] |
 | **2** | Cross-Modal Object Detection via UAV ([DOI](https://doi.org/10.1109/TVT.2023.3262129)) | 方法 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC\|00-索引 MOC]] |
 | **3** | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC\|00-索引 MOC]] |
-| **4** | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC\|00-索引 MOC]] |
+| **4** | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance<br>[IEEE TGRS 2026, DOI 10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332) | 理论 | [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC\|00-索引 MOC]] |
 
 > 📌 四篇**统一放在** `paper-notes/论文精读/` 下，按 **1 / 2 / 3 / 4** 编号排序。
 > 目录结构、互链关系、选题线索 → [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]]
@@ -67,17 +67,18 @@ status: 进行中
 
 | 产物 | 说明 | 状态 |
 |---|---|---|
-| [[paper-notes/论文精读/4-跨域高光谱精读/01-论文速览\|论文速览]] | 问题 / 两个模块的分工 | ✅ |
-| [[paper-notes/论文精读/4-跨域高光谱精读/02-第1讲-域偏移三大来源与光谱分辨率\|第1讲 · 域偏移与光谱分辨率]] | HSI 入门地基 | ✅ |
-| [[paper-notes/论文精读/4-跨域高光谱精读/03-第2讲-多模态与跨域的辨析\|第2讲 · 多模态 vs 跨域]] | 概念辨析 | ✅ |
-| [[paper-notes/论文精读/4-跨域高光谱精读/04-第3讲-张量预备知识\|第3讲 · 张量预备知识]] | Kronecker / Khatri-Rao / Hadamard | ✅ |
-| [[paper-notes/论文精读/4-跨域高光谱精读/05-第4讲-JVC联合变量一致性\|第4讲 · JVC]] | 公式推导 | ⬜ 占位 |
-| [[paper-notes/论文精读/4-跨域高光谱精读/06-第5讲-ASI锚点结构不变性\|第5讲 · ASI]] | 公式推导 | ⬜ 占位 |
-| [[paper-notes/论文精读/4-跨域高光谱精读/07-第6讲-实验结果与消融\|第6讲 · 实验与消融]] | 数字解读 | ⬜ 占位 |
-| [[paper-notes/论文精读/4-跨域高光谱精读/08-第7讲-批判性评价与可做选题\|第7讲 · 批判与选题]] | 找选题 | ⬜ 占位 |
-| [[paper-notes/论文精读/4-跨域高光谱精读/09-附录A-公式速查手册\|附录A · 公式速查]] | | ⬜ 占位 |
-| [[paper-notes/论文精读/4-跨域高光谱精读/10-附录-复现清单与实验设计\|附录B · 复现清单]] | | ⬜ 占位 |
-| [[paper-notes/论文精读/4-跨域高光谱精读/11-附录-自测题库\|附录C · 自测题]] | | ⬜ 占位 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/01-论文速览\|论文速览]] | 真实三贡献 / DG vs UDA / 与经典方法的关系 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/02-第1讲-域偏移三大来源与光谱分辨率\|第1讲 · 域偏移与光谱分辨率]] | HSI 入门地基 | ✅ 保留 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/03-第2讲-多模态与跨域的辨析\|第2讲 · 多模态 vs 跨域]] | 概念辨析 | ✅ 保留 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/04-第3讲-张量预备知识\|第3讲 · 张量预备知识]] | Kronecker / Khatri-Rao / Hadamard | ✅ 保留 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/05-第4讲-JVC联合变量一致性\|第4讲 · JVC]] | 联合变量 + 互信息 + 变分下界 + KDE | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/06-第5讲-ASI锚点结构不变性\|第5讲 · ASI]] | 动态簇锚点 + 压缩锚图 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/07-第6讲-DBFDF双分支骨干网络\|第6讲 · DBFDF 骨干]] | 双分支解耦与融合 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/08-第7讲-实验结果与消融\|第7讲 · 实验与消融]] | 真实基准 + 读表方法论 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/09-第8讲-批判性评价与可做选题\|第8讲 · 批判与选题]] | 6 条批评 + 6 个选题 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/10-附录A-公式速查手册\|附录A · 公式速查]] | 11 条公式 + 可靠度标注 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/11-附录B-复现清单与实验设计\|附录B · 复现清单]] | 协议 + 超参 + 6 个坑 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/12-附录C-自测题库\|附录C · 自测题]] | 23 题 + 折叠答案 | ✅ 已重写 |
 
 ---
 

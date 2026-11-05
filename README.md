@@ -25,7 +25,7 @@
 | 1 | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [00-索引 MOC](论文精读/1-CCFA-Net精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) · [详细索引](论文精读/1-CCFA-Net精读/README.md) | ✅ 44 篇 + 38 附件 |
 | 2 | Cross-Modal Object Detection via UAV | 方法 | [00-索引 MOC](论文精读/2-Cross-Modal-UAV精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 14 篇 + 13 附件 |
 | 3 | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [00-索引 MOC](论文精读/3-HazyDet精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 5 篇 |
-| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | 🟡 5 篇已写 + 7 篇占位 |
+| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 13 篇（依据 IEEE 原文摘要 + 专利重写） |
 
 ---
 
@@ -68,10 +68,15 @@
 ### 4️⃣ 跨域高光谱精读 · 理论
 
 **论文**：Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance
-**定位**：无监督域适应（UDA）· 跨传感器 / 跨场景高光谱分类
-**规模**：5 篇已写 + 7 篇占位
+**出处**：IEEE Transactions on Geoscience and Remote Sensing, Vol. 64, Art. 5520916, 2026-07-06
+**DOI**：[10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332)
+**配套专利**：CN202610642401（2026-07-03 公开）
+**定位**：**域泛化（MDG）** · 多源训练 → 未见目标域零样本 · 跨传感器 / 跨场景高光谱分类
+**规模**：13 篇（00 索引 + 01 速览 + 9 讲 + 3 附录）
 
-> 两个损失同时上：变量一致（JVC）守光谱，锚结构不变（ASI）守几何。
+> 三个模块分工：**JVC 管"别学错"**（联合变量分布对齐 + 互信息最小化），
+> **ASI 管"别拉歪"**（动态簇锚点保住几何结构），**DBFDF 管"分得清"**（域特有 / 域共性解耦后融合）。
+> 真实基准：Houston 2013 / Pavia University / Indian Pines，平均 OA **+1.74%**，std **相对降 11.25%**。
 
 [→ 进入项目](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md)
 
@@ -95,7 +100,7 @@ paper-notes/
     │   └── 附件/                   # 38 个附件
     ├── 2-Cross-Modal-UAV精读/      # 第 2 篇 · 方法（14 篇）
     ├── 3-HazyDet精读/              # 第 3 篇 · 数据（5 篇）
-    └── 4-跨域高光谱精读/            # 第 4 篇 · 理论（12 篇）
+    └── 4-跨域高光谱精读/            # 第 4 篇 · 理论（13 篇）
 ```
 
 > 📌 **历史目录已合并**
