@@ -354,6 +354,41 @@ $$
 > **下面用一个类别（car）、一张图、3 个 GT、5 个预测框，把 12.5 的六步全部走完。**
 > 看懂这个例子，AP 就再也不是黑盒了。
 
+#### Step 0 · 先认识 GT（Ground Truth，真值）
+
+![[GT-真值与三重身份.png]]
+
+**GT = 标注员（或标注工具）人工画出来的框，代表「事实」。**
+模型去逼近它，评测拿它当裁判 —— **它不是模型输出，千万别和预测框混淆。**
+
+**GT 的三重身份**（同一批 GT，在不同环节扮演不同角色）：
+
+| 环节 | GT 扮演的角色 | 具体怎么用 |
+|---|---|---|
+| **训练时** | 决定「谁是正样本」 | 用 GT 做 IoU 匹配：RPN 0.7/0.3、ATSS 自适应 tau、TAL 对齐度 |
+| **评测时** | 决定「谁是 TP / FP」 | 预测框和 GT 配对 -> TP/FP/FN -> PR 曲线 -> AP |
+| **被排除时** | 既不当正也不当负 | `iscrowd=1` 的密集群、`ignore` 区域：不参与统计 |
+
+**HazyDet 里 GT 长什么样**（仓库实测 `CCFANet/datasets/hazydet.py`）：
+
+- **标注文件**：`train/train_coco.json` / `val/val_coco.json` / `test/test_coco.json`，**COCO 格式**
+- **类别**：`METAINFO.classes = ('car', 'truck', 'bus')`
+- **COCO 原始字段**：`bbox = [x, y, w, h]`、`category_id`、`area`、`iscrowd`
+- **mmdet 读进来后**：`bbox` 转成 `[x1, y1, x2, y2]`，`bbox_label` 取 0/1/2，`ignore_flag` 来自 `iscrowd`
+- **读 GT 时会被丢掉的情况**：`ignore=True`、完全在图像外（裁剪后面积为 0）、`w < 1` 或 `h < 1`、`category_id` 不在三类里
+
+> [!warning] 一个论文没说、但仓库里真实存在的坑
+> 训练集配置里有：`filter_cfg=dict(filter_empty_gt=True, min_size=32)`
+> → **宽或高小于 32 像素的 GT，在训练时被直接丢弃** —— 模型压根没见过这些目标。
+>
+> 但 **val / test 的 dataset 配置里没有 `filter_cfg`** →
+> **评测时所有 GT 都参与**，包括那些 32 像素以下的。
+>
+> **结果：模型没学过的小目标，评测时却必须检出** → 系统性压低 Recall，
+> 而且**正好打在这篇论文宣称的「小目标 + 尺度变化」痛点上**。
+>
+> 📌 这是读这篇论文时能拿出来的**第一个「仓库级」发现**，也是**最省事的一个补实验方向**。
+
 #### Step 1 · 按置信度排序，逐个判定 TP / FP
 
 **匹配规则**（这是唯一需要背下来的规则）：
