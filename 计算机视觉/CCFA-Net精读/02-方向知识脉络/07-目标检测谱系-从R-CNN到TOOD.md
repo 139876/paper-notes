@@ -208,6 +208,8 @@ Table 2 里 Deformable DETR = **51.5**、DiffusionDet = 51.0、DeCoDet = 51.5，
 
 ---
 
+---
+
 ## 🔗 先补公共基础
 
 > 这一轨是**方向层**，它的地基层在「🧱 公共基础知识」轨里。
@@ -215,6 +217,7 @@ Table 2 里 Deformable DETR = **51.5**、DiffusionDet = 51.0、DeCoDet = 51.5，
 
 - [[12-目标检测基础与mAP]]
 - [[13-两阶段检测与R-CNN家族]]
+- [[14-单阶段检测与样本分配]]
 - [[07-FPN特征金字塔]]
 
 ---
