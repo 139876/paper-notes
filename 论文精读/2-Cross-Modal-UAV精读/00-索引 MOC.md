@@ -57,6 +57,9 @@ status: 进行中
    ├─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/08-第7讲-消融与定性结果精读]]    ★ 三个消融 + 定性对比
    └─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]]  ★ 找选题从这里开始
 
+ 阶段四 · 从"看懂"到"做出来"
+   └─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/12-复现路线图-没有代码怎么复现]]  ★★ 本篇没有官方代码，这一讲给分级复现路线
+
  附录
    ├─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/10-附录-公式速查手册]]
    └─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/11-附录-术语表与自测题库]]
@@ -130,3 +133,4 @@ status: 进行中
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/08-第7讲-消融与定性结果精读]]
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/09-第8讲-批判性评价与可做选题]]
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/11-附录-术语表与自测题库]]（全部答完）
+- [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/12-复现路线图-没有代码怎么复现]]（定下 6 个自由度 + 确认 GPU 资源）
