@@ -100,7 +100,7 @@
 
 作者在 Fig. 1 里用两张图说明：**多模态方案在无人机上根本装不下**。
 
-![Fig.1 部署难题](figures/fig1_deployment_issues.png)
+![Fig.1 部署难题](fig1_deployment_issues.png)
 
 **硬伤①：贵。**
 论文 Fig.1(a) 的标注：普通 RGB 相机 **< 500 美元**，IR 相机 **> 5000 美元**——**差 10 倍**。原因是 IR 相机要用特殊的玻璃镜头、探测器阵列和电路板。
@@ -149,7 +149,7 @@
 
 ## 2.2 和现有方案的区别（论文 Fig. 2）
 
-![Fig.2 三种方案对比](figures/fig2_three_schemes.png)
+![Fig.2 三种方案对比](fig2_three_schemes.png)
 
 | | (a) 传统单模态 | (b) 传统多模态 | (c) 本文 CKD |
 |---|---|---|---|
@@ -259,7 +259,7 @@
 
 ## 3.2 SFI：选择性特征模仿（核心创新 ①）
 
-![Fig.3 整体框架](figures/fig3_framework.png)
+![Fig.3 整体框架](fig3_framework.png)
 
 ### 一句话目标
 
@@ -324,7 +324,7 @@ $$
 
 **论文 Fig. 6 直接验证了这一点**（π₁ + π₂ 固定为 1，扫描 π₁）：
 
-![Fig.6 权重扫描](figures/fig6_pi_weight.png)
+![Fig.6 权重扫描](fig6_pi_weight.png)
 
 | π₁ | 0.0 | 0.1 | 0.2 | **0.3** | 0.4 | 0.5 | 0.6 | 0.7 | 0.8 | 0.9 | 1.0 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -562,7 +562,7 @@ RRLN、RRPN、FA-FPN、ROI-Transformer、SCRDet、Gliding-Vertex、CenterMap、S
 
 ## 4.2 消融实验（Fig. 5）
 
-![Fig.5 模块消融](figures/fig5_module_ablation.png)
+![Fig.5 模块消融](fig5_module_ablation.png)
 
 | 配置 | mAP | 增量 |
 |---|---|---|
@@ -579,7 +579,7 @@ RRLN、RRPN、FA-FPN、ROI-Transformer、SCRDet、Gliding-Vertex、CenterMap、S
 
 ## 4.3 消融实验（Fig. 7）：`w_ciou` 到底有没有用？
 
-![Fig.7 w_ciou 消融](figures/fig7_wciou_ablation.png)
+![Fig.7 w_ciou 消融](fig7_wciou_ablation.png)
 
 | 配置 | mAP |
 |---|---|
@@ -593,7 +593,7 @@ RRLN、RRPN、FA-FPN、ROI-Transformer、SCRDet、Gliding-Vertex、CenterMap、S
 
 ## 4.4 定性对比（Fig. 4）
 
-![Fig.4 定性对比](figures/fig4_qualitative.png)
+![Fig.4 定性对比](fig4_qualitative.png)
 
 论文放了 4 组样例（每组 = IR 图+标注、RGB 图+标注、单模态结果、本文结果）：
 
