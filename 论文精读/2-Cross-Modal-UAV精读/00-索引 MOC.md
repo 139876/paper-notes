@@ -39,7 +39,8 @@ status: 进行中
 ```
  阶段零 · 建立直觉（30 min）
    └─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/01-论文速览]]                训练用 IR、部署用 RGB 到底怎么做
-   └─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/公共基础知识/01-模型压缩全景]]  ★ 剪枝/量化/KD 三流派，本文属于哪一派
+   ├─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/公共基础知识/01-模型压缩全景]]  ★ 剪枝/量化/KD 三流派，本文属于哪一派
+   └─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/公共基础知识/02-知识蒸馏详解]]      ★★ 软标签/温度T/KL + 本文 SFI·API 全部公式
 
  阶段一 · 补齐领域知识（本文最大空白）
    ├─► [[paper-notes/论文精读/2-Cross-Modal-UAV精读/02-第1讲-知识蒸馏与模态鸿沟]]     ★ 必读 · KD 基础 + 核心洞察
@@ -117,6 +118,7 @@ status: 进行中
 
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/01-论文速览]]
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/公共基础知识/01-模型压缩全景]]（公共基础）
+- [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/公共基础知识/02-知识蒸馏详解]]（公共基础）
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/02-第1讲-知识蒸馏与模态鸿沟]]
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/03-第2讲-基线与旋转框检测]]
 - [ ] [[paper-notes/论文精读/2-Cross-Modal-UAV精读/04-第3讲-SFI选择性特征模仿]]
