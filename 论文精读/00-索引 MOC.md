@@ -35,7 +35,7 @@ status: 进行中
 |---|---|---|
 | 🧱 公共基础知识 | 技术地基（卷积/padding/池化/感受野/PixelShuffle/注意力/FPN/激活/梯度/损失/ResNet/检测/mAP/两阶段/单阶段/COCO/置信度/优化器） | 18 |
 | 🗺️ 方向知识脉络 | 技术地图（复原谱系/恶劣天气/域适应/多任务/注意力/UAV 特性/检测谱系/遥感基础） | 9 |
-| 📄 CCFA-Net 论文精读 | 本文专属（速览 + 12 讲 + 3 附录） | 17 |
+| 📄 CCFA-Net 论文精读 | 本文专属（速览 + 12 讲 + 4 附录） | 18 |
 
 ### (2) Cross-Modal Object Detection via UAV · [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC|索引 MOC]]
 
@@ -63,7 +63,7 @@ status: 进行中
 | [[paper-notes/论文精读/3-HazyDet精读/03-深度标注与被浪费的多模态线索\|深度标注与被浪费的多模态线索]] | ★ 深度 / SiLog / DeCoDet 头 / CCFA-Net 的缺口 |
 | [[paper-notes/论文精读/3-HazyDet精读/04-复现必查项与坑\|复现必查项与坑]] | ★ 5 个坑 + 上手清单 + 对账表 |
 | [[paper-notes/论文精读/3-HazyDet精读/05-DeCoDet原理精读\|DeCoDet原理精读]] | ★★ MSDP / DCK / SIRLoss 公式、消融表、论文 vs 代码 |
-| [[paper-notes/论文精读/3-HazyDet精读/公共基础知识/00-公共基础总览\|公共基础知识总览]] | ★ 通用地基：bbox 标注 / train-val-test 与 pipeline |
+| [[paper-notes/论文精读/3-HazyDet精读/公共基础知识/00-公共基础总览\|公共基础知识总览]] | ★ 通用地基：bbox 标注 / train-val-test 与 pipeline / 标注文件与 gt |
 
 ### (4) 跨域高光谱 · [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC|索引 MOC]]
 
