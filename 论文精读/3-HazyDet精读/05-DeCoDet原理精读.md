@@ -455,15 +455,26 @@ $$
 
 ---
 
-## 7. ⚠️ 论文 vs 官方代码：**七个对不上的地方**
+## 7. ⚠️ 论文 vs 官方代码：**真正的差异 + 一个被误判的"差异"**
 
-| # | 项 | 论文 | 官方代码 | 影响 |
+> [!important] **2026-11-11 重大修正：论文 Table 4 用的是 VFNet 版，不是 FCOS 版**
+> 仓库里其实有**两个** DeCoDet config，它们在三个关键超参上**完全不同**：
+> `configs/vfnet/DeCoDet_vfnet_r50_fpn_1x_hazydet.py`（论文用）
+> vs `configs/DeCoDet/DeCoDet_r50_1x_hazydet.py`（FCOS 版）。
+> 逐项核对后：**论文描述的三个超参，在 VFNet 版上全部完全吻合**——
+> 之前的"对不上"是把 FCOS 版当成了论文版。
+> 👉 **复现论文请用 VFNet 版 config。**
+
+| # | 项 | 论文 | **VFNet 版**（论文实际用） | FCOS 版（另一个变体） |
 |---|---|---|---|---|
-| 1 | 标签翻新 $\alpha$ | 0.7 | `smooth=True, epsilon=0.1` → 等效 $\alpha=\mathbf{0.9}$ | 代码里伪标签权重更大 |
-| 2 | SIRLoss 权重 $\beta$ | 0.2（消融最优） | `loss_weight=2.0` | **差 10 倍** |
-| 3 | 尺度项系数 | Eq.5 无系数 | `- 0.5 * ...`（Eigen 的 $\lambda=0.5$） | 论文少写 |
-| 4 | 基线 | **VFNet** | `configs/DeCoDet/` 是 **FCOS** | 论文 Table 4 的 baseline 是 VFNet |
-| 5 | 深度卷积数 $M$ | 3（最优） | `stacked_convs=4` | 代码实际是 4 层 |
+| 1 | 标签翻新 $\alpha$ | 0.7 | `epsilon=0.3` → $\alpha=\mathbf{0.7}$ ✅ **完全一致** | `epsilon=0.1` → $\alpha=0.9$ |
+| 2 | SIRLoss 权重 $\beta$ | 0.2 | `loss_weight=0.2` ✅ **完全一致** | `loss_weight=2.0`（差 10 倍） |
+| 3 | 深度卷积数 $M$ | 3（最优） | `stacked_convs=3` ✅ **完全一致** | `stacked_convs=4` |
+| 4 | 尺度项系数 | Eq.5 无系数 | `- 0.5 * ...`（Eigen 的 $\lambda=0.5$） | 同左（代码级差异，与 config 无关） |
+| 5 | 深度图卷积核 | 1×1 Conv | `conv_seg = nn.Conv2d(256,1,3,padding=1)` → **3×3** | 同左 |
+| 6 | 基线 | **VFNet** | `configs/vfnet/DeCoDet_...` ✅ 仓库**确实提供** | `configs/DeCoDet/...`（FCOS） |
+| 7 | 框回归损失 | — | `GIoULoss(1.5)` + refine `GIoULoss(2.0)` | `IoULoss(1.0)` |
+| 8 | 样本分配 | — | `use_atss=True`, `ATSSAssigner(topk=9)` | FCOS center sampling |
 | 6 | **金字塔级别数** | 正文 5 级（P₃–P₇） | 代码 5 级（`num_outs=5`） | **但 Fig.4 图只画了 4 级（无 P₆）** |
 | 7 | **深度图卷积核** | 1×1 Conv | `conv_seg = nn.Conv2d(256, 1, 3, padding=1)` -> **3×3** | 论文 Fig.4 标注与实现不符 |
 
