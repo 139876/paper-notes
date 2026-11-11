@@ -62,6 +62,8 @@ status: 进行中
 | [[paper-notes/论文精读/3-HazyDet精读/02-数据集构成与标注格式\|数据集构成与标注格式]] | 合成雾流程、COCO JSON、bbox 转换、丢弃规则 |
 | [[paper-notes/论文精读/3-HazyDet精读/03-深度标注与被浪费的多模态线索\|深度标注与被浪费的多模态线索]] | ★ 深度 / SiLog / DeCoDet 头 / CCFA-Net 的缺口 |
 | [[paper-notes/论文精读/3-HazyDet精读/04-复现必查项与坑\|复现必查项与坑]] | ★ 5 个坑 + 上手清单 + 对账表 |
+| [[paper-notes/论文精读/3-HazyDet精读/05-DeCoDet原理精读\|DeCoDet原理精读]] | ★★ MSDP / DCK / SIRLoss 公式、消融表、论文 vs 代码 |
+| [[paper-notes/论文精读/3-HazyDet精读/公共基础知识/00-公共基础总览\|公共基础知识总览]] | ★ 通用地基：bbox 标注 / train-val-test 与 pipeline |
 
 ### (4) 跨域高光谱 · [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC|索引 MOC]]
 
