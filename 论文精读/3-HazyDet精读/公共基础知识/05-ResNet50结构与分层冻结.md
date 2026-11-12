@@ -38,6 +38,12 @@ track: 公共基础
 > | — | **conv+bn 合计** | — | — | — | **23,508,032** | 100% |
 > | — | fc（分类头，检测里不用） | — | 2048→1000 | — | 2,049,000 | — |
 
+> [!note] 「通道」列怎么读？
+> 写的是 **该 stage 的输入通道 → 输出通道**：
+> `stage1` 那一行的 "64→256" = **stem 出口(64) → layer1 出口(256)**。
+> ⚠️ **唯独这一跳是 ×4 而不是 ×2** —— 因为 Bottleneck 的 expansion=4，
+> 翻倍发生在块内的 `planes` 上。完整推导见 **§2.6**。
+
 **一句话**：ResNet50 = **1 个 stem + 4 个 stage（共 16 个 Bottleneck 块）**。
 参数量**极度集中在 stage4**（63.7%）——这个数字直接决定了 PDFT 冻结策略的效果。
 
@@ -407,6 +413,118 @@ out = self.relu(out)
 > stage 内部的所有块都保持形状，靠 identity 旁路。
 > 实测确认：`layer2[0].conv2.stride=(2,2)`，而 `layer2[1].conv2.stride=(1,1)`。
 
+---
+
+### 2.6 🔥 通道数规则：为什么是 64→256 而不是"翻倍"？
+
+> [!abstract] 一句话
+> **"每 stage 翻倍"这个规则没被打破 —— 翻倍发生在 Bottleneck 内部的 `planes`（瓶颈宽度）上，
+> 而每个 stage 的**输出**通道 = `planes × expansion`（Bottleneck 的 expansion = 4）。**
+
+#### ① 先分清表里那两个数是什么
+
+| 表里写的 | 含义 | 实测来源 |
+|---|---|---|
+| **64** | **stem 的输出通道** | `conv1: Conv2d(3, 64, 7×7, stride=2)` |
+| **256** | **layer1 的输出通道**（= C2） | `layer1[0].conv3: Conv2d(64, 256, 1×1)` |
+
+所以 "64→256" = **从 stem 出口到 layer1 出口**的通道变化。
+
+#### ② Bottleneck 块的三步（实测自 torchvision）
+
+```
+conv1 : 1×1,  IN → planes      ← 降维，planes = "瓶颈宽度"
+conv2 : 3×3,  planes → planes   ← 在窄通道上做卷积
+conv3 : 1×1,  planes → planes×4 ← 升维，expansion = 4
+```
+
+实测 `planes` 与输出：
+
+| stage | `conv1` 输出 = **planes** | `conv3` 输出 = **OUT** | 关系 |
+|---|---|---|---|
+| layer1 | **64** | **256** | 64 × 4 |
+| layer2 | **128** | **512** | 128 × 4 |
+| layer3 | **256** | **1024** | 256 × 4 |
+| layer4 | **512** | **2048** | 512 × 4 |
+
+#### ③ "翻倍"规则在哪里
+
+| 环节 | 倍数 | 是不是 ×2 |
+|---|---|---|
+| `planes`：64 → 128 → 256 → 512 | ×2 每 stage | ✅ **是** |
+| stage 输出：256 → 512 → 1024 → 2048 | ×2 每 stage | ✅ **是** |
+| **stem 64 → layer1 256** | **×4** | ❌ **唯一打破 ×2 的一跳** |
+
+> [!danger] 为什么唯独这一跳是 ×4
+> 因为这一跳**跨越了 Bottleneck 的 expansion**：
+> - stem 是**普通 conv**，直接输出 64 通道；
+> - layer1 的第一个块是 **Bottleneck**，内部 `planes = 64`（恰好等于 stem 输出），
+>   再由 `conv3` 一次性 `×4` 放大到 **256**。
+>
+> 换句话说：**64→256 = "planes 没变" + "expansion 乘 4"**。
+
+#### ④ 对照 BasicBlock（ResNet-18/34，expansion = 1）
+
+| | stem | layer1 | layer2 | layer3 | layer4 |
+|---|---|---|---|---|---|
+| **BasicBlock**（18/34） | 64 | **64** | 128 | 256 | 512 |
+| **Bottleneck**（50/101） | 64 | **256** | 512 | 1024 | 2048 |
+
+> [!tip] 结论
+> **BasicBlock：每一跳都是 ×2（包括 stem→layer1）。**
+> **Bottleneck：planes 每 stage ×2、输出每 stage ×2，只有 stem→layer1 这一跳是 ×4。**
+>
+> 所以"通道每 stage 翻倍"这句话对 **stage 之间**永远成立；
+> 唯一要小心的是 **stem 出口 → C2** 这一跳，Bottleneck 下是 ×4。
+
+#### ⑤ 顺手核对 layer1 的 215,808 参数是怎么来的
+
+```
+layer1[0] : conv1 1×1 64→64  =  4,096
+             conv2 3×3 64→64  = 36,864
+             conv3 1×1 64→256 = 16,384
+             downsample 1×1 64→256 = 16,384 + BN 512
+             + BN(conv1/2/3) = 768
+             = 75,008
+
+layer1[1] : conv1 1×1 256→64 = 16,384
+             conv2 3×3 64→64  = 36,864
+             conv3 1×1 64→256 = 16,384
+             + BN = 768                = 70,400   （identity 旁路，无 downsample）
+
+layer1[2] : 同 layer1[1]              = 70,400
+
+合计 = 75,008 + 70,400 + 70,400 = 215,808  ✅
+```
+
+> [!note] 对照 §2.5
+> `layer1[0]` 之所以比后两个块多 4,608 参数，就因为它有 **downsample 旁路**
+> （1×1 64→256 = 16,384 + BN 512），后两块走 identity。
+
+#### ⑥ 这个规则和 HazyDet 的关系
+
+FPN 的 `in_channels=[256, 512, 1024, 2048]` 就是这四个 stage 的**输出**通道（C2~C5）——
+所以 `out_channels=256` 表示 FPN 把它们**各自用 1×1 压到 256 通道**再融合。
+**FPN 吃的是 `planes × 4`，不是 `planes`。**
+
+<details>
+<summary>🔍 自测</summary>
+
+**Q1. ResNet50 里 layer1 的"瓶颈宽度"是多少？输出通道是多少？**
+A：`planes = 64`，输出通道 = `64 × 4 = 256`。
+
+**Q2. 为什么 stem→layer1 是 64→256 而不是 64→128？**
+A：stem 是普通 conv（输出 64），layer1 是 Bottleneck（planes 64 × expansion 4 = 256）。
+**只有这一跳跨越了 expansion**，所以是 ×4。BasicBlock 版本这里才是 ×2。
+
+**Q3. ResNet18 的 layer1 输出多少通道？**
+A：**64**（BasicBlock，expansion=1，planes 就是输出）。注意 ResNet18 的 stem 也是 64，
+所以 stem→layer1 是 ×1 而不是 ×2 —— **"每个 stage 翻倍"从来就不包含 stem 这一跳**。
+
+**Q4. FPN 的 `in_channels[0]=256` 对应哪个数字？**
+A：layer1 的**输出**通道 256（即 planes×4），不是 planes 64。
+
+</details>
 ---
 
 ## 3. 🔥 与 HazyDet 的对接：分层冻结
