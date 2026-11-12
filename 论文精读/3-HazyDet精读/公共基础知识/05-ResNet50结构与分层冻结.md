@@ -836,6 +836,127 @@ for 每个输出通道 o in [0, C_out):
 > - **k×k 的参数量**：永远是 **C_out × C_in × k²**，因为要贴 C_in 张"饼"
 ---
 
+### 1.8 🔥 降维/升维的依据：就是"核的个数"
+
+> [!abstract] 一句话
+> **降维/升维完全由 `C_out`（卷积核的个数）决定，与 `k×k` 毫无关系。**
+> `C_out` 个核 → `C_out` 张响应图 → `C_out` 个输出通道，**严格一一对应**。
+
+#### ① 权重张量的三个维度，各管各的
+
+```
+权重张量 (C_out, C_in, k, k)
+          ↑        ↑     ↑
+       核的个数  每块厚度  每块大小
+          │        │       │
+          ▼        │       ▼
+    输出通道数    吃多少   空间感受野
+    → 升/降维    输入通道  → 与升降维【无关】
+```
+
+| 维度 | 含义 | 控制什么 |
+|---|---|---|
+| **C_out** | **核的个数** | **输出通道数 → 升维/降维** ✅ |
+| C_in | 每块核的厚度 | 这一层"吃"多少个输入通道 |
+| k×k | 每块核的尺寸 | 空间感受野，**不影响通道数** |
+
+实测：
+
+| 卷积 | 权重 shape | 核个数 | 通道变化 |
+|---|---|---|---|
+| `Conv2d(64, 256, 1)` | (256, 64, 1, 1) | **256** | 升维 ×4 |
+| `Conv2d(64, 64, 3)` | (64, 64, 3, 3) | **64** | 不变 |
+| `Conv2d(256, 512, 3)` | (512, 256, 3, 3) | **512** | 升维 ×2 |
+
+#### ② 为什么 1 个核 = 1 个输出通道？
+
+**每个核在整张图上扫一遍 → 得到 1 张 H×W 的"响应图" → 这张图就是 1 个输出通道。**
+
+```
+C_out 个核  →  C_out 张响应图  →  C_out 个输出通道
+```
+
+实测拆解 `layer1[0]`：
+
+| 模块 | 核个数 | 输出通道 |
+|---|---|---|
+| `conv1` | 64 | 64 |
+| `conv2` | 64 | 64 |
+| `conv3` | **256** | **256** |
+| `downsample` | **256** | **256** |
+
+#### ③ ⚠️ 必须分清：降维 ≠ 下采样
+
+| 操作 | 改什么 | 由谁控制 | 中文坑 |
+|---|---|---|---|
+| **降维 / 升维** | **通道数 C** | **核的个数 C_out** | 都叫"降"，但和分辨率无关 |
+| **下采样 / 上采样** | **空间分辨率 H×W** | **stride** / 上采样算子 | |
+
+**"降维"降的是通道，不是分辨率。**
+
+| 层 | 配置 | 是降维？ | 是下采样？ |
+|---|---|---|---|
+| `conv1` | 1×1, 256→64 | ✅ 降维 | ❌ 分辨率**完全不变** |
+| `conv2` | 3×3, 64→64, **stride=2** | ❌ 通道不变 | ✅ 分辨率减半 |
+| `conv3` | 1×1, 64→256 | ✅ 升维 | ❌ 分辨率不变 |
+
+> [!important] 两个**正交**的旋钮
+> **核的个数（C_out）** 转通道维度 ｜ **stride** 转空间维度
+> 想要"降维"就改 C_out；想要"下采样"就改 stride。**互不相干。**
+
+#### ④ C_out 怎么定？（4 条依据，按硬度排序）
+
+**① 下游结构的要求（最硬的一条）**
+
+FPN 要求所有 lateral 输出统一到 **256** 通道 → 每个 C_i 都得用 1×1 投到 256：
+
+| 层 | C_in → C_out | 性质 |
+|---|---|---|
+| C2 | 256 → 256 | 不变 |
+| C3 | 512 → 256 | **降维** |
+| C4 | 1024 → 256 | **降维** |
+| C5 | 2048 → 256 | **降维** |
+
+**② Bottleneck 的 expansion 规则**
+
+ResNet50：`planes = 64, 128, 256, 512`，输出 = `planes × 4` → 256, 512, 1024, 2048
+
+- `conv1` 核数 = `planes` → **降维**（256→64）
+- `conv3` 核数 = `planes × 4` → **升维**（64→256）
+
+**③ 算力预算**（通道翻倍 = 参数 ×4）
+
+| C | 3×3 参数 = C²×9 |
+|---|---|
+| 64 | 36,864 |
+| 128 | 147,456 |
+| 256 | 589,824 |
+| 512 | 2,359,296 |
+
+**④ 任务需求**
+浅层：高分辨率 + 低通道（保细节、便宜）；深层：低分辨率 + 高通道（存语义）
+
+#### ⑤ 为什么允许降维？信息不会真丢吗？
+
+- 高维特征里通道**高度相关**，冗余大 → 可用**低秩投影**压缩
+- **1×1 降维 = 在通道维上学一个低秩线性变换**
+- 类比：把 256 份高度相关的"简历"压成 64 份，信息保留在压缩表示里
+- 降维后 3×3 做空间聚合（**参数 / 算力降到 1/4**），最后 1×1 升回去
+- 👉 这就是 **"先压扁 → 便宜处理 → 再撑开"** 的经典范式
+
+#### ⑥ 🔥 顺带一个反直觉的事实
+
+`layer1[0].downsample` 的卷积是 **1×1, 64 → 256** ——
+它**同时在做升维**，不只是"对齐通道"。
+
+很多人以为 downsample 只负责把形状对齐，
+实际上它把通道从 **64 抬到了 256**（为了匹配 Bottleneck 输出 `planes × 4 = 256`）。
+
+> [!tip] 记住这一句就够了
+> **"核的个数 = 输出通道数" 是 1×1 / 3×3 / 7×7 全都成立的通则。**
+> 想降维就少配几个核，想升维就多配几个核；核的大小只影响"看多大范围"。
+---
+
 ## 2. Bottleneck 块：ResNet50 的基本单元
 
 ### 2.0 🔥 Bottleneck 是什么？（先用一张图讲清）
@@ -1153,6 +1274,113 @@ A：**64**（BasicBlock，expansion=1，planes 就是输出）。注意 ResNet18
 A：layer1 的**输出**通道 256（即 planes×4），不是 planes 64。
 
 </details>
+---
+
+### 2.7 🔥 `planes` / `inplanes` / 输出通道：三个名字别搞混
+
+> [!abstract] 一句话
+> **`planes` = bottleneck 的内部宽度**（中间那个 3×3 卷积跑在多少通道上）。
+> **它才是"每 stage 翻倍"的那个数**：64 → 128 → 256 → 512。
+> 而**输出通道 = planes × expansion(4)** = 256 → 512 → 1024 → 2048。
+
+#### ① 源码里长什么样（torchvision `Bottleneck.__init__`）
+
+```python
+class Bottleneck(nn.Module):
+    expansion = 4
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None, ...):
+        self.conv1 = conv1x1(inplanes, planes)                      # inplanes → planes
+        self.conv2 = conv3x3(planes, planes, stride)                 # planes → planes
+        self.conv3 = conv1x1(planes, planes * self.expansion)        # planes → planes×4
+        self.bn3  = norm_layer(planes * self.expansion)
+```
+
+| 名字 | 含义 | 在 layer2[0] 里 |
+|---|---|---|
+| **`inplanes`** | 这个块的**输入**通道数 | **256** |
+| **`planes`** | **bottleneck 内部宽度**（3×3 在这上面跑） | **128** |
+| **输出通道** | `planes × expansion` | **512** |
+
+#### ② `planes` 在哪定的？
+
+torchvision `ResNet.__init__`：
+
+```python
+self.layer1 = self._make_layer(block, 64,  layers[0])   # planes=64
+self.layer2 = self._make_layer(block, 128, layers[1])   # planes=128
+self.layer3 = self._make_layer(block, 256, layers[2])   # planes=256
+self.layer4 = self._make_layer(block, 512, layers[3])   # planes=512
+```
+
+**`planes = 64 × 2^stage`** —— 一眼看出**每 stage 翻倍**。
+
+`_make_layer` 里的 `downsample` 也用同一个公式：
+
+```python
+if stride != 1 or self.inplanes != planes * block.expansion:
+    downsample = nn.Sequential(
+        conv1x1(self.inplanes, planes * block.expansion, stride),   # ← planes×4
+        norm_layer(planes * block.expansion))
+self.inplanes = planes * block.expansion                            # ← 传给下一个 stage
+```
+
+#### ③ ResNet50 完整对照表（实测）
+
+| stage | `inplanes`（输入） | **`planes`（瓶颈宽）** | `conv1` 1×1 | `conv2` 3×3 | `conv3` 1×1 | **输出通道** |
+|---|---|---|---|---|---|---|
+| layer1 | 64 | **64** | 64→64（不变） | 64→64 | 64→**256** | **256** |
+| layer2 | 256 | **128** | 256→**128**（降维 ×2） | 128→128 | 128→**512** | **512** |
+| layer3 | 512 | **256** | 512→**256**（降维 ×2） | 256→256 | 256→**1024** | **1024** |
+| layer4 | 1024 | **512** | 1024→**512**（降维 ×2） | 512→512 | 512→**2048** | **2048** |
+
+#### ④ 🔥 这直接回答了 §2.6 的疑问
+
+| 数 | 序列 | 倍数 |
+|---|---|---|
+| **`planes`** | 64 → 128 → 256 → 512 | **×2 每 stage** ← **"翻倍"就在这里** |
+| **输出通道** | 256 → 512 → 1024 → 2048 | ×2 每 stage |
+| stem 出口 → C2 | 64 → 256 | **×4** ← 因为 `planes₁(64) × expansion(4)` |
+
+> [!important] 一句话说透
+> **stem 输出的 64 通道，恰好等于 layer1 的 `planes`(64)。**
+> layer1 的 `conv1` 是 1×1 的 64→64（宽度不变），`conv3` 再 `×4` 撑到 256。
+> **所谓"唯一 ×4 的一跳"，本质就是 expansion 在起作用。**
+
+#### ⑤ 顺带发现：layer2/3/4 的 conv1 都是"降维 ×2"
+
+因为
+$$
+\text{inplanes} = \text{上一 stage 输出} = \text{上一 planes}\times 4 = \text{当前 planes}\times 2
+$$
+
+所以每个 stage 的 `conv1`（1×1）都把通道**砍一半**：
+256→128、512→256、1024→512。
+
+而 **layer1 的 conv1 是 64→64（不砍）**，只因为 stem 的 64 恰好撞上了 layer1 的 planes=64。
+**这是"巧合"，不是设计上的必然。**
+
+#### ⑥ 名字从哪来的？
+
+`planes` 借自 **OpenCV**：一张 H×W×C 的图像 = **C 张并行的 H×W 平面**，
+OpenCV 老 API 里这个数叫 `planes`（`cv::Mat::channels()`）。
+
+👉 所以 `planes` 在 ResNet 里的本意就是 **"这个卷积层有几张平面（通道）"**，
+只是具体特指**瓶颈内部那几层**的宽度。
+
+> [!note] mmdet 也用同一套命名
+> `mmdet/models/backbones/resnet.py` 的 `make_res_layer(..., inplanes, planes, out_channels, ...)`
+> 参数名和 torchvision **完全一致**，读代码时可以直接对照。
+
+#### ⑦ 读代码时的速查表
+
+| 你在代码里看到 | 它的意思是 |
+|---|---|
+| `planes=64` | 这个 stage 的瓶颈内部 64 通道 |
+| `inplanes=256` | 这个块收到的输入是 256 通道 |
+| `planes * block.expansion` | 这个 stage 的**输出**通道 |
+| `conv1x1(inplanes, planes)` | 1×1 降维，把输入通道压到瓶颈宽度 |
+| `conv1x1(planes, planes * expansion)` | 1×1 升维，把瓶颈宽度撑回输出通道 |
 ---
 
 ## 3. 🔥 与 HazyDet 的对接：分层冻结
