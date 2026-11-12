@@ -161,6 +161,157 @@ $$
 
 ---
 
+## 1.3 🔥 stem 是什么？（backbone 的"入口段"）
+
+> [!abstract] 一句话
+> **stem = backbone 最前面那一小段"接收原始输入、把像素变成可用的特征"的前端模块。**
+> 类比植物：茎（stem）托着叶（stage / block）。它是**输入和主干之间的过渡层**。
+
+#### ① ResNet 的 stem 到底包含什么
+
+```
+输入 3×H×W
+  │
+  ├─ conv1 : 7×7, stride 2, 3→64        ──► 64 × H/2 × W/2
+  ├─ bn1 (norm1) + ReLU
+  └─ maxpool : 3×3, stride 2             ──► 64 × H/4 × W/4     ← stem 到此结束
+  │
+  └─► layer1 (stage1) ... stride 4
+```
+
+| 模块 | 参数/形状 | 说明 |
+|---|---|---|
+| `conv1` 7×7, s2 | 3×64×7×7 = **9,408** | 唯一的"大核"；**stride 2 一次砍掉一半分辨率** |
+| `bn1` | 64×2 = **128** | γ、β |
+| `relu` | 0 | |
+| `maxpool` 3×3, s2 | **0**（无参） | 再砍一半 → stem 出口 = **stride 4** |
+| **合计** | **9,536** | 占 ResNet50 全部 conv+bn 的 **0.04%** |
+
+> [!tip] 对照 §3.4 的参数账
+> stem 只有 9.5K 参数，layer4 独占 14.96M。
+> **stem 参数量微不足道，但它决定了整张图"细节被砍掉"的第一步 —— 位置比体量重要。**
+
+#### ② mmdet 里的实现（你项目用的就是它）
+
+mmdet 3.x `mmdet/models/backbones/resnet.py`：
+
+```python
+def _make_stem_layer(self, in_channels, stem_channels):
+    if self.deep_stem:
+        self.stem = nn.Sequential(
+            3×3 conv s2 + BN + ReLU,     # 3 → stem_channels//2
+            3×3 conv s1 + BN + ReLU,     # stem_channels//2 → stem_channels//2
+            3×3 conv s1 + BN + ReLU)     # stem_channels//2 → stem_channels
+    else:
+        self.conv1 = build_conv_layer(..., kernel_size=7, stride=2, padding=3)
+        self.norm1 = build_norm_layer(...)      # BN
+        self.relu = nn.ReLU(inplace=True)
+    self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+```
+
+| | 默认（`deep_stem=False`） | `deep_stem=True` |
+|---|---|---|
+| 结构 | 7×7 s2 + BN + ReLU + MaxPool s2 | **3 个 3×3**（只有第 1 个 s2）+ BN + ReLU + MaxPool s2 |
+| stem 出口 stride | **4** | **4**（一样！只是把下采样"摊薄"了） |
+| 参数 | 9,536 | ≈ 64K（更重） |
+| 好处 | 快、参数少、原始论文做法 | 细节损失更小（单次 stride-2 的混叠少） |
+| 代价 | — | 慢、吃显存 |
+
+> [!important] ⚠️ **maxpool 两种 stem 都有**
+> `deep_stem=True` 时 `forward()` 里**照样**走 `x = self.maxpool(x)`。
+> 所以两种 stem 的出口 stride **都是 4**，C2 位置不变 —— 换 stem 不影响 FPN 的层级设计。
+
+**`ResNetV1d`**（Bag of Tricks）：`deep_stem=True` + `avg_down=True`（下采样用 AvgPool 代替 stride 卷积）。
+
+#### ③ 🔥 stem 与 `frozen_stages` 的关系（HazyDet 直接相关）
+
+mmdet `_freeze_stages()` 的真实逻辑：
+
+```python
+if self.frozen_stages >= 0:
+    if self.deep_stem:
+        self.stem.eval(); 冻结 stem 全部参数
+    else:
+        self.norm1.eval(); 冻结 conv1 + norm1
+for i in range(1, self.frozen_stages + 1):
+    layer{i}.eval(); 冻结 layer{i} 全部参数
+```
+
+| `frozen_stages` | stem | layer1 | layer2 | layer3 | layer4 |
+|---|---|---|---|---|---|
+| `-1` | 不冻 | 不冻 | 不冻 | 不冻 | 不冻 |
+| **`1`**（HazyDet 默认） | **冻** | **冻** | 不冻 | 不冻 | 不冻 |
+| `3`（HazyDet PDFT Stage 1） | **冻** | **冻** | **冻** | **冻** | 不冻 |
+
+> [!danger] **关键结论：只要 `frozen_stages >= 0`，stem 就一定被冻。**
+> HazyDet 的 `frozen_stages=1` → **conv1 + bn1 + layer1 全冻**，只有 layer2/3/4 + FPN 在学。
+> 这正是"小样本微调不破坏通用底层特征"的写法。
+
+#### ④ 🔥 stem 和 `style='pytorch'/'caffe'` 无关
+
+> [!warning] 常见误解
+> "`style` 决定 stem 怎么下采样" —— **错**。
+> `style` 只决定 **Bottleneck 块内部** stride-2 放在哪个 conv：
+> - `pytorch`：放在 3×3 上（`conv1_stride=1, conv2_stride=stride`）
+> - `caffe`：放在第一个 1×1 上（`conv1_stride=stride, conv2_stride=1`）
+>
+> **两种风格的 stem 完全一样**（7×7 s2 + MaxPool s2）。
+
+#### ⑤ stem 输出**不会**直接进 FPN
+
+| | 是否被 FPN 使用 |
+|---|---|
+| stem 输出（stride 4, 64ch） | ❌ **不用** |
+| layer1 输出 = C2（stride 4, 256ch） | ✅ FPN 的 `in_channels[0]=256` |
+
+mmdet 的 `out_indices=(0,1,2,3)` **只数 4 个 stage，不数 stem**。
+所以 FPN 的层级起点是 C2（stride 4），不是 stem。
+
+#### ⑥ 其他 backbone 的 stem 长什么样
+
+| Backbone | stem | 出口 stride |
+|---|---|---|
+| ResNet | 7×7 s2 + maxpool s2 | 4 |
+| ResNet `deep_stem` | 3×3 ×3 | 4 |
+| VGG | 3 个 3×3 conv | 2 |
+| MobileNetV2/3 | 3×3 depthwise s2 | 2 |
+| ConvNeXt | 4×4 patch embed（也叫 stem） | 4 |
+| Swin Transformer | 4×4 patch embed | 4 |
+| HRNet | conv1 + conv2_x + conv3_x（**两个 stage 当 stem**） | 8 |
+
+> [!tip] 记住一句话就够
+> **stem 负责"把像素变成特征"，stage 负责"把特征变成语义"。**
+> stem 决定**细节的起点**，stage 决定**语义的深度**。
+
+#### ⑦ 术语辨析（别被其他论文带偏）
+
+"stem" 在别的领域指：
+- **NLP**：词干（stemming）—— "running" → "run"
+- **剪枝**：被保留下来的那部分结构（与 "pruned" 相对）
+- **知识蒸馏**：源网络 / 完整网络（与 "student" 相对）
+
+👉 在 backbone 语境里，**stem = 入口前端模块**，就本文这一种含义。
+
+<details>
+<summary>🔍 自测</summary>
+
+**Q1. HazyDet 的 `frozen_stages=1` 时，哪些参数被冻结？**
+A：`conv1` + `bn1`（stem）+ `layer1` 全部；`layer2/3/4` 和 FPN 保持可训练。
+
+**Q2. `deep_stem=True` 后，FPN 的 `in_channels` 要改吗？**
+A：不用。两者的 stem 出口 stride 都是 4、C2 通道数都是 256，FPN 输入不变。
+
+**Q3. stem 的参数量大概是多少？和 layer4 比？**
+A：stem ≈ 9.5K（conv1 9,408 + bn1 128），layer4 ≈ 14.96M —— **差 3 个数量级**。
+说明 stem 的重要性在**位置**（细节第一道关口），不在**体量**。
+
+**Q4. `style='caffe'` 时 stem 有变化吗？**
+A：**没有**。stem 两种风格完全一致；`style` 只改 Bottleneck 内部 stride-2 的落点。
+
+</details>
+
+---
+
 ## 2. Bottleneck 块：ResNet50 的基本单元
 
 ### 2.1 结构（以 `layer2[0]` 为例，实测输出）
@@ -363,9 +514,13 @@ HazyDet 的 config 里写了 `style='pytorch'`（`configs/vfnet/DeCoDet_vfnet_r5
 实测：`layer2[0].conv2`（3×3）的 stride = **(2,2)**，而 `conv1`（1×1）stride = (1,1) → 确认是 pytorch 风格。
 
 > [!note] 为什么重要
-> caffe 风格**不做 zero-init**（残差分支最后一层 BN 初始化为 0）；
-> pytorch 风格 `zero_init_residual=False`（默认）。
+> `style` 决定 **Bottleneck 内部 stride-2 落在哪个 conv**，直接影响预训练权重能否对上。
 > 复现时若加载 ImageNet 权重发现对不上，先查 `style`。
+
+> [!warning] 🔴 纠正一个常见说法：**`zero_init_residual` 与 `style` 无关**
+> mmdet 3.x 里 `zero_init_residual=True` 是**独立开关**（默认开），caffe / pytorch 两种风格**都**会
+> 把残差分支最后一个 BN 初始化为 0。它由 Bag of Tricks 引入，与 stride 落点无关。
+> 本节初版曾写成"caffe 风格不做 zero-init"，**那是错的**，已更正。
 
 ### 4.3 `norm_eval` 与 `requires_grad=True` 并不矛盾
 
