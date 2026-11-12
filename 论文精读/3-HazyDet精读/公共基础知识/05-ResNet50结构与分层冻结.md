@@ -957,6 +957,93 @@ ResNet50：`planes = 64, 128, 256, 512`，输出 = `planes × 4` → 256, 512, 1
 > 想降维就少配几个核，想升维就多配几个核；核的大小只影响"看多大范围"。
 ---
 
+### 1.9 🔥 `fc` 是什么？（以及为什么检测里要把它丢掉）
+
+> [!abstract] 一句话
+> **`fc` = fully connected（全连接层）**，在 ResNet 里就是**最后那个 `nn.Linear`**：
+> 把整张图压缩出的 **2048 维向量**映射成 **1000 个类别分数**。
+> **检测任务里它被直接丢弃** —— 因为它会把"目标在哪"的信息彻底抹掉。
+
+#### ① 它在哪儿、有多大
+
+```python
+m.fc = nn.Linear(in_features=2048, out_features=1000, bias=True)
+```
+
+**参数量** = 2048 × 1000 + 1000 = **2,049,000**
+
+#### ② 完整的分类链路（实测每一步的形状）
+
+```
+backbone 输出        (1, 2048, 7, 7)   ← 空间维度还在
+   ↓ avgpool (AdaptiveAvgPool2d(1,1))
+                    (1, 2048, 1, 1)   ← 空间没了，整张图只剩一个向量
+   ↓ flatten
+                    (1, 2048)
+   ↓ fc (Linear 2048→1000)
+                    (1, 1000)        ← 1000 类的 logits
+```
+
+#### ③ 放回总参数账里
+
+$$
+\underbrace{25{,}557{,}032}_{\text{ResNet50 总参数}}
+= \underbrace{23{,}508{,}032}_{\text{conv + bn（检测用这个）}} + \underbrace{2{,}049{,}000}_{\text{fc（检测丢掉）}}
+$$
+
+> 👉 **HazyDet 的 VFNet 里 backbone 就是 23.5M**，
+> 整个模型 32.71M —— **多出来的 9.2M 是 FPN + 检测头**，不是 fc。
+
+#### ④ 🔥 为什么检测**必须**丢掉 fc
+
+`avgpool` 把空间维度压成 1×1，**"目标在图的哪个位置"这个信息被彻底抹掉了**。
+分类只需要回答"这是什么"，检测必须回答"**这是什么 + 在哪 + 多大**"。
+
+| 任务 | 需要保留什么 | 用什么 |
+|---|---|---|
+| **分类** | 全图的整体语义 | `avgpool → fc` ✅ |
+| **检测** | **空间位置 + 尺度** | **FPN + 密集预测头** ❌ 不用 fc |
+
+> [!danger] 这就是"backbone 和 head 分家"的原因
+> - **backbone**：只管把 RGB 变成**带空间结构**的特征图（`C × H × W`）
+> - **head**：在特征图的**每个空间位置**上分别预测
+
+#### ⑤ 检测头用什么替代 fc？—— **3×3 卷积**（不是 Linear！）
+
+HazyDet 官方代码 `HazyDet/models/dense_heads/vfnet_DeCoDetHead.py`：
+
+```python
+self.vfnet_cls = nn.Conv2d(self.feat_channels, self.cls_out_channels, 3, padding=1)  # 分类
+self.vfnet_reg = nn.Conv2d(self.feat_channels, 4, 3, padding=1)                      # 回归 (l,t,r,b)
+self.vfnet_seg = nn.Conv2d(self.feat_channels, 1, 3, padding=1)                      # 前景分数
+```
+
+**为什么用卷积而不是 Linear？**
+
+| | `nn.Linear`（分类 fc） | `nn.Conv2d(..., 3, padding=1)`（检测头） |
+|---|---|---|
+| 输入形状 | (B, 2048) —— **必须先压平** | (B, C, H, W) —— **保持空间** |
+| 输出形状 | (B, 1000) —— 整图一个向量 | (B, C_out, H, W) —— **每个位置一个预测** |
+| 空间信息 | ❌ 丢失 | ✅ 保留 |
+| 权重共享 | 全图共享 | **每个位置共享同一套核** |
+
+👉 **`nn.Conv2d(..., 1×1)` 在数学上等价于逐位置的 Linear**，所以检测头可以用 1×1；
+但回归还需要邻居信息，所以常用 **3×3**。
+
+#### ⑥ 术语辨析：代码里的 "fc" 有时不是 Linear
+
+| 出现的地方 | 实际是什么 |
+|---|---|
+| `resnet.fc` | `nn.Linear` ✅ 真·全连接 |
+| mmdet 老版 FCOS head 的 `fc_cls` / `fc_reg` | **其实是 `nn.Conv2d`** —— 名字沿用了 fc，但保留了空间维度 |
+| 论文里的 "FC layer" | 泛指"把所有输入特征连起来算"的层（可能指 conv 也可能指 linear） |
+
+> [!tip] 怎么快速判断
+> 看**输入形状**：
+> - 输入是 `(B, C)` → 真 Linear
+> - 输入是 `(B, C, H, W)` → 是 Conv，名字里的 fc 只是历史习惯
+---
+
 ## 2. Bottleneck 块：ResNet50 的基本单元
 
 ### 2.0 🔥 Bottleneck 是什么？（先用一张图讲清）
