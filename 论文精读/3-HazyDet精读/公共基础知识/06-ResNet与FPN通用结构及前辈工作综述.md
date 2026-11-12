@@ -123,6 +123,102 @@ x ──────────────────────────
 
 ---
 
+### 2.4 🔌 三段式接口契约：`in_channels` / `out_channels` 到底在说什么
+
+> [!abstract] 一句话
+> **`in_channels` = 我这个模块准备吃的那张输入特征图有几个通道。**
+> 它是模块之间的「接口契约」：上游必须真的给我这么多通道，否则代码直接报错。
+
+#### ① 通道（channel）是什么
+
+一张特征图可以写成 `H × W × C`：
+
+- `H × W` = 空间尺寸（特征图有多大）
+- `C` = **通道数**（这张特征图有几"层"信息）
+
+自然图像是 `H × W × 3`（R/G/B）；ResNet-50 的 C4 是 `H/16 × W/16 × 1024`。
+
+> [!important] 通道不是"颜色"
+> RGB 只是**输入图像**的 3 个通道。进入网络之后，通道变成**特征图的厚度**：
+> 每一层放一种"检测线索"（"边缘在哪""这是车轮纹理""这里像车顶"）。
+> `C` 越大 = 每层携带的信息越丰富。
+
+#### ② 在检测器里，`in_channels` 出现在三处
+
+| 位置 | 参数 | HazyDet 里的值 | 含义 |
+|---|---|---|---|
+| Backbone | `in_channels` | `3`（默认值，config 没写） | 输入是 RGB 图 |
+| Neck (FPN) | `in_channels` | `[256, 512, 1024, 2048]` | 一次吃 4 个尺度的特征 |
+| Neck (FPN) | `out_channels` | `256` | 输出统一成 256 通道 |
+| Head | `in_channels` | `256` | 吃 Neck 交上来的 P3~P7 |
+| Head | `feat_channels` | `256` | Head 内部中间卷积也保持 256 |
+
+对应代码（HazyDet 官方 config）：
+`configs/vfnet/DeCoDet_vfnet_r50_fpn_1x_hazydet.py`
+
+```python
+backbone=dict(type='ResNet', depth=50, out_indices=(0,1,2,3), frozen_stages=1, ...),
+neck=dict(type='FPN', in_channels=[256,512,1024,2048], out_channels=256,
+          start_level=1, add_extra_convs='on_output', num_outs=5, ...),
+bbox_head=dict(type='VFNetDeCoDetHead', in_channels=256, feat_channels=256,
+               stacked_convs=3, strides=[8,16,32,64,128], ...),
+```
+
+#### ③ 数据在流水线里的形状变化
+
+```
+输入图像            3 × H × W
+  ↓ stem (7×7 s2)  64 × H/2 × W/2
+  ↓ layer1         256 × H/4 × W/4      ← C2   (out_indices=0)
+  ↓ layer2         512 × H/8 × W/8      ← C3   (out_indices=1)
+  ↓ layer3        1024 × H/16 × W/16    ← C4   (out_indices=2)
+  ↓ layer4        2048 × H/32 × W/32    ← C5   (out_indices=3)
+  ↓ FPN (in=256/512/1024/2048 → out=256)
+  P3 256×H/8×W/8    P4 256×H/16×W/16    P5 256×H/32×W/32
+  P6 256×H/64×W/64  P7 256×H/128×W/128
+  ↓ VFNetDeCoDetHead (in=256, strides=[8,16,32,64,128])
+类别 logits / 回归框 / 深度图
+```
+
+#### ④ 为什么必须对得上（机制层面）
+
+卷积核的权重形状是 `[out_channels, in_channels, kH, kW]`：
+
+- 3×3、256→256 的卷积 = `256 × 256 × 3 × 3` = **589,824** 个参数
+- 那个 `in_channels=256` 的意思是"每个输出通道都要去看这 256 个输入通道"
+
+维度对不上会**直接报错**，不会静默算错：
+
+```
+RuntimeError: Given groups=1, weight of size [256, 128, 3, 3],
+expected input[1, 256, H, W] to have 128 channels
+```
+
+#### ⑤ 最常见的复现坑：换 backbone 忘了改 neck
+
+把 ResNet-50 换成 Swin / ConvNeXt / EfficientNet 之后，各阶段通道数全变，
+**Neck 的 `in_channels` 必须同步改**，否则 FPN 第一层就崩。
+
+这是"改论文配置"时最常见的报错来源之一。
+
+#### ⑥ 别把三个 3 搞混
+
+| 数字 | 参数名 | 在哪 | 含义 |
+|---|---|---|---|
+| 3 | `backbone.in_channels` | Backbone | 图像的 RGB 通道 |
+| 3 | `num_classes` | Head | 目标类别数（HazyDet：car / truck / bus） |
+| 256 | `in_channels` / `out_channels` | Neck / Head | 特征图通道数 |
+
+前两个 3 **毫无关系**，只是碰巧相等。
+
+#### ⑦ 口诀
+
+> 一个模块的 `in_channels` = 上一个模块的 `out_channels`。
+> 通道数在 Neck 这一层被"统一"（FPN 的 `out_channels=256`），
+> 正是为了让 **Head 能用同一套权重处理 P3~P7 五个尺度**。
+
+---
+
 ## 第三部分 · 🔥 前辈们做过的改进（你的方向）
 
 > [!note] 分类原则
