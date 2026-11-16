@@ -294,6 +294,112 @@ class SmartPageBreak(ActionFlowable):
         doc.handle_pageBreak()
 
 
+# ------------------------------------------------------------------ 目录页码
+_CN_NUM = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6,
+           "七": 7, "八": 8, "九": 9, "十": 10}
+
+
+def _norm(s: str) -> str:
+    return re.sub(r"\s+", "", s or "")
+
+
+def toc_key(label: str):
+    """目录行首（'第 1 章' / '附录 A'）-> 统一 key（'第1章' / '附录A'）。"""
+    t = _norm(label)
+    m = re.match(r"^第([0-9一二三四五六七八九十]+)章$", t)
+    if m:
+        g = m.group(1)
+        n = int(g) if g.isdigit() else _CN_NUM.get(g)
+        return f"第{n}章" if n else None
+    m = re.match(r"^附录([A-D])$", t)
+    if m:
+        return f"附录{m.group(1)}"
+    if t == "参考文献":
+        return "参考文献"
+    return None
+
+
+def h1_key(payload: str):
+    """一级标题（'第一章 绪论'）-> 统一 key。"""
+    t = _norm(payload)
+    m = re.match(r"^第([一二三四五六七八九十]+)章", t)
+    if m:
+        n = _CN_NUM.get(m.group(1))
+        return f"第{n}章" if n else None
+    m = re.match(r"^附录([A-D])", t)
+    if m:
+        return f"附录{m.group(1)}"
+    if t == "参考文献":
+        return "参考文献"
+    return None
+
+
+def collect_chapters(blocks):
+    """所有一级标题 -> {key: 标题原文}。"""
+    out = {}
+    for kind, payload in blocks:
+        if kind == "h1":
+            k = h1_key(payload)
+            if k:
+                out[k] = payload
+    return out
+
+
+def augment_toc(blocks, toc_pages):
+    """给「目录」表追加一列「页码」。页码未知时填 '—'。"""
+    toc_idx = None
+    for i, (kind, payload) in enumerate(blocks):
+        if kind == "h1" and _norm(payload) == "目录":
+            toc_idx = i
+            break
+    if toc_idx is None:
+        return blocks
+    for j in range(toc_idx + 1, len(blocks)):
+        kind, payload = blocks[j]
+        if kind == "h1":
+            break
+        if kind == "table":
+            head, rows = payload
+            if head and _norm(head[0]) == "章节":
+                new_rows = []
+                for r in rows:
+                    key = toc_key(r[0]) if r else None
+                    pg = str(toc_pages.get(key, "—")) if key else "—"
+                    new_rows.append(list(r) + [pg])
+                blocks[j] = ("table", (list(head) + ["页码"], new_rows))
+            break
+    return blocks
+
+
+def measure_toc(pdf_path, chapters):
+    """从已生成的 PDF 里量出每个一级标题所在页码。"""
+    try:
+        from pypdf import PdfReader
+    except Exception:
+        return {}
+    try:
+        pages = [(pg.extract_text() or "") for pg in PdfReader(pdf_path).pages]
+    except Exception:
+        return {}
+    norm_pages = [_norm(t) for t in pages]
+    # 目录页 = 含「核心产出」表头的那一页
+    toc_page = -1
+    for i, t in enumerate(norm_pages):
+        if "核心产出" in t:
+            toc_page = i
+            break
+    out = {}
+    for key, title in chapters.items():
+        needle = _norm(title)
+        for i, t in enumerate(norm_pages):
+            if i <= toc_page:
+                continue
+            if needle and needle in t:
+                out[key] = i + 1
+                break
+    return out
+
+
 # ------------------------------------------------------------------ 构建
 def build_flowables(blocks, styles, math_manifest, content_w, base_dir):
     # 章节 h1 之前紧邻的 hr 是冗余的（h1 自身已带一条横线），而且它可能
@@ -522,7 +628,8 @@ def build_cover(blocks, content_w):
 
 
 # ------------------------------------------------------------------ 文档
-def make_pdf(md_path: str, pdf_path: str):
+def _render_once(md_path: str, pdf_path: str, toc_pages=None):
+    toc_pages = toc_pages or {}
     register_fonts()
     # 公式缓存
     if not os.path.exists(MATH_MANIFEST) or os.path.getmtime(MATH_MANIFEST) < os.path.getmtime(md_path):
@@ -541,6 +648,7 @@ def make_pdf(md_path: str, pdf_path: str):
         body_md = md[:cm.start()] + md[cm.end():]
     blocks = parse(body_md)
     cover_blocks = parse(cover_md) if cover_md else []
+    blocks = augment_toc(blocks, toc_pages)
     styles = build_styles()
 
     LM, RM, TM, BM = 20 * mm, 18 * mm, 20 * mm, 16 * mm
@@ -574,6 +682,32 @@ def make_pdf(md_path: str, pdf_path: str):
     flow += build_flowables(blocks, styles, math_manifest, content_w,
                             os.path.dirname(os.path.abspath(md_path)))
     doc.build(flow)
+    return pdf_path
+
+
+def make_pdf(md_path: str, pdf_path: str):
+    """生成 PDF，并自动把「目录」里的页码回填为真实页码。
+
+    做法：先构建一版（页码列填 '—'）-> 从 PDF 里量出各章所在页 ->
+    再构建一版并复核页码是否稳定（最多 4 轮）。
+    """
+    md = open(md_path, encoding="utf-8").read()
+    body_md = md
+    cm = re.search(r"<!-- COVER -->(.*?)<!-- /COVER -->", md, re.S)
+    if cm:
+        body_md = md[:cm.start()] + md[cm.end():]
+    chapters = collect_chapters(parse(body_md))
+
+    toc_pages, measured = {}, {}
+    for _ in range(4):
+        _render_once(md_path, pdf_path, toc_pages)
+        measured = measure_toc(pdf_path, chapters)
+        if measured == toc_pages:
+            break
+        toc_pages = measured
+    else:
+        # 最后一轮按量到的页码重建，保证目录与正文一致
+        _render_once(md_path, pdf_path, toc_pages)
     return pdf_path
 
 
