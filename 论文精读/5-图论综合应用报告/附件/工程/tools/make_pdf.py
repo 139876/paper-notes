@@ -23,7 +23,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (ActionFlowable, BaseDocTemplate, Frame, Image,
+from reportlab.platypus import (ActionFlowable, BaseDocTemplate, Flowable, Frame, Image,
                                 KeepTogether, PageBreak, PageTemplate, Paragraph,
                                 Spacer, Table, TableStyle, HRFlowable)
 
@@ -206,7 +206,13 @@ def parse(md: str):
                 not re.match(r"^(-{3,}|\*{3,}|_{3,})$", lines[i].strip()):
             buf.append(lines[i].strip()); i += 1
         if buf:
-            blocks.append(("p", " ".join(buf)))
+            txt = " ".join(buf)
+            # 题注：**表 N　xxx** / **图 N　xxx**
+            m = re.match(r"^\*\*\s*([表图])\s*(\d+)\s*[　\s]\s*(.+?)\s*\*\*$", txt)
+            if m:
+                blocks.append(("cap", (m.group(1), m.group(2), m.group(3))))
+            else:
+                blocks.append(("p", txt))
         else:
             i += 1
     return blocks
@@ -272,6 +278,17 @@ def build_styles():
     S["cap"] = ParagraphStyle("cap", fontName=F_BODY, fontSize=8.6, leading=12,
                                alignment=TA_CENTER, textColor=colors.HexColor("#6b7a88"),
                                spaceAfter=8)
+    # 正式题注：表题在表上方、图题在图下方，五号黑体居中
+    S["capt"] = ParagraphStyle("capt", fontName=F_HEAD, fontSize=9.4, leading=14,
+                                alignment=TA_CENTER, textColor=C_DARK,
+                                spaceBefore=9, spaceAfter=4)
+    S["capf"] = ParagraphStyle("capf", fontName=F_HEAD, fontSize=9.4, leading=14,
+                                alignment=TA_CENTER, textColor=C_DARK,
+                                spaceBefore=5, spaceAfter=11)
+    # wordWrap="CJK"：按中文字符边界断行。
+    # 否则中英混排的两端对齐会把行内空白拉成巨大空隙。
+    for k in ("p", "li", "tc", "th", "quote", "capt", "capf"):
+        S[k].wordWrap = "CJK"
     return S
 
 
@@ -331,6 +348,8 @@ def h1_key(payload: str):
         return f"附录{m.group(1)}"
     if t == "参考文献":
         return "参考文献"
+    if t == "目录":
+        return "目录"
     return None
 
 
@@ -371,8 +390,37 @@ def augment_toc(blocks, toc_pages):
     return blocks
 
 
+def chapter_at(page_no, chapter_map):
+    """页码 -> 所在章节名（页眉用）。"""
+    name = ""
+    for start, title in chapter_map:
+        if start <= page_no:
+            name = title
+        else:
+            break
+    return name
+
+
+def _first_body_line(text: str):
+    """去掉页眉页脚后的第一行正文（章节页就是标题行）。"""
+    for ln in (text or "").split("\n"):
+        s = ln.strip()
+        if not s:
+            continue
+        if s == TITLE:
+            continue
+        if re.match(r"^[—-]\s*\d+\s*[—-]$", s):
+            continue
+        return s
+    return ""
+
+
 def measure_toc(pdf_path, chapters):
-    """从已生成的 PDF 里量出每个一级标题所在页码。"""
+    """从已生成的 PDF 里量出每个一级标题所在页码。
+
+    判定方式：章节页的「首行正文」就是该章的一级标题（每章另起一页），
+    比全文包含匹配更精确 —— 不会把目录里的一行误判成章节位置。
+    """
     try:
         from pypdf import PdfReader
     except Exception:
@@ -381,23 +429,68 @@ def measure_toc(pdf_path, chapters):
         pages = [(pg.extract_text() or "") for pg in PdfReader(pdf_path).pages]
     except Exception:
         return {}
-    norm_pages = [_norm(t) for t in pages]
-    # 目录页 = 含「核心产出」表头的那一页
+    # 目录页 = 含独立一行「目录」的页
     toc_page = -1
-    for i, t in enumerate(norm_pages):
-        if "核心产出" in t:
+    for i, t in enumerate(pages):
+        if any(ln.strip() == "目录" for ln in t.split("\n")):
             toc_page = i
             break
     out = {}
     for key, title in chapters.items():
         needle = _norm(title)
-        for i, t in enumerate(norm_pages):
+        if not needle:
+            continue
+        if key == "目录":
+            if toc_page >= 0:
+                out[key] = toc_page + 1
+            continue
+        for i, t in enumerate(pages):
             if i <= toc_page:
                 continue
-            if needle and needle in t:
+            if _norm(_first_body_line(t)) == needle:
                 out[key] = i + 1
                 break
     return out
+
+
+class TocFlowable(Flowable):
+    """正式目录：条目 + 点引导线 + 右对齐页码。"""
+
+    def __init__(self, entries, width, leading=18.0, size=10.4):
+        Flowable.__init__(self)
+        self.entries = entries
+        self.width = width
+        self.leading = leading
+        self.size = size
+        self.height = leading * len(entries)
+
+    def wrap(self, availWidth, availHeight):
+        return (self.width, self.height)
+
+    def draw(self):
+        # reportlab 的 drawOn 已把画布平移到本 flowable 的左下角，
+        # 因此这里用局部坐标 (0, 0) 起画
+        c = self.canv
+        x0 = 0
+        y = self.height
+        for text, page in self.entries:
+            y -= self.leading
+            c.setFont(F_BODY, self.size)
+            c.setFillColor(colors.HexColor("#1d2733"))
+            c.drawString(x0, y, text)
+            pw = c.stringWidth(str(page), F_BODY, self.size)
+            tw = c.stringWidth(text, F_BODY, self.size)
+            x1 = x0 + tw + 7
+            x2 = x0 + self.width - pw - 7
+            if x2 > x1:
+                c.setStrokeColor(colors.HexColor("#9fb0c0"))
+                c.setLineWidth(0.6)
+                c.setDash(1, 2.2)
+                c.line(x1, y + 3.0, x2, y + 3.0)
+                c.setDash()
+            c.setFillColor(C_DARK)
+            c.setFont(F_BODY, self.size)
+            c.drawRightString(x0 + self.width, y, str(page))
 
 
 # ------------------------------------------------------------------ 构建
@@ -438,6 +531,10 @@ def build_flowables(blocks, styles, math_manifest, content_w, base_dir):
                 bullet = "•" if not re.match(r"^\d+[.)]", payload[0] or "") else ""
                 flow.append(Paragraph(inline(it), styles["li"],
                                       bulletText="•"))
+        elif kind == "cap":
+            which, num, title = payload
+            st = styles["capt"] if which == "表" else styles["capf"]
+            flow.append(Paragraph(f"{which} {num}　{title}", st))
         elif kind == "hr":
             flow.append(Spacer(1, 5))
             flow.append(HRFlowable(width="100%", thickness=0.5,
@@ -490,6 +587,18 @@ def build_flowables(blocks, styles, math_manifest, content_w, base_dir):
             flow.append(Spacer(1, 8))
         elif kind == "table":
             head, rows = payload
+            # 目录表 -> 正式的点引导线目录
+            if head and _norm(head[0]) == "章节" and rows:
+                entries = []
+                for r in rows:
+                    if len(r) >= 4:
+                        entries.append((f"{r[0]}　{r[1]}", r[3]))
+                    elif len(r) >= 2:
+                        entries.append((f"{r[0]}　{r[1]}", "—"))
+                flow.append(Spacer(1, 4))
+                flow.append(TocFlowable(entries, content_w))
+                flow.append(Spacer(1, 12))
+                continue
             ncol = len(head)
             data = [[Paragraph(inline(c), styles["th"]) for c in head]]
             for r in rows:
@@ -581,6 +690,9 @@ def build_cover(blocks, content_w):
     st_td = ParagraphStyle("ctd", fontName=F_BODY, fontSize=9.8, leading=14.5,
                             textColor=colors.HexColor("#1a1a1a"))
 
+    for _st in (st_abs, st_kw, st_td):
+        _st.wordWrap = "CJK"
+
     flow = []
     in_abs = False
     for kind, payload in blocks:
@@ -591,8 +703,10 @@ def build_cover(blocks, content_w):
         elif kind == "p":
             if in_abs:
                 txt = inline(payload)
-                if txt.startswith("<b>关键词"):
+                if txt.startswith("<b>关键词") or txt.startswith("<b>Key words"):
                     flow.append(Paragraph(txt, st_kw))
+                elif txt.startswith("<b>Abstract"):
+                    flow.append(Paragraph(txt, st_abs))
                 else:
                     flow.append(Paragraph(txt, st_abs))
             else:
@@ -628,8 +742,9 @@ def build_cover(blocks, content_w):
 
 
 # ------------------------------------------------------------------ 文档
-def _render_once(md_path: str, pdf_path: str, toc_pages=None):
+def _render_once(md_path: str, pdf_path: str, toc_pages=None, chapter_map=None):
     toc_pages = toc_pages or {}
+    chapter_map = chapter_map or []
     register_fonts()
     # 公式缓存
     if not os.path.exists(MATH_MANIFEST) or os.path.getmtime(MATH_MANIFEST) < os.path.getmtime(md_path):
@@ -656,10 +771,16 @@ def _render_once(md_path: str, pdf_path: str, toc_pages=None):
     content_w = PW - LM - RM
 
     def on_page(canvas, doc):
+        if doc.page == 1:            # 封面不排页眉页脚
+            return
         canvas.saveState()
         canvas.setFont(F_BODY, 7.6)
         canvas.setFillColor(colors.HexColor("#8a97a5"))
         canvas.drawString(LM, PH - TM + 7 * mm, TITLE)
+        chap = chapter_at(doc.page, chapter_map)
+        if chap:
+            canvas.setFont(F_BODY, 7.6)
+            canvas.drawRightString(PW - RM, PH - TM + 7 * mm, chap)
         canvas.setStrokeColor(colors.HexColor("#d6dee6"))
         canvas.setLineWidth(0.4)
         canvas.line(LM, PH - TM + 4.6 * mm, PW - RM, PH - TM + 4.6 * mm)
@@ -698,16 +819,19 @@ def make_pdf(md_path: str, pdf_path: str):
         body_md = md[:cm.start()] + md[cm.end():]
     chapters = collect_chapters(parse(body_md))
 
+    def _cmap(pages):
+        return sorted((pages[k], chapters[k]) for k in pages if k in chapters)
+
     toc_pages, measured = {}, {}
     for _ in range(4):
-        _render_once(md_path, pdf_path, toc_pages)
+        _render_once(md_path, pdf_path, toc_pages, _cmap(toc_pages))
         measured = measure_toc(pdf_path, chapters)
         if measured == toc_pages:
             break
         toc_pages = measured
     else:
         # 最后一轮按量到的页码重建，保证目录与正文一致
-        _render_once(md_path, pdf_path, toc_pages)
+        _render_once(md_path, pdf_path, toc_pages, _cmap(toc_pages))
     return pdf_path
 
 

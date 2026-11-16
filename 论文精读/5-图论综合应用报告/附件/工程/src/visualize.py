@@ -2,11 +2,14 @@
 """
 生成报告插图（对应 PDF 建议的「三张核心图」+ 实验分析图）。
 
-图 1  校园道路网络图论抽象模型   -> fig1_road_network.png
+图 1  校园道路网络图论抽象模型     -> fig1_road_network.png
 图 2  配送点最短距离矩阵热力图     -> fig2_distance_matrix.png
-图 3  最优配送路线 vs 人工路线对比 -> fig3_route_comparison.png
-图 4  不同算法对比柱状图           -> fig4_algorithm_comparison.png
+图 3  不同配送路径规划算法对比     -> fig3_algorithm_comparison.png
+图 4  最优配送路线 vs 人工路线对比 -> fig4_route_comparison.png
 图 5  道路封闭对最优总路程的影响   -> fig5_closure_impact.png
+
+图题统一放在图下方（正文 Markdown 的 '**图 N　...**' 题注），
+因此这里不再在图内绘制标题，避免与题注重复。
 """
 from __future__ import annotations
 import csv
@@ -117,9 +120,6 @@ def fig1_road_network(g, nodes, edges, path=None):
                         fontsize=9.5, color="#2C3E50", ha=ha,
                         arrowprops=dict(arrowstyle="-", color="#BDC3C7", lw=0.9))
 
-    ax.set_title("图 1  重庆大学虎溪校区校园道路网络的图论抽象模型\n"
-                 f"(V={g.n} 个顶点，E={g.m} 条边；边权单位：米；★=快递站，●=配送点，○=道路节点)",
-                 fontsize=13, fontweight="bold", pad=16)
     ax.set_xlabel("局部平面坐标 X / 米"); ax.set_ylabel("局部平面坐标 Y / 米")
     ax.set_aspect("equal"); ax.grid(True, ls=":", alpha=0.35)
     ax.set_xlim(20, 1130); ax.set_ylim(40, 1060)
@@ -146,9 +146,6 @@ def fig2_distance_matrix(P, D, path=None):
             v = M[i, j]
             ax.text(j, i, f"{v:.0f}", ha="center", va="center", fontsize=8.5,
                     color="white" if v > M.max() * 0.55 else "#2C3E50")
-    ax.set_title("图 2  配送图 P 的最短距离矩阵 D\n"
-                 "(沿校园道路的最短步行距离，非直线距离；单位：米)",
-                 fontsize=13, fontweight="bold", pad=14)
     ax.set_xlabel("起点"); ax.set_ylabel("终点")
     for lb in ax.get_xticklabels(): lb.set_fontweight("bold")
     for lb in ax.get_yticklabels(): lb.set_fontweight("bold")
@@ -159,8 +156,8 @@ def fig2_distance_matrix(P, D, path=None):
 
 
 # =============================================================== 图 3
-def fig3_route_comparison(g, P, D, path=None):
-    path = path or os.path.join(FIGS, "fig3_route_comparison.png")
+def fig4_route_comparison(g, P, D, path=None):
+    path = path or os.path.join(FIGS, "fig4_route_comparison.png")
     nn = nearest_neighbor(D, 0)
     opt_order, opt_len, _ = two_opt(nn, D)
     hk_len, hk_order = held_karp(D)
@@ -215,10 +212,6 @@ def fig3_route_comparison(g, P, D, path=None):
                     bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.92),
                     arrowprops=dict(arrowstyle="-", color=C_OPT, lw=1.0))
 
-    ax.set_title("图 3  最优配送路线与人工规划路线的对比\n"
-                 f"(最优 {opt_len:.1f} m，人工 {manual_len:.1f} m，"
-                 f"节省 {manual_len - opt_len:.1f} m / {(manual_len - opt_len)/manual_len*100:.1f}%)",
-                 fontsize=13, fontweight="bold", pad=16)
     ax.set_xlabel("局部平面坐标 X / 米"); ax.set_ylabel("局部平面坐标 Y / 米")
     ax.set_aspect("equal"); ax.grid(True, ls=":", alpha=0.3)
     ax.set_xlim(20, 1130); ax.set_ylim(40, 1060)
@@ -228,8 +221,8 @@ def fig3_route_comparison(g, P, D, path=None):
 
 
 # =============================================================== 图 4
-def fig4_algorithm_comparison(path=None):
-    path = path or os.path.join(FIGS, "fig4_algorithm_comparison.png")
+def fig3_algorithm_comparison(path=None):
+    path = path or os.path.join(FIGS, "fig3_algorithm_comparison.png")
     rows = _load_csv("E2_algorithm_comparison.csv")
     names = [r["algorithm"] for r in rows]
     vals = [float(r["length_m"]) for r in rows]
@@ -243,8 +236,6 @@ def fig4_algorithm_comparison(path=None):
     ax.set_xticks(range(len(names)))
     ax.set_xticklabels([n.replace("(", "\n(").replace(")", ")") for n in names], fontsize=9)
     ax.set_ylabel("闭合巡回总路程 (m)")
-    ax.set_title("图 4  不同配送路径规划算法在校园配送实例上的对比\n"
-                 "(条形下方为相对最优解的超出比例)", fontsize=13, fontweight="bold", pad=14)
     ax.grid(axis="y", ls=":", alpha=0.4); ax.set_ylim(0, max(vals) * 1.22)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout(); fig.savefig(path, bbox_inches="tight"); plt.close(fig)
@@ -267,9 +258,6 @@ def fig5_closure_impact(path=None):
     ax.set_xticks(range(len(names)))
     ax.set_xticklabels(names, fontsize=9.5, rotation=30, ha="right")
     ax.set_ylabel("最优总路程增加比例 (%)")
-    ax.set_title("图 5  封闭单条关键道路后最优总路程的变化\n"
-                 "(红=影响剧烈(>40%)，橙=中等(15~40%)，蓝=轻微(<15%))",
-                 fontsize=13, fontweight="bold", pad=14)
     ax.grid(axis="y", ls=":", alpha=0.4); ax.set_ylim(0, max(vals) * 1.28)
     ax.spines[["top", "right"]].set_visible(False)
     fig.tight_layout(); fig.savefig(path, bbox_inches="tight"); plt.close(fig)
@@ -285,8 +273,8 @@ def run_all():
     out = [
         fig1_road_network(g, nodes, edges),
         fig2_distance_matrix(P, D),
-        fig3_route_comparison(g, P, D),
-        fig4_algorithm_comparison(),
+        fig3_algorithm_comparison(),
+        fig4_route_comparison(g, P, D),
         fig5_closure_impact(),
     ]
     return out
