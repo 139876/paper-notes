@@ -30,10 +30,11 @@ graph-theory-campus-delivery/
 ├── tools/
 │   ├── build_html.py       生成打印就绪 HTML（自包含）
 │   ├── make_pdf.py         Markdown -> 正式 PDF（reportlab，不依赖 Chrome）
+│   ├── make_docx.py        Markdown -> 正式 Word（python-docx，黑字无英文摘要）
 │   ├── _render_math.py     公式渲染（matplotlib mathtext -> PNG 缓存）
 │   ├── 导出PDF.command      从 HTML 导出 PDF（双击，需本机 Chrome）
 │   └── vendor/mathjax/     本地 MathJax（离线渲染公式）
-└── report/                 报告正文（分章 Markdown + 合订版 + HTML + PDF）
+└── report/                 报告正文（分章 Markdown + 合订版 + HTML + PDF + DOCX）
 ```
 
 ## 运行
@@ -65,6 +66,24 @@ python3 tools/make_pdf.py \
 - 目录用「点引导线 + 真实页码」，页码由两遍构建自动回填并复核
 - 页眉右侧显示当前章节名，封面不排页眉页脚
 - 中文段落按字符边界断行（`wordWrap="CJK"`），两端对齐不会拉出大空隙
+
+### 方式 C：生成 Word 版（可编辑稿）
+
+```bash
+python3 tools/make_docx.py \
+    report/图论综合应用报告-合订版.md \
+    report/图论综合应用报告.docx
+```
+
+- 需要 `python-docx`；产物为 **35 页 A4**，与 PDF 同源同版式
+- **全文黑色**（标题/正文/表格/页眉页脚均无蓝色），表头用浅灰底纹代替深蓝底纹
+- **不含英文摘要与英文关键词**（PDF 版保留中英文摘要）
+- 封面独立分节（无页眉页脚），其余每章一节，页眉右侧为当前章节名
+- 目录页码由「无头 LibreOffice 渲染 PDF -> 量页码 -> 回填」两遍构建自动生成并复核
+- 公式用 `tools/_math/` 缓存的 PNG，按原始尺寸嵌入（13 pt 观感）
+
+> 无头 LibreOffice 若渲染不出中文，把系统中文字体拷进它的字体目录：
+> `.../libreoffice/LibreOfficeDev.app/Contents/Resources/fonts/truetype/`
 
 ### 方式 B：浏览器打印（HTML 版）
 

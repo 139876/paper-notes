@@ -157,6 +157,10 @@ def parse(md: str):
             if s.endswith("$$") and len(s) > 2:
                 buf.append(s[2:-2]); i += 1
             else:
+                # 首行可能已经带内容（形如 "$$V = ... ,\quad"），
+                # 闭合的 "$$" 在后续行 —— 这部分内容不能丢
+                if len(s) > 2:
+                    buf.append(s[2:])
                 while i < n:
                     t = lines[i].strip()
                     if t.endswith("$$"):
