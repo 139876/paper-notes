@@ -13,7 +13,7 @@
 ## 🚪 入口
 
 - **[四篇论文总索引](论文精读/00-总索引-四篇论文.md)** —— 目录结构、互链关系图、跨论文选题线索
-- [阅读清单](paper-notes/论文精读/00-索引%20MOC.md) —— 各篇产出明细
+- [阅读清单](论文精读/00-索引 MOC.md) —— 各篇产出明细
 - [仓库说明](#-关于这些笔记) —— 语法与同步
 
 ---
@@ -22,10 +22,11 @@
 
 | # | 论文 | 角色 | 精读产出 | 状态 |
 |---|---|---|---|---|
-| 1 | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [00-索引 MOC](论文精读/1-CCFA-Net精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) · [详细索引](论文精读/1-CCFA-Net精读/README.md) | ✅ 44 篇 + 38 附件 |
+| 1 | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [00-索引 MOC](论文精读/1-CCFA-Net精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) · [详细索引](论文精读/1-CCFA-Net精读/README.md) | ✅ 19 篇 + 38 附件 |
 | 2 | Cross-Modal Object Detection via UAV | 方法 | [00-索引 MOC](论文精读/2-Cross-Modal-UAV精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 14 篇 + 13 附件 |
-| 3 | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [00-索引 MOC](论文精读/3-HazyDet精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 5 篇 |
-| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 13 篇（依据 IEEE 原文摘要 + 专利重写） |
+| 0 | 📚 公共基础知识（跨论文通用地基） | 地基 | [00-公共知识总览](论文精读/0-公共基础知识/00-公共知识总览.md) | ✅ 36 篇 |
+| 3 | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [00-索引 MOC](论文精读/3-HazyDet精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 10 篇 |
+| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 14 篇（依据 IEEE 原文摘要 + 专利重写） |
 
 ---
 
@@ -36,7 +37,7 @@
 **论文**：Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes
 **出处**：ISPRS Journal of Photogrammetry and Remote Sensing, 2026
 **DOI**：[10.1016/j.isprsjprs.2026.04.020](https://doi.org/10.1016/j.isprsjprs.2026.04.020)
-**规模**：44 篇笔记（18 公共基础 + 9 方向脉络 + 17 论文精读）+ 38 个附件
+**规模**：99 篇笔记（37 公共基础 + 22 CCFA + 14 跨模态 + 10 HazyDet + 14 高光谱 + 2 根索引，不含附件）+ 51 个附件
 
 > 像素级的好看 ≠ 任务级的有用 —— 去雾指标涨了，检测反而跌，这是全文的立身之本。
 
@@ -90,18 +91,33 @@ paper-notes/
 ├── 00-索引 MOC.md                  # 阅读清单（跳转页）
 └── 论文精读/                       # ← 四篇论文统一在这里
     ├── 00-总索引-四篇论文.md        # ★ 主索引：互链图 + 选题线索
+    ├── 00-索引 MOC.md               # 阅读清单（跳转页）
+    ├── 0-公共基础知识/              # 📚 公共基础（36 篇 · 全库共享 · 唯一权威版本）
+    │   ├── 00-公共知识总览.md       #    总入口 + 7 大主题 + 四篇知识需求矩阵
+    │   ├── 01-图像与卷积基础/       #    7 篇
+    │   ├── 02-骨干网络与特征融合/   #    5 篇
+    │   ├── 03-训练与优化/           #    4 篇
+    │   ├── 04-检测任务与评测/       #    5 篇
+    │   ├── 05-数据标注与协议/       #    3 篇
+    │   ├── 06-模型压缩与跨模态/     #    3 篇
+    │   └── 07-方向知识脉络/         #    9 篇（研究地图）
     ├── 1-CCFA-Net精读/             # 第 1 篇 · 背景 + baseline
     │   ├── 00-索引 MOC.md
     │   ├── README.md
     │   ├── CCFA-Net.md
-    │   ├── 01-公共基础知识/         # 18 篇
-    │   ├── 02-方向知识脉络/         # 9 篇
-    │   ├── 03-CCFA-Net论文精读/     # 17 篇
+    │   ├── 01-论文精读/             # 18 篇
+    │   ├── 02-公共知识回顾.md       # 🔁 本篇用到的公共基础（复述版）
     │   └── 附件/                   # 38 个附件
-    ├── 2-Cross-Modal-UAV精读/      # 第 2 篇 · 方法（14 篇）
-    ├── 3-HazyDet精读/              # 第 3 篇 · 数据（5 篇）
-    └── 4-跨域高光谱精读/            # 第 4 篇 · 理论（13 篇）
+    ├── 2-Cross-Modal-UAV精读/      # 第 2 篇 · 方法（12 篇 + 13-公共知识回顾）
+    ├── 3-HazyDet精读/              # 第 3 篇 · 数据（01~07 + 08-公共知识回顾 + 09-实验部分总结）
+    └── 4-跨域高光谱精读/            # 第 4 篇 · 理论（01~12 + 13-公共知识回顾）
 ```
+
+> 📌 **2026-11-16 重排**
+> 公共知识从各篇论文目录下**提取**到 `0-公共基础知识/`（唯一权威版本，7 个主题目录），
+> 原 `1-CCFA-Net精读/01-公共基础知识/`、`2-…/公共基础知识/`、`3-…/公共基础知识/` 已并入。
+> 同时每篇论文目录下**新增一份「公共知识回顾」**，**有意识地重复**本篇用到的关键结论 ——
+> **提出来是为了不重复维护，重复一遍是为了加深记忆**。
 
 > 📌 **历史目录已合并**
 > 旧结构 `计算机视觉/CCFA-Net精读/`、`计算机视觉/Cross-Modal-UAV精读/`、`遥感/跨域高光谱精读/`
