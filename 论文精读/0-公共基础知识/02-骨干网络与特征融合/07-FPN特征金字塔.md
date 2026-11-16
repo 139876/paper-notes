@@ -5,7 +5,7 @@ aliases: [FPN, Feature Pyramid Network, 特征金字塔网络]
 created: 2026-11-04
 stage: 1 · 打地基
 series: 基础 · 第 7 篇
-related: "[[00-索引 MOC]]", "[[05-第4讲-架构张量尺寸逐层推导]]", "[[08-第7讲-MFAM多尺度前景感知]]", "[[09-第8讲-TOOD检测头精讲]]"
+related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/05-第4讲-架构张量尺寸逐层推导]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/08-第7讲-MFAM多尺度前景感知]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/09-第8讲-TOOD检测头精讲]]"
 ---
 
 # 补充 7 · FPN 特征金字塔网络
@@ -159,7 +159,7 @@ def forward(self, inputs):
 
 ## 7.3 数字账 · 手算一遍（用本文的真实配置）
 
-输入 1333×800，`pad_size_divisor=32` → 实际送进网络的是 **1336×800**（这个坑见 [[02-padding彻底理解]]）。
+输入 1333×800，`pad_size_divisor=32` → 实际送进网络的是 **1336×800**（这个坑见 [[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/02-padding彻底理解]]）。
 
 ResNet-50 四个 stage 的输出：
 
@@ -213,7 +213,7 @@ TOOD 配置里 `start_level=1`，意思是 **FPN 从 C3 开始，C2 根本不进
 
 ### 位置二 · 架构：TOOD 检测头要吃多尺度特征
 
-本文的检测子网络用的就是 TOOD（[[09-第8讲-TOOD检测头精讲]]），TOOD 头的输入天然就是 FPN 的多层输出。
+本文的检测子网络用的就是 TOOD（[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/09-第8讲-TOOD检测头精讲]]），TOOD 头的输入天然就是 FPN 的多层输出。
 
 代码证据（官方仓库 `configs/tood/tood_r50_fpn_1x_hazydet.py`）：
 
@@ -239,7 +239,7 @@ neck=dict(
 
 **论文的论证链**：在同一副 FPN 骨架上，把"多尺度融合"这一步换成不同方案 → FPN 52.9 → DSAM 53.8 → DPIC 54.0 → CFPT 54.2 → **本文 MFAM 54.6**。
 
-（DSAM = Song et al., 2025，Boundary-aware feature fusion with dual-stream attention；DPIC = Zhang et al., 2025；CFPT = Du et al., 2025，Cross-layer feature pyramid transformer。逐表精读见 [[12-第11讲-消融实验逐表精读]]。）
+（DSAM = Song et al., 2025，Boundary-aware feature fusion with dual-stream attention；DPIC = Zhang et al., 2025；CFPT = Du et al., 2025，Cross-layer feature pyramid transformer。逐表精读见 [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/12-第11讲-消融实验逐表精读]]。）
 
 ---
 
@@ -344,13 +344,13 @@ Algorithm 1 只用了 {P3, P4, P5} **三层**；而 TOOD 的官方配置是 **5 
 
 ## 🔗 相关笔记
 
-- [[05-第4讲-架构张量尺寸逐层推导]] — 1333×800 一路走到检测头的完整张量账（本篇的数字账是它的浓缩版）
-- [[08-第7讲-MFAM多尺度前景感知]] — MFAM 内部：3/5/7 深度卷积 + 前景感知注意力（Eq.8–13）
-- [[09-第8讲-TOOD检测头精讲]] — TOOD 头如何消费 FPN 的 5 层输出（TAL 跨层分配）
-- [[02-padding彻底理解]] — 为什么 1333 会变成 1336（本章尺寸账的前提）
-- [[04-感受野深度理解]] — 多尺度与感受野的关系
-- [[12-第11讲-消融实验逐表精读]] — Table 12 的逐行精读
-- [[14-附录A-公式速查手册]] — 公式速查
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/05-第4讲-架构张量尺寸逐层推导]] — 1333×800 一路走到检测头的完整张量账（本篇的数字账是它的浓缩版）
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/08-第7讲-MFAM多尺度前景感知]] — MFAM 内部：3/5/7 深度卷积 + 前景感知注意力（Eq.8–13）
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/09-第8讲-TOOD检测头精讲]] — TOOD 头如何消费 FPN 的 5 层输出（TAL 跨层分配）
+- [[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/02-padding彻底理解]] — 为什么 1333 会变成 1336（本章尺寸账的前提）
+- [[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/04-感受野深度理解]] — 多尺度与感受野的关系
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/12-第11讲-消融实验逐表精读]] — Table 12 的逐行精读
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/14-附录A-公式速查手册]] — 公式速查
 
 ---
 
@@ -373,10 +373,10 @@ Algorithm 1 只用了 {P3, P4, P5} **三层**；而 TOOD 的官方配置是 **5 
 > 这一节告诉你：**这篇公共知识，在 CCFA-Net 的哪个模块里被真正用到了**。
 > 读论文时卡住，回来看对应模块；也可以从这里反查。
 
-- [[05-第4讲-架构张量尺寸逐层推导]] — FPN 各层 stride
-- [[08-第7讲-MFAM多尺度前景感知]] — MFAM 叠在 FPN 之后
-- [[09-第8讲-TOOD检测头精讲]] — TOOD 的 TAL 跨层选样本
-- [[10-第9讲-数据集与实验设置]] — start_level=1 ⇒ C2 不进 FPN
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/05-第4讲-架构张量尺寸逐层推导]] — FPN 各层 stride
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/08-第7讲-MFAM多尺度前景感知]] — MFAM 叠在 FPN 之后
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/09-第8讲-TOOD检测头精讲]] — TOOD 的 TAL 跨层选样本
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/10-第9讲-数据集与实验设置]] — start_level=1 ⇒ C2 不进 FPN
 
 ---
 
@@ -384,9 +384,9 @@ Algorithm 1 只用了 {P3, P4, P5} **三层**；而 TOOD 的官方配置是 **5 
 
 > 基础知识的"上户口"：它在一个更大的技术谱系里处于什么位置。
 
-- [[06-遥感UAV检测的特有问题]] — 多尺度在遥感检测里的地位
+- [[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/06-遥感UAV检测的特有问题]] — 多尺度在遥感检测里的地位
 
 
 ---
 
-**← 上一篇** → [[06-空间注意力图]] ｜ **下一篇 →** [[08-激活函数]] ｜ **索引 →** [[遥感/跨域高光谱精读/00-索引 MOC]]
+**← 上一篇** → [[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/06-空间注意力图]] ｜ **下一篇 →** [[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/08-激活函数]] ｜ **索引 →** [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC]]

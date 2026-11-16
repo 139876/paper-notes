@@ -17,6 +17,7 @@ status: 进行中
 
 | # | 论文 | 角色 | 索引 |
 |---|---|---|---|
+| **0** | **📚 公共基础知识**（36 篇） | 地基 | [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览\|00-公共知识总览]] |
 | **1** | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC\|00-索引 MOC]] · [[paper-notes/论文精读/1-CCFA-Net精读/README\|详细索引]] |
 | **2** | Cross-Modal Object Detection via UAV ([DOI](https://doi.org/10.1109/TVT.2023.3262129)) | 方法 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC\|00-索引 MOC]] |
 | **3** | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC\|00-索引 MOC]] |
@@ -29,13 +30,26 @@ status: 进行中
 
 ## 📦 各篇精读产出
 
+### (0) 📚 公共基础知识 · [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览|总览]]
+
+| 主题目录 | 内容 | 篇数 |
+|---|---|---|
+| 01 · 图像与卷积基础 | 卷积/padding/池化/感受野/PixelShuffle/空间注意力/激活函数 | 7 |
+| 02 · 骨干网络与特征融合 | ResNet / ResNet50 分层冻结 / FPN / 检测器三段式与创新落点 | 5 |
+| 03 · 训练与优化 | 深度监督三件套与 SiLog / 梯度下降 / 损失函数 / 优化器与学习率策略 | 4 |
+| 04 · 检测任务与评测 | bbox / 目标检测与 mAP / 两阶段 / 单阶段与样本分配 / 置信度与质量感知 | 5 |
+| 05 · 数据标注与协议 | COCO 与评测标准 / train-val-test 与 pipeline / 标注文件与 gt | 3 |
+| 06 · 模型压缩与跨模态 | 模型压缩全景 / 知识蒸馏详解 / 跨模态技术全景 | 3 |
+| 07 · 方向知识脉络 | 复原谱系 / 恶劣天气 / DA-DG-TTA / 多任务 / 注意力 / UAV 特性 / 检测谱系 / 遥感基础 | 9 |
+
 ### (1) CCFA-Net · [[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC|索引 MOC]]
 
 | 轨道 | 内容 | 篇数 |
 |---|---|---|
-| 🧱 公共基础知识 | 技术地基（卷积/padding/池化/感受野/PixelShuffle/注意力/FPN/激活/梯度/损失/ResNet/检测/mAP/两阶段/单阶段/COCO/置信度/优化器） | 18 |
-| 🗺️ 方向知识脉络 | 技术地图（复原谱系/恶劣天气/域适应/多任务/注意力/UAV 特性/检测谱系/遥感基础） | 9 |
-| 📄 CCFA-Net 论文精读 | 本文专属（速览 + 12 讲 + 4 附录） | 18 |
+| 🧱 公共基础知识 | **已提到 `0-公共基础知识/`**（卷积/FPN/ResNet/检测/mAP/优化器…） | 18（共享） |
+| 🗺️ 方向知识脉络 | **已提到 `0-公共基础知识/07-方向知识脉络/`**（复原谱系/恶劣天气/域适应/多任务/注意力/UAV 特性/检测谱系/遥感基础） | 9（共享） |
+| 📄 CCFA-Net 论文精读 | 本文专属（速览 + 12 讲 + 4 附录），在 `1-CCFA-Net精读/01-论文精读/` | 18 |
+| 🔁 公共知识回顾 | **本篇用到的公共基础（复述版）** | 1 |
 
 ### (2) Cross-Modal Object Detection via UAV · [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC|索引 MOC]]
 
@@ -53,6 +67,7 @@ status: 进行中
 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/10-附录-公式速查手册\|公式速查]] | 14 条公式 |
 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/11-附录-术语表与自测题库\|术语表 + 自测题]] | 16 题 |
 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-论文汇报.pptx\|汇报 PPT]] | 19 页，含演讲者备注 |
+| [[paper-notes/论文精读/2-Cross-Modal-UAV精读/13-公共知识回顾\|公共知识回顾]] | ★ 本篇用到的公共基础（蒸馏 / 跨模态 / 检测评测）**复述版** |
 
 ### (3) HazyDet · [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC|索引 MOC]]
 
@@ -63,7 +78,11 @@ status: 进行中
 | [[paper-notes/论文精读/3-HazyDet精读/03-深度标注与被浪费的多模态线索\|深度标注与被浪费的多模态线索]] | ★ 深度 / SiLog / DeCoDet 头 / CCFA-Net 的缺口 |
 | [[paper-notes/论文精读/3-HazyDet精读/04-复现必查项与坑\|复现必查项与坑]] | ★ 5 个坑 + 上手清单 + 对账表 |
 | [[paper-notes/论文精读/3-HazyDet精读/05-DeCoDet原理精读\|DeCoDet原理精读]] | ★★ MSDP / DCK / SIRLoss 公式、消融表、论文 vs 代码 |
-| [[paper-notes/论文精读/3-HazyDet精读/公共基础知识/00-公共基础总览\|公共基础知识总览]] | ★ 通用地基：bbox 标注 / train-val-test 与 pipeline / 标注文件与 gt |
+| [[paper-notes/论文精读/3-HazyDet精读/06-PDFT渐进域微调精读\|PDFT渐进域微调精读]] | ★★ **训练策略侧**：§4.2 两阶段域微调、Algorithm 1 逐行、真实域 +10.0、官方零实现 |
+| [[paper-notes/论文精读/3-HazyDet精读/07-实验部分精读\|实验部分精读]] | ★★ **实验侧**：§5.1 实现细节对账 / Tab.3 逐列拆解 / Tab.4 消融逐行读 / Tab.5 去雾对比 |
+| [[paper-notes/论文精读/3-HazyDet精读/09-实验部分总结\|实验部分总结]] | ★★ **实验一页速查卡**：三条核心发现 + 复现决策 |
+| [[paper-notes/论文精读/3-HazyDet精读/08-公共知识回顾\|公共知识回顾]] | ★ 本篇用到的公共基础**复述版** |
+| [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览\|公共基础知识总览]] | ★ 通用地基（已提到 `0-公共基础知识/`）：bbox / train-val-test / 标注文件与 gt |
 
 ### (4) 跨域高光谱 · [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC|索引 MOC]]
 
@@ -81,6 +100,7 @@ status: 进行中
 | [[paper-notes/论文精读/4-跨域高光谱精读/10-附录A-公式速查手册\|附录A · 公式速查]] | 11 条公式 + 可靠度标注 | ✅ 已重写 |
 | [[paper-notes/论文精读/4-跨域高光谱精读/11-附录B-复现清单与实验设计\|附录B · 复现清单]] | 协议 + 超参 + 6 个坑 | ✅ 已重写 |
 | [[paper-notes/论文精读/4-跨域高光谱精读/12-附录C-自测题库\|附录C · 自测题]] | 23 题 + 折叠答案 | ✅ 已重写 |
+| [[paper-notes/论文精读/4-跨域高光谱精读/13-公共知识回顾\|公共知识回顾]] | ★ 本篇用到的公共基础（高光谱张量 / DA-DG-TTA / 遥感基础）**复述版** | ✅ 新增 |
 
 ---
 

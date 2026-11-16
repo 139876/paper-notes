@@ -4,7 +4,7 @@ aliases: [ResNet与FPN通用结构, FPN 改进综述, 前辈工作梳理]
 created: 2026-11-12
 stage: 3 · 综述
 series: 基础 · 第 06 篇
-related: "[[00-公共基础总览]]", "[[05-ResNet50结构与分层冻结]]", "[[paper-notes/论文精读/3-HazyDet精读/05-DeCoDet原理精读]]", "[[paper-notes/论文精读/3-HazyDet精读/06-PDFT渐进域微调精读]]"
+related: "[[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]]", "[[05-ResNet50结构与分层冻结]]", "[[paper-notes/论文精读/3-HazyDet精读/05-DeCoDet原理精读]]", "[[paper-notes/论文精读/3-HazyDet精读/06-PDFT渐进域微调精读]]"
 track: 公共基础
 ---
 
@@ -378,8 +378,8 @@ expected input[1, 256, H, W] to have 128 channels
 - [[05-ResNet50结构与分层冻结]] —— ResNet 的历史贡献 + 四段结构 + 冻结参数账
 - [[paper-notes/论文精读/3-HazyDet精读/05-DeCoDet原理精读|05-DeCoDet原理精读]] —— MSDP/DCK 怎么改造 FPN 的 P3~P7
 - [[paper-notes/论文精读/3-HazyDet精读/06-PDFT渐进域微调精读|06-PDFT渐进域微调精读]] —— PDFT 在哪条赛道上
-- [[paper-notes/论文精读/1-CCFA-Net精读/03-CCFA-Net论文精读/08-第7讲-MFAM多尺度前景感知|第7讲 MFAM]] —— 前景感知这条线
-- [[paper-notes/论文精读/1-CCFA-Net精读/03-CCFA-Net论文精读/07-第6讲-CFFM跨域特征融合|第6讲 CFFM]] —— 跨域特征融合这条线
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/08-第7讲-MFAM多尺度前景感知|第7讲 MFAM]] —— 前景感知这条线
+- [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/07-第6讲-CFFM跨域特征融合|第6讲 CFFM]] —— 跨域特征融合这条线
 
 ## 🔗 本文（HazyDet）用在哪
 
@@ -393,5 +393,5 @@ expected input[1, 256, H, W] to have 128 channels
 
 ---
 
-**← 上一篇** → [[05-ResNet50结构与分层冻结]] ｜ **下一篇 →** 无 ｜ **索引 →** [[00-公共基础总览]] ｜ **返回 →** [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC|HazyDet 索引]]
+**← 上一篇** → [[05-ResNet50结构与分层冻结]] ｜ **下一篇 →** 无 ｜ **索引 →** [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]] ｜ **返回 →** [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC|HazyDet 索引]]
 
