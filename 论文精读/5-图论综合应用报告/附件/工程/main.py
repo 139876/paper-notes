@@ -40,6 +40,17 @@ def main() -> None:
     print("[3/4] 生成报告 ...")
     paths = build_report.run_all()
 
+    print("[3.5/4] 生成打印就绪 HTML ...")
+    try:
+        sys.path.insert(0, os.path.join(BASE, "tools"))
+        import build_html
+        html = build_html.build(os.path.join(BASE, "report/图论综合应用报告-合订版.md"),
+                                os.path.join(BASE, "report/图论综合应用报告.html"))
+        paths["report/图论综合应用报告.html"] = html
+        print("       PDF 导出：双击 tools/导出PDF.command")
+    except Exception as e:
+        print("       [跳过] HTML 生成失败:", e)
+
     print("[4/4] 完成")
     print("-" * 62)
     v = meta["verification"]

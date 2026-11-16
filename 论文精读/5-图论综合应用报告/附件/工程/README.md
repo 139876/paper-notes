@@ -27,17 +27,36 @@ graph-theory-campus-delivery/
 │   └── build_report.py     生成 6 章正文 + 4 个附录
 ├── out/                    实验结果（CSV + Markdown 表格）
 ├── figs/                   插图 PNG
-└── report/                 报告正文（分章 Markdown + 合订版）
+├── tools/
+│   ├── build_html.py       生成打印就绪 HTML（自包含）
+│   ├── 导出PDF.command      一键导出 PDF（双击运行）
+│   └── vendor/mathjax/     本地 MathJax（离线渲染公式）
+└── report/                 报告正文（分章 Markdown + 合订版 + HTML）
 ```
 
 ## 运行
 
 ```bash
-python main.py            # 全流程：实验 → 图表 → 报告
+python main.py            # 全流程：实验 → 图表 → 报告 → 打印就绪 HTML
 python main.py --draft    # 先把 data/ 恢复成建模草案（会覆盖现有数据！）
 ```
 
-依赖：`numpy` `matplotlib` `networkx`
+依赖：`numpy` `matplotlib` `networkx` `pandoc`（可选，仅用于生成 HTML）
+
+## 导出 PDF（课程要求「附件用 PDF」）
+
+`main.py` 会生成 **`report/图论综合应用报告.html`** —— 一个**完全自包含**的单文件
+（图片已 base64 内联、MathJax 已内联、含 A4 打印样式），双击即可用浏览器打开。
+
+**导出方式二选一**：
+
+1. **一键（推荐）**：双击 `tools/导出PDF.command`
+   —— 调用本机 Google Chrome 的无头打印，直接生成 `report/图论综合应用报告.pdf`
+2. **手动**：用 Chrome / Edge 打开 `report/图论综合应用报告.html`
+   → `Cmd+P` → 目标选「另存为 PDF」→ 纸张 A4 → 勾选「背景图形」→ 保存
+
+> 排版说明：正文中每个 `#` 一级标题自动另起一页；表格不跨页断开；
+> 公式由 MathJax 渲染为矢量 SVG，缩放不糊。
 
 ## ⚠️ 数据替换（最重要的一步）
 

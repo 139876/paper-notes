@@ -22,9 +22,23 @@ status: 进行中
 | **2** | Cross-Modal Object Detection via UAV ([DOI](https://doi.org/10.1109/TVT.2023.3262129)) | 方法 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC\|00-索引 MOC]] |
 | **3** | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC\|00-索引 MOC]] |
 | **4** | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance<br>[IEEE TGRS 2026, DOI 10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332) | 理论 | [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC\|00-索引 MOC]] |
+| **5** | 📐 **图论综合应用报告**：基于图论的重庆大学虎溪校区快递配送路径优化研究 | 独立课题 | [[paper-notes/论文精读/5-图论综合应用报告/00-索引 MOC\|00-索引 MOC]] |
 
 > 📌 四篇**统一放在** `paper-notes/论文精读/` 下，按 **1 / 2 / 3 / 4** 编号排序。
 > 目录结构、互链关系、选题线索 → [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]]
+
+---
+
+## 📐 图论轨（独立课题）
+
+| 产物 | 说明 |
+|---|---|
+| [[paper-notes/论文精读/5-图论综合应用报告/00-索引 MOC\|图论综合应用报告 · 索引 MOC]] | 🗺️ 主索引（题目：基于图论的重庆大学虎溪校区快递配送路径优化研究） |
+| [[paper-notes/论文精读/5-图论综合应用报告/01-研究方案与建模思路\|研究方案与建模思路]] | 题目怎么定的、约束、算法路线、课程硬性要求 |
+| [[paper-notes/论文精读/5-图论综合应用报告/03-图论算法速查（复习版）\|图论算法速查（复习版）]] | 用报告实例复述 Dijkstra / TSP / 2-opt / Held–Karp |
+| [[paper-notes/论文精读/5-图论综合应用报告/04-实验结果速览\|实验结果速览]] | 5 组实验的关键数字与图 |
+| [[paper-notes/论文精读/5-图论综合应用报告/05-数据核验清单\|数据核验清单]] | ⚠️ 待办：实地量测边长与坐标 |
+| 公共知识已提上来 | [[paper-notes/论文精读/0-公共基础知识/08-图论与优化/01-图论算法速查\|图论算法速查]] · [[paper-notes/论文精读/0-公共基础知识/08-图论与优化/02-图论建模套路-从真实地图到加权图\|图论建模套路]] |
 
 ---
 
