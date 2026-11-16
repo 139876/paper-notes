@@ -1,0 +1,18 @@
+{
+  "vertices": 23,
+  "edges": 26,
+  "connected": true,
+  "dijkstra_vs_networkx_max_dev": 0.0,
+  "floyd_vs_dijkstra_max_dev": 2.2737367544323206e-13,
+  "networkx_matrix_max_dev": 0.0,
+  "bridges_count": 7,
+  "bridge_edge_ids": [
+    "EA02",
+    "EA03",
+    "EA04",
+    "EA05",
+    "EA06",
+    "EA07",
+    "EA01"
+  ]
+}
