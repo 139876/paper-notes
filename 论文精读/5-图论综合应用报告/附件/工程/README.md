@@ -29,9 +29,11 @@ graph-theory-campus-delivery/
 ├── figs/                   插图 PNG
 ├── tools/
 │   ├── build_html.py       生成打印就绪 HTML（自包含）
-│   ├── 导出PDF.command      一键导出 PDF（双击运行）
+│   ├── make_pdf.py         Markdown -> 正式 PDF（reportlab，不依赖 Chrome）
+│   ├── _render_math.py     公式渲染（matplotlib mathtext -> PNG 缓存）
+│   ├── 导出PDF.command      从 HTML 导出 PDF（双击，需本机 Chrome）
 │   └── vendor/mathjax/     本地 MathJax（离线渲染公式）
-└── report/                 报告正文（分章 Markdown + 合订版 + HTML）
+└── report/                 报告正文（分章 Markdown + 合订版 + HTML + PDF）
 ```
 
 ## 运行
@@ -43,17 +45,30 @@ python main.py --draft    # 先把 data/ 恢复成建模草案（会覆盖现有
 
 依赖：`numpy` `matplotlib` `networkx` `pandoc`（可选，仅用于生成 HTML）
 
-## 导出 PDF（课程要求「附件用 PDF」）
+## 生成 PDF（课程要求「附件用 PDF」）
 
-`main.py` 会生成 **`report/图论综合应用报告.html`** —— 一个**完全自包含**的单文件
-（图片已 base64 内联、MathJax 已内联、含 A4 打印样式），双击即可用浏览器打开。
+正式提交文件：**`report/图论综合应用报告.pdf`**（31 页 A4，含封面/摘要/关键词/目录）。
+已生成好，直接取用即可；改完正文后按下面重新生成。
 
-**导出方式二选一**：
+### 方式 A：reportlab（推荐，不依赖浏览器）
 
-1. **一键（推荐）**：双击 `tools/导出PDF.command`
-   —— 调用本机 Google Chrome 的无头打印，直接生成 `report/图论综合应用报告.pdf`
-2. **手动**：用 Chrome / Edge 打开 `report/图论综合应用报告.html`
-   → `Cmd+P` → 目标选「另存为 PDF」→ 纸张 A4 → 勾选「背景图形」→ 保存
+```bash
+python3 tools/make_pdf.py \
+    report/图论综合应用报告-合订版.md \
+    report/图论综合应用报告.pdf
+```
+
+- 需要 `reportlab`；公式依赖 matplotlib（会自动调 `tools/_render_math.py` 渲染 PNG 缓存到 `tools/_math/`）
+- 代码块用 Menlo 等宽字体，中文注释自动回退中文字体（不会显示成方块）
+- 章节自动另起一页，且不会在章节前留下空白页
+
+### 方式 B：浏览器打印（HTML 版）
+
+`main.py` 还会生成 **`report/图论综合应用报告.html`** —— 完全自包含的单文件
+（图片 base64 内联、MathJax 内联、含 A4 打印样式）。
+
+1. 双击 `tools/导出PDF.command`（调用本机 Chrome 无头打印）
+2. 或手动：Chrome/Edge 打开 HTML → `Cmd+P` → 另存为 PDF → A4 → 勾选「背景图形」
 
 > 排版说明：正文中每个 `#` 一级标题自动另起一页；表格不跨页断开；
 > 公式由 MathJax 渲染为矢量 SVG，缩放不糊。
