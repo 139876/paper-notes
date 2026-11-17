@@ -3,7 +3,7 @@ track: 论文精读
 tags: [第6讲, DBFDF, 双分支, 骨干网络, 特征解耦, 高光谱, 域泛化]
 aliases: [第6讲, DBFDF, 双分支骨干, 特征解耦与融合]
 created: 2026-11-05
-updated: 2026-11-05
+updated: 2026-11-17
 related: "[[00-索引 MOC]]", "[[01-论文速览]]", "[[06-第5讲-ASI锚点结构不变性]]"
 status: 已重写
 ---
@@ -50,13 +50,22 @@ status: 已重写
 
 ## 6.3 DBFDF 的两个分支
 
-据 IEEE 摘要与专利 CN202610642401，DBFDF（**D**ual-**B**ranch **F**eature **D**ecoupling and **F**usion，双分支特征解耦与融合）包含：
+据 **IEEE 原文 Section II-B**（✅ 2026-11-17 已核实），DBFDF（**D**ual-**B**ranch **F**eature **D**ecoupling and **F**usion，双分支特征解耦与融合）由**两条分支**构成：
+
+> 原文原话：该骨干由 **Qi et al. [40]** 首次提出，包含
+> **intradomain uniqueness extraction branch（Intra-DUEB）**
+> 与 **interdomain commonality extraction branch（Inter-DCEB）**。
 
 ### 6.3.1 intra-DUEB · 域内特性提取分支
 
 **职责**：提取**当前域特有的属性信息**（intra = 域内）。
 
-据专利，该分支包含 **AEM（属性增强模块, Attribute Enhancement Module）**。
+原文：Intra-DUEB 由 **AEM（attribute extraction module，属性提取模块）+ 四个连续卷积块** 组成。
+
+- **AEM** 做 **光谱分割（spectral segmentation）+ 权重计算（weight calculation）**，
+  目的是**同时**获得细粒度光谱特征表示、**并保持原始光谱一致性**；
+- **四个连续卷积块**，每块 = **两组 1×1 卷积 + BN + ReLU + 通道注意力（channel attention）+ 残差连接**；
+- 每个源域用**各自的 Intra-DUEB，但共享网络参数**。
 
 **直觉**：它像"给这一域做一份专属体检报告"——把这一域独有的统计特征（响应强度、噪声水平、光照基调）**强化**出来。
 
@@ -69,11 +78,18 @@ status: 已重写
 
 **职责**：提取**跨域都成立的公共信息**（inter = 域间）。
 
-据专利，该分支包含：
-- **IFM（域不变特征模块）** —— 显式地挖"域不变"的部分
-- **IFEM（域特征增强模块）** —— 增强从域间关系中提炼出来的特征
+原文：Inter-DCEB 由 **IFEH（integrated feature extraction head，集成特征提取头）+ IFEM（integrated feature extraction module，集成特征提取模块）** 组成，**特征维度与 Intra-DUEB 对齐**。
 
-据专利，该分支用**隐式卷积 + 相减**的机制提取公共信息：
+原文还明确了两点：
+1. **IFEM 逐级（progressively）提取跨域共性特征**；
+2. 共性特征与 Intra-DUEB 的对应输出，通过 **subtraction-based fusion strategy（相减式融合）** 整合；
+3. **每一级**再接 **3×3 卷积 + BN + SoftMax**，以增强光谱特征表示、做相似性学习。
+
+> ⚠️ 口径更正：原文写的是 **IFEH + IFEM**，
+> 之前笔记里写的 "IFM（域不变特征模块）" 这个名字**在原文里没有对应**，
+> 应以 **IFEH / IFEM** 为准。
+
+该分支用**隐式卷积 + 相减**的机制提取公共信息：
 1. **隐式卷积**：用卷积把特征映射到一个"对齐"的隐空间；
 2. **相减**：把各源域在隐空间里的映射**两两相减**，差值反映"域差异"；
 3. **把差值从原特征里减掉**（或反过来），**剩下的就是共性**。
@@ -98,7 +114,11 @@ status: 已重写
 
 ### 6.3.3 融合（Fusion）
 
-据专利，推理阶段存在**"域内属性提取 + 特征逐元素相减"** 的融合流程。
+原文（Section III-A Overview）确认了推理阶段的融合流程：
+> "the refined domain-invariant features are utilized to train a binary cross-entropy classifier.
+> Once the classifier is trained, it is directly used to predict the labels of target-domain samples **without any fine-tuning**."
+
+即：**训练完直接推理**，目标域**不做任何微调**（这正是 DG 设定）。
 
 **逐元素相减融合**：两个分支的输出**按元素一一对应相减**，得到融合特征。
 
