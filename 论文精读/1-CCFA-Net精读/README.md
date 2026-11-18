@@ -127,7 +127,7 @@
 | 05 | [05-第4讲-架构张量尺寸逐层推导](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/05-%E7%AC%AC4%E8%AE%B2-%E6%9E%B6%E6%9E%84%E5%BC%A0%E9%87%8F%E5%B0%BA%E5%AF%B8%E9%80%90%E5%B1%82%E6%8E%A8%E5%AF%BC.md) | 1333×800 输入，一路走到 80 通道，每一步张量是多少？ |
 | 06 | [06-第5讲-CCDD结构精讲](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/06-%E7%AC%AC5%E8%AE%B2-CCDD%E7%BB%93%E6%9E%84%E7%B2%BE%E8%AE%B2.md) | 去雾分支的"双出口"设计是什么？RFEB 块里 256→48→PixelShuffle 怎么拼起来的？ |
 | 07 | [07-第6讲-CFFM跨域特征融合](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/07-%E7%AC%AC6%E8%AE%B2-CFFM%E8%B7%A8%E5%9F%9F%E7%89%B9%E5%BE%81%E8%9E%8D%E5%90%88.md) | 净域特征怎么"融"进检测特征？为什么只用 99 个参数？ |
-| 08 | [08-第7讲-MFAM多尺度前景感知](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/08-%E7%AC%AC7%E8%AE%B2-MFAM%E5%A4%9A%E5%B0%BA%E5%BA%A6%E5%89%8D%E6%99%AF%E6%84%9F%E7%9F%A5.md) | 3/5/7 三尺度 + δ 注意力怎么对抗"前景模糊 + 尺度剧变"？ |
+| 08 | [08-第7讲-MFAM多尺度前景感知](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/08-%E7%AC%AC7%E8%AE%B2-MFAM%E5%A4%9A%E5%B0%BA%E5%BA%A6%E5%89%8D%E6%99%AF%E6%84%9F%E7%9F%A5.md) | 3/5/7 三尺度 + δ 注意力怎么对抗"UAV 尺度剧变"？ |
 | 09 | [09-第8讲-TOOD检测头精讲](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/09-%E7%AC%AC8%E8%AE%B2-TOOD%E6%A3%80%E6%B5%8B%E5%A4%B4%E7%B2%BE%E8%AE%B2.md) | CCFA-Net 的检测头就是 TOOD。分类/定位"空间错位"怎么解？ |
 | 10 | [10-第9讲-数据集与实验设置](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/10-%E7%AC%AC9%E8%AE%B2-%E6%95%B0%E6%8D%AE%E9%9B%86%E4%B8%8E%E5%AE%9E%E9%AA%8C%E8%AE%BE%E7%BD%AE.md) | HazyDet 怎么造的？为什么合成雾 54.6、真实雾只有 28.7？ |
 | 11 | [11-第10讲-评价指标与复现必查项](01-%E8%AE%BA%E6%96%87%E7%B2%BE%E8%AF%BB/11-%E7%AC%AC10%E8%AE%B2-%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87%E4%B8%8E%E5%A4%8D%E7%8E%B0%E5%BF%85%E6%9F%A5%E9%A1%B9.md) | mAP 怎么算？Table 7 的 FLOPs 为什么算不平？复现第一步该干什么？ |
