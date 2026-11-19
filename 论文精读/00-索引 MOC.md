@@ -17,14 +17,15 @@ status: 进行中
 
 | # | 论文 | 角色 | 索引 |
 |---|---|---|---|
-| **0** | **📚 公共基础知识**（36 篇） | 地基 | [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览\|00-公共知识总览]] |
+| **0** | **📚 公共基础知识**（40 篇） | 地基 | [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览\|00-公共知识总览]] |
 | **1** | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC\|00-索引 MOC]] · [[paper-notes/论文精读/1-CCFA-Net精读/README\|详细索引]] |
 | **2** | Cross-Modal Object Detection via UAV ([DOI](https://doi.org/10.1109/TVT.2023.3262129)) | 方法 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC\|00-索引 MOC]] |
 | **3** | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC\|00-索引 MOC]] |
 | **4** | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance<br>[IEEE TGRS 2026, DOI 10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332) | 理论 | [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC\|00-索引 MOC]] |
+| **5** | **TDRE**: Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather<br>[ISPRS JPRS 2026, DOI 10.1016/j.isprsjprs.2026.08.041](https://doi.org/10.1016/j.isprsjprs.2026.08.041) | **方法 · 对照组** | [[paper-notes/论文精读/5-TDRE精读/00-索引 MOC\|00-索引 MOC]] |
 | **5** | 📐 **图论综合应用报告**：基于图论的重庆大学虎溪校区快递配送路径优化研究 | 独立课题 | [[paper-notes/图论综合应用报告/00-索引 MOC\|00-索引 MOC]] |
 
-> 📌 四篇**统一放在** `paper-notes/论文精读/` 下，按 **1 / 2 / 3 / 4** 编号排序。
+> 📌 五篇**统一放在** `paper-notes/论文精读/` 下，按 **1 / 2 / 3 / 4 / 5** 编号排序。
 > 目录结构、互链关系、选题线索 → [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]]
 
 ---
@@ -49,12 +50,13 @@ status: 进行中
 | 主题目录 | 内容 | 篇数 |
 |---|---|---|
 | 01 · 图像与卷积基础 | 卷积/padding/池化/感受野/PixelShuffle/空间注意力/激活函数 | 7 |
-| 02 · 骨干网络与特征融合 | ResNet / ResNet50 分层冻结 / FPN / 检测器三段式与创新落点 | 5 |
+| 02 · 骨干网络与特征融合 | ResNet / ResNet50 分层冻结 / FPN / 检测器三段式与创新落点 / **MoE 与动态路由** | 6 |
 | 03 · 训练与优化 | 深度监督三件套与 SiLog / 梯度下降 / 损失函数 / 优化器与学习率策略 | 4 |
 | 04 · 检测任务与评测 | bbox / 目标检测与 mAP / 两阶段 / 单阶段与样本分配 / 置信度与质量感知 | 5 |
 | 05 · 数据标注与协议 | COCO 与评测标准 / train-val-test 与 pipeline / 标注文件与 gt | 3 |
 | 06 · 模型压缩与跨模态 | 模型压缩全景 / 知识蒸馏详解 / 跨模态技术全景 | 3 |
 | 07 · 方向知识脉络 | 复原谱系 / 恶劣天气 / DA-DG-TTA / 多任务 / 注意力 / UAV 特性 / 检测谱系 / 遥感基础 | 9 |
+| 09 · 域泛化与不变学习 | MMD / GRL / IRM / 偏移三分类（JVC · ASI 的机制底座） | 1 |
 
 ### (1) CCFA-Net · [[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC|索引 MOC]]
 
