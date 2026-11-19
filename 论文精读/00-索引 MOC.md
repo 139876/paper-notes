@@ -5,11 +5,11 @@ created: 2026-11-04
 status: 进行中
 ---
 
-# 📚 四篇论文 · 阅读清单（入口）
+# 📚 五篇论文 · 阅读清单（入口）
 
 > [!info] 主入口已迁移
 > 本页现在是**跳转页**。
-> 👉 **主索引** → [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]]
+> 👉 **主索引** → [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]]
 
 ---
 
@@ -17,16 +17,16 @@ status: 进行中
 
 | # | 论文 | 角色 | 索引 |
 |---|---|---|---|
-| **0** | **📚 公共基础知识**（40 篇） | 地基 | [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览\|00-公共知识总览]] |
+| **0** | **📚 公共基础知识**（39 篇） | 地基 | [[paper-notes/论文精读/0-公共基础知识/00-公共知识总览\|00-公共知识总览]] |
 | **1** | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC\|00-索引 MOC]] · [[paper-notes/论文精读/1-CCFA-Net精读/README\|详细索引]] |
 | **2** | Cross-Modal Object Detection via UAV ([DOI](https://doi.org/10.1109/TVT.2023.3262129)) | 方法 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC\|00-索引 MOC]] |
 | **3** | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC\|00-索引 MOC]] |
 | **4** | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance<br>[IEEE TGRS 2026, DOI 10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332) | 理论 | [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC\|00-索引 MOC]] |
 | **5** | **TDRE**: Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather<br>[ISPRS JPRS 2026, DOI 10.1016/j.isprsjprs.2026.08.041](https://doi.org/10.1016/j.isprsjprs.2026.08.041) | **方法 · 对照组** | [[paper-notes/论文精读/5-TDRE精读/00-索引 MOC\|00-索引 MOC]] |
-| **5** | 📐 **图论综合应用报告**：基于图论的重庆大学虎溪校区快递配送路径优化研究 | 独立课题 | [[paper-notes/图论综合应用报告/00-索引 MOC\|00-索引 MOC]] |
+| **6** | 📐 **图论综合应用报告**：基于图论的重庆大学虎溪校区快递配送路径优化研究 | 独立课题 | [[paper-notes/图论综合应用报告/00-索引 MOC\|00-索引 MOC]] |
 
 > 📌 五篇**统一放在** `paper-notes/论文精读/` 下，按 **1 / 2 / 3 / 4 / 5** 编号排序。
-> 目录结构、互链关系、选题线索 → [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]]
+> 目录结构、互链关系、选题线索 → [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]]
 
 ---
 
@@ -120,12 +120,27 @@ status: 进行中
 
 ---
 
+### (5) TDRE · [[paper-notes/论文精读/5-TDRE精读/00-索引 MOC|索引 MOC]]
+
+| 产物 | 说明 |
+|---|---|
+| [[paper-notes/论文精读/5-TDRE精读/01-论文速览\|论文速览]] | 问题 / 三大贡献 / 与前四篇的关系 / 核心数字 |
+| [[paper-notes/论文精读/5-TDRE精读/02-第1讲-问题定义与两个陷阱\|第1讲 · 两个陷阱]] | 灾难性遗忘 + human-visual bias 的机制级拆解 + **与第 1 篇 Lipschitz 的对照** |
+| [[paper-notes/论文精读/5-TDRE精读/03-第2讲-三阶段架构与清晰天感知器\|第2讲 · 三阶段架构与清晰天感知器]] | 式 (1)(2)(3) + 硬门控 + Sca 阈值 Table 7 + **参数账反推** |
+| [[paper-notes/论文精读/5-TDRE精读/04-第3讲-DR-MoE动态路由专家\|第3讲 · DR-MoE]] | 式 (4)(5)(6)(7)(8) + **Top-3 routing 的真相** + 大气先验 |
+| [[paper-notes/论文精读/5-TDRE精读/05-第4讲-协同优化与任务对齐\|第4讲 · 协同优化]] | 式 (9)–(14) + MSR 三色彩空间 + **DE 掩码损失** + Table 4/5 |
+| [[paper-notes/论文精读/5-TDRE精读/06-第5讲-数据集CAD-ADD与实验结果\|第5讲 · CAD-ADD 与实验]] | Table 1–10 逐表精读 + **126.9 口径核对** + 复现必查项 |
+| [[paper-notes/论文精读/5-TDRE精读/07-第6讲-批判性评价与可做选题\|第6讲 · 批判与选题]] | 7 条批评 + **7 个可做选题**（含与第 1 篇缝合的方案） |
+| [[paper-notes/论文精读/5-TDRE精读/08-附录A-公式速查手册\|附录A · 公式速查]] | 14 条公式（带可靠度标注）+ **12 项复现空缺清单** |
+| [[paper-notes/论文精读/5-TDRE精读/09-附录B-自测题库\|附录B · 自测题库]] | 24 题 + 折叠答案 + 成绩自评表 |
+| [[paper-notes/论文精读/5-TDRE精读/附件/TDRE-论文原文.pdf\|📄 论文 PDF 原文]] | 18 页原文存档 |
+
 ## 🔗 其它入口
 
-- [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]] —— **主索引**（目录结构 + 互链图 + 选题线索 + **检测器三段式与四篇落点**）
+- [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]] —— **主索引**（目录结构 + 互链图 + 选题线索 + **检测器三段式与五篇落点**）
 - [[TVT_UAV_跨场景泛化检测_研究方案|TVT_UAV 研究方案]] —— 课题方向文档（未编号）
 - [[paper-notes/论文精读/README|README]] —— 仓库说明
 
 ---
 
-**索引 →** 本页 ｜ **主索引 →** [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]]
+**索引 →** 本页 ｜ **主索引 →** [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]]

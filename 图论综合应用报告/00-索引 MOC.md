@@ -131,7 +131,7 @@ python3 tools/make_docx.py    report/图论综合应用报告-合订版.md     r
 ## 🔗 其它入口
 
 - [[paper-notes/论文精读/00-索引 MOC|总索引 MOC]] —— 全部论文与报告
-- [[paper-notes/论文精读/00-总索引-四篇论文|四篇论文总索引]]
+- [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]]
 
 ---
 

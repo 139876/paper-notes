@@ -24,7 +24,7 @@ status: 进行中
 | 期刊 | IEEE Transactions on Vehicular Technology, **Vol. 72, No. 8**, pp. 10894–10905, **Aug. 2023** |
 | DOI | [10.1109/TVT.2023.3262129](https://doi.org/10.1109/TVT.2023.3262129) |
 | 数据集 | DroneVehicle（28,439 对 IR-RGB） |
-| 在阅读清单中的位置 | [[paper-notes/论文精读/00-总索引-四篇论文]] 第 2 篇 · **方法** 篇（[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]] 是背景篇） |
+| 在阅读清单中的位置 | [[paper-notes/论文精读/00-总索引-五篇论文]] 第 2 篇 · **方法** 篇（[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]] 是背景篇） |
 
 **一句话总结**
 
