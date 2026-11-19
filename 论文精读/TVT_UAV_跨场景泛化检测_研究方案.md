@@ -214,3 +214,99 @@ $$
 **TVT 对标：** *Cross-Modal Object Detection Via UAV* 与 *Haze Visibility Enhancement...*。
 
 **最先回答的两个实验问题：** ① 不接触真实目标域训练数据时，普通去雾是否真的稳定改善 UAV 车辆检测？若否或提升有限，切入点就是**解决去雾与检测之间的负迁移**。② 当去雾结果**不可靠**时，检测器能否识别并回退到原图？这就是贡献① 的可验证形式。
+
+---
+
+## 12. 三个贡献点的代码级实现（对着 `ccfa/` 仓库逐个说）
+
+> 这一节回答「**具体是怎么实现的**」。仓库路径：
+> `/Users/yoyo/Documents/Codex/2026-10-28/1-ccfa-net-cross-domain-collaborative/ccfa/`
+> 三个贡献点分别落在 **模型 / 损失 / 训练引擎** 三层，改动位置互不重叠。
+
+### 贡献① 去雾当「证据」：按可信度逐位置加权
+
+**白话：** 传统做法是「去雾图和原图二选一」，全图统一用去雾结果。
+但雾是**有的地方浓、有的地方淡**，去雾网在浓雾区可能把车直接抹掉。
+我们的做法是让网络**自己给每个像素位置打一个分（0~1）**，
+分高的地方信去雾，分低的地方**退回原图**。
+
+**代码怎么写（新增 `ccfa/models/reliability.py`）：**
+
+```python
+class ReliabilityHead(nn.Module):
+    """逐位置可信度估计：输出 g(x) ∈ [0, 1]，1 = 完全可信"""
+    def __init__(self, in_ch):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Conv2d(in_ch, in_ch // 2, 3, padding=1), nn.ReLU(inplace=True),
+            nn.Conv2d(in_ch // 2, 1, 1),                       # 1 通道得分图
+        )
+
+    def forward(self, x):
+        return torch.sigmoid(self.net(x))                    # g(x) ∈ [0,1]
+```
+
+**融合点改在 `ccfa/models/ccdd.py`（原无条件融合 → 门控融合）：**
+
+```python
+# 改前：整个特征图二选一
+fused = torch.where(mask, x_clean, x_hazy)
+
+# 改后：逐位置加权融合
+g = self.reliability(torch.cat([x_clean, x_hazy], dim=1))  # g(x) ∈ [0,1]
+fused = g * x_clean + (1.0 - g) * x_hazy
+```
+
+**g(x) 的条件输入：** 用 `ccfa/models/depth.py` 里的 `DepthPriorGenerator`
+生成深度先验作为额外通道拼进去——**近处（车）比远处（天空）更值得信去雾**，
+这就是「深度条件」的含义，不用额外标注。
+
+### 贡献② 表征跨场景要稳：多源域 + 类别对齐
+
+**白话：** 训练时用多个「源域」（合成雾 + VisDrone + 自采 UAV），
+并且要求「同一个类别在不同域里长得像」，
+但又不能为了对齐把类别的**几何结构**拉坏（比如把车和行人揉成一团）。
+
+**代码怎么写（用仓库里已有的三个 loss）：**
+
+| 文件 | 干什么 | 白话 |
+|---|---|---|
+| `ccfa/losses/jvc.py` | JVD+MMD / MI+梯度反转 / 标签头 LC | 联合变量对齐：把「特征 + 标签」当成一个整体去对齐，而不是只对齐特征 |
+| `ccfa/losses/asi.py` | DCAS Sinkhorn 软 k-means / CAGL 锚点图 | 锚点结构不变性：给每类建一个参考坐标系，对齐时几何流形不歪 |
+| `ccfa/losses/ckd.py` | 跨域蒸馏 | 源域之间互相当老师，稳住表征 |
+
+**联合变量从像素级换成 ROI 级：** 原来对齐的是整张图的像素级统计，
+改成**目标框区域（ROI）的联合变量**（ROI 特征 + 类别），因为检测只关心目标。
+
+**严格 DG 的红线：** 目标域**连无标签数据都不进 loss**——
+否则就是 UDA 不是 DG，审稿人会直接质疑。
+所有源域选模 + 目标域只评一次。
+
+### 贡献③ 检测友好且省算力
+
+**白话：** 让**检测任务的梯度**反过来指导「可靠性判断」和「去雾融合」，
+这样去雾会朝「对检测有用」的方向优化，而不是朝「图像好看」的方向优化。
+
+**代码怎么写（改 `ccfa/engine/trainer.py`）：**
+
+```python
+# 关键：检测损失不回传时冻结，一旦要回传就解冻
+loss_det = criterion_det(preds, targets)
+
+for p in reliability.parameters():   # 只在需要回传时解冻
+    p.requires_grad_(True)
+
+loss_det.backward()                    # 梯度会流到 g(x) 和 CCDD 融合处
+```
+
+**「省算力」怎么落地：**
+
+- 蒸馏迁移用 `ccfa/models/cffm.py` 的骨架：**训练期有多模态老师，推理期只留 RGB 检测器**，
+  推理零额外开销；
+- 评测脚本 `ccfa/engine/evaluator.py` 里加**时延 / FLOPs / 显存**三项指标，
+  直接给出机载可部署性的证据。
+
+### 一句话串起来
+
+> 贡献①管**输入**（别全信去雾）→ 贡献②管**训练**（多源域别学歪）→ 贡献③管**优化与落地**（对检测有用 + 推理不贵）。
+> 三层分别对应 `models/` `losses/` `engine/` 三个目录，改动互不冲突，可以并行推进。
