@@ -5,7 +5,7 @@ aliases: [第3讲, DR-MoE, 动态路由专家]
 created: 2026-11-19
 stage: 2 · 架构拆解
 series: 主讲 · 第 3 讲
-related: "[[paper-notes/论文精读/5-TDRE精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/02-骨干网络与特征融合/12-MoE与动态路由]]"
+related: ["[[paper-notes/论文精读/5-TDRE精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/02-骨干网络与特征融合/12-MoE与动态路由]]"]
 ---
 
 # 第 3 讲：DR-MoE —— 动态路由混合专家
@@ -188,7 +188,7 @@ $$
 I_R = f_{\text{ReLU}}\bigl( ( F_{\text{fusion}} - I_D ) \odot F_{\text{fusion}} + b \bigr), \qquad b = 1 \tag{8}
 $$
 
-其中 $\odot$ 是**逐元素相乘**。
+其中 **⊙** 是**逐元素相乘**。
 
 ### 逐部分读
 
@@ -200,7 +200,7 @@ $$
 | `ReLU` | 截断负值 |
 
 > [!note] 这就是论文说的 "atmospheric transfer equation"
-> 从大气散射模型 $I = J t + A(1-t)$ 反推：
+> 从大气散射模型 **I = J·t + A·(1−t)** 反推：
 >
 > $$
 > J - I = (1-t)(J - A)
@@ -214,7 +214,7 @@ $$
 
 > [!warning] 但这里必须保持诚实：论文**没有给推导**
 > 式 (8) 被冠以 "atmospheric transfer equation" 之名，可**正文没有任何从物理模型推出式 (8) 的过程**，
-> 也没有说明 `F_fusion` 在物理上对应什么量（是 $J$？是 $t$？是 $A$？）。
+> 也没有说明 `F_fusion` 在物理上对应什么量（是 J？是 t？是 A？）。
 >
 > **精读的态度**：
 > ① 上面那段物理解释是**我的合理推测**，不是论文原文；

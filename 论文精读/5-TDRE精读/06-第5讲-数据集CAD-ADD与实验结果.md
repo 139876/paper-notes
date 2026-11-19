@@ -5,7 +5,7 @@ aliases: [第5讲, CAD-ADD, 实验结果精读]
 created: 2026-11-19
 stage: 4 · 实验评价
 series: 主讲 · 第 5 讲
-related: "[[paper-notes/论文精读/5-TDRE精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/04-检测任务与评测/12-目标检测基础与mAP]]"
+related: ["[[paper-notes/论文精读/5-TDRE精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/04-检测任务与评测/12-目标检测基础与mAP]]"]
 ---
 
 # 第 5 讲：CAD-ADD 数据集 与 实验结果逐表精读
@@ -197,14 +197,18 @@ related: "[[paper-notes/论文精读/5-TDRE精读/00-索引 MOC]]", "[[paper-not
 
 > [!important] 读这张表的三个要点
 > ① **16.052 / 19.189 / 21.598 是"5 个测试集的增益之和"**，不是某个单项指标。
->    验算 Baseline_3：$(−0.474) + 4.319 + 13.841 + 1.491 + 2.421 = 21.598$ ✓
+>    验算 Baseline_3：(−0.474) + 4.319 + 13.841 + 1.491 + 2.421 = **21.598** ✓
 > ② **论文明确标注了"清晰图性能下降"用下划线**（−0.474 / −0.263 / −0.228），
 >    **三个检测器全都有**。这很诚实，但也要看清：**TDRE 不是"零代价"的**，
 >    它用清晰图上的一点点损失换取退化条件的大幅提升。
 > ③ **Sparse R-CNN 的增幅最大**（+19.189，且 Dusty 从 47.234 → 60.137，**+12.903**）。
->    论文的解释：稀疏 R-CNN 用**可学习的 proposal embedding**，
->    **对输入分布的扰动更敏感**，所以前置增强帮得更多。
->    （这条解释是论文自己的，你可以追问它是否可证伪。）
+>    ⚠️ **论文并没有解释**为什么 Sparse R-CNN 增益最大 —— 它只列了数字。
+>    **我的推测**：稀疏 R-CNN 用**一组可学习的 proposal embedding** 作为检测假设，
+>    它对**输入特征图的统计形态**可能比 anchor-based 的 Faster R-CNN 更敏感
+>    （anchor 是固定模板，天然"抗扰"；learnable embedding 是数据驱动的，分布一变就跟着偏）。
+>    → **这只是推测**，论文没写。**这正是一个可追问的点**：
+>    如果真是这样，那么"**检测器越可学习（越少先验），前置增强的收益越大**"应该成立
+>    —— 你可以设计实验验证（再换一个 query-based 或 anchor-free 检测器看看）。
 
 > [!tip] 这张表的真正价值：**证明 TDRE 不是"为 DiffusionDet 量身定做"**
 > 论文原话：*"TDRE effectively and consistently boosts the detection accuracy and environmental robustness of **all tested detectors**... confirming our synergistic optimization mechanism is **not overfitted to a specific detection framework**."*
@@ -418,7 +422,7 @@ related: "[[paper-notes/论文精读/5-TDRE精读/00-索引 MOC]]", "[[paper-not
 
 > 这篇论文只是**这张地图上的一个点**。想往上走，看下面这条。
 
-- [[paper-notes/论文精读/0-公开基础知识/07-方向知识脉络/02-恶劣天气视觉与数据集]] — 恶劣天气数据集谱系
+- [[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/02-恶劣天气视觉与数据集]] — 恶劣天气数据集谱系
 - [[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/08-遥感基础与数据集谱系]] — 遥感数据集谱系
 
 ---
