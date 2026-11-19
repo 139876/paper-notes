@@ -1,0 +1,1056 @@
+
+
+========== PAGE 1 ==========
+ISPRS Journal of Photogrammetry and Remote Sensing 242 (2026) 1–18
+Contents lists available at ScienceDirect
+ISPRS Journal of Photogrammetry and Remote Sensing
+journal homepage: www.elsevier.com/locate/isprsjprs
+Bridging the domain gap: A transferable dynamic routing enhancer for
+robust aerial detection under adverse weather
+Yu Wana, Jie Lia,c,* , Liupeng Linb , Zhaowen Lva, Zaiyan Zhanga , Qiangqiang Yuana,
+Huanfeng Shenb
+aSchool of Geodesy and Geomatics, Wuhan University, Wuhan 430079, China
+bSchool of Resource and Environmental Sciences, Wuhan University, Wuhan 430079, China
+cHubei Luojia Laboratory, Wuhan 430079, China
+A R T I C L E I N F O A B S T R A C T
+Keywords: Aerial remote sensing object detection often suffers from severe domain shift under adverse weather. Current
+Aerial object detection methods primarily face two limitations. First, direct training on degraded images is computationally expensive
+Remote sensing and causes catastrophic forgetting on clear images. Second, using image restoration as a preprocessing step
+Adverse weather
+introduces task misalignment; these models optimize for human visual clarity and background reconstruction,
+Dynamic routing
+wasting computation instead of preserving the essential semantic features required for detection. To bridge this
+Lightweight networks
+gap, we propose a plug-and-play module called the Transferable Dynamic Routing Enhancer (TDRE). Designed
+specifically for the object detection task, TDRE uses a Dynamic Routing Mixture-of-Experts (DR-MoE) framework
+to handle different weather conditions without serious forgetting of clear images. Inside DR-MoE, parallel experts
+separate various atmospheric degradations, while a clear-sky perceptron lets clear images bypass the restoration
+process to prevent unnecessary interference. To further align the enhancement with the detection task, we
+introduce a synergistic optimization mechanism. This combines a multi-space restoration loss with a detection-
+oriented enhancement loss. This mechanism uses spatial masks based on detection labels to restrict gradient
+updates to target regions, ignoring visually redundant backgrounds. Evaluations on our CAD-ADD dataset show
+that our method is highly effective. With fewer than 3 K extra parameters and fast inference speeds, TDRE
+significantly improves the generalization of frozen detectors in complex scenarios, achieving a total improvement
+of 126.9 mAP50 points across 17 test sets. The source code is released at https://github.com/KIKYOUWY/TDRE.
+1. Introduction involves direct model training (Badgujar et al., 2024; Hu et al., 2024;
+Huang et al., 2021; Li et al., 2023; Liu et al., 2022; Wang et al., 2021; Xia
+Aerial object detection plays an indispensable role in a wide range of et al., 2022), where researchers attempt to fully fine-tune pre-trained
+real-world applications, such as intelligent transportation (Yang et al., heavyweight detection models using degraded datasets. While this
+2023; Zhang et al., 2014), agricultural monitoring (Badgujar et al., strategy can improve robustness under specific conditions, it poses sig-
+2024), and disaster relief (Zhao et al., 2024). However, robust detec- nificant limitations. Retraining large-scale detectors for every new
+tion in open-world environments remains a formidable challenge. Aerial weather scenario incurs prohibitive computational costs and lacks cross-
+images captured under adverse weather conditions—such as fog, dust scenario flexibility.
+storms, and low illumination—typically suffer from severe color More critically, fine-tuning inevitably leads to catastrophic forget-
+distortion and reduced contrast. Consequently, pre-trained detection ting of clear images. As the model updates its weights to accommodate
+models experience a drastic performance drop, which is primarily driven degraded features, its original detection capability on clear, normal-
+by the severe domain shift between clear training datasets and degraded weather images is severely impaired. Alternatively, the second para-
+real-world inputs. digm utilizes distributed methods (Li and Zhao, 2023; Long et al., 2014;
+To address this issue, existing studies have primarily explored two Qin et al., 2020; Qiu et al., 2023; Zhang et al., 2026; Zhang et al., 2020),
+paradigms (Wan et al., 2025), as shown in Fig. 1. The first paradigm which deploy an independent image restoration network as a
+* Corresponding author.
+E-mail address: jili89@sgg.whu.edu.cn(J. Li).
+https://doi.org/10.1016/j.isprsjprs.2026.08.041
+Received 13 April 2026; Received in revised form 29 June 2026; Accepted 31 August 2026
+Available online 4 September 2026
+0924-2716/© 2026 International Society for Photogrammetry and Remote Sensing, Inc. (ISPRS). Published by Elsevier B.V. All rights are reserved, including those
+for text and data mining, AI training, and similar technologies.
+
+========== PAGE 2 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+preprocessing step. While this plug-and-play approach avoids retraining irrelevant backgrounds. This strategy prevents computational waste
+the detector, existing restoration models fall into the trap of a human- and forces the enhancer to specifically amplify the target-level features
+visual bias, excessive focusing on the overall perception of the human. required for machine perception. In summary, the key contributions of
+They consume massive computational resources to blindly pursue this work are encapsulated as follows:
+human-oriented evaluation metrics, prioritizing overall visual clarity (1) An Overall Architecture Handling Multiple Degradations
+and background reconstruction, while neglecting the high-frequency and Combating Catastrophic Forgetting: We propose the TDRE ar-
+semantic features genuinely required for machine perception. This chitecture and utilize the DR-MoE framework to safely navigate complex
+discrepancy leads to a fatal task inconsistency between image restora- domain shifts. Its internal parallel experts effectively disentangle diverse
+tion and object detection: a smoothly restored image may lose the crit- adverse weather conditions, while the clear-sky perceptron seamlessly
+ical edge and texture information necessary for accurate target bypasses undegraded clear images. This routing strategy effectively al-
+localization. leviates degradation of the catastrophic forgetting on clear images.
+To break this deadlock, we propose a plug-and-play Transferable (2) A Synergistic Optimization Mechanism Resolving Task
+Dynamic Routing Enhancer (TDRE). Rather than acting as a conven- Inconsistency: To break the human-visual bias in conventional
+tional restorer to cater for human vision, TDRE operates purely as a distributed methods, we propose tightly coupling a multi-space resto-
+detection-oriented visual filter, which is designed to specifically amplify ration loss with a detection-oriented enhancement loss. By leveraging
+the high-frequency semantic information required by frozen detectors spatial masks guided by detection labels, TDRE proactively discards
+rather than pursuing pixel-level clarity. Specifically, TDRE utilizes a visually redundant background reconstruction and calculates gradients
+Dynamic Routing Mixture-of-Experts (DR-MoE) framework to simulta- exclusively on target regions. This synergy ensures the enhancement
+neously process multiple weather conditions and relieve forgetting. process strictly and specifically serves downstream machine perception
+Within DR-MoE, parallel experts adaptively disentangle complex at- tasks.
+mospheric degradations. Concurrently, a novel clear-sky perceptron acts (3) A Comprehensive Cross-Scenario Benchmark and Extreme
+as a hard gate to distinguish degraded inputs and undegraded clear in- Lightweight Efficiency: We construct the Cross-Application Degrada-
+puts. This intelligent routing mechanism effectively alleviates cata- tion Aerial Detection Dataset (CAD-ADD), encompassing four distinct
+strophic forgetting. real-world domains and three typical atmospheric degradation condi-
+To resolve task inconsistency, we introduce a synergistic optimiza- tions. Extensive evaluations demonstrate that TDRE, utilizing fewer than
+tion mechanism that couples a multi-space restoration loss with a 3 K additional parameters with an extremely fast inference speed,
+detection-oriented enhancement loss, achieving both global and local significantly boosts the robust generalization of frozen detectors across
+alignment: while the multi-space loss corrects global color shifts across diverse and complex scenarios.
+different domains, the detection-oriented loss uses spatial masks to focus As shown in Fig. 2, the radar chart illustrates the performance im-
+gradient updates exclusively on target regions. Unlike conventional provements achieved by the proposed TDRE over the baseline model
+methods that reconstruct the entire image, our mechanism uses detec- across four distinct detection scenarios and a total of 17 test sets. With
+tion labels to guide these masks, ensuring that the model ignores task- only 2930 additional parameters and an inference cost of 0.002 s, our
+Fig. 1. Key Paradigms and Challenges in Adverse Weather Aerial Object Detection.
+2
+
+========== PAGE 3 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 2. The Radar Chart of Detection Improvement by TDRE under Different Detection Scenes.
+method substantially improves detection performance under diverse specialized domain of aerial imagery, FFCA-YOLO(Zhang et al., 2024)
+weather conditions. incorporates foreground feature co-attention mechanisms to counteract
+The remainder of this article is organized as follows. Section 2re- weak feature representation and cluttered backgrounds characteristic of
+views the related work, primarily focusing on aerial object detection and small object instances. SCENE-YOLO(Zhao et al., 2025) augments
+All-in-One image restoration algorithms. Section 3details the proposed detection accuracy by integrating scene-level contextual supervision,
+TDRE, elaborating on the Clear-Sky Perceptron, the DR-MoE framework, thereby leveraging global semantic priors to refine local object hy-
+and the detection-driven refinement strategy. Section 4 presents the potheses. Despite their computational efficiency and architectural
+experimental setup, introduces the CAD-ADD dataset, and provides simplicity, one-stage detectors often exhibit sub-optimal accuracy,
+comprehensive evaluations, including comparisons with state-of-the-art particularly in scenes dominated by small or heavily occluded objects.
+methods and extensive ablation studies. Finally, Section 5concludes this Conversely, two-stage detectors decompose the detection pipeline
+paper. into a cascade of proposal generation followed by region-wise classifi-
+cation and regression, yielding superior localization precision at the
+2. Related work expense of increased computational overhead. The Region-based Con-
+volutional Neural Network(Girshick et al., 2014) pioneered this para-
+2.1. Object detection digm by employing Selective Search to extract approximately 2,000
+category-agnostic region proposals, each subsequently classified via
+In the nascent phase of research, object detection was predominantly CNN-derived features. Faster R-CNN(Ren et al., 2017) streamlined this
+formulated using hand-engineered low-level visual cues, such as color, pipeline by integrating a Region Proposal Network (RPN) that directly
+texture, and shape descriptors. However, the discriminative capacity of generates proposals from convolutional feature maps, thereby amor-
+these cues was severely limited by their fixed and domain-specific design tizing computation across the shared backbone. Sparse R-CNN(Sun
+paradigms. Seminal contributions from this era include the Viola-Jones et al., 2021) further simplified the detection workflow by dispensing
+cascade detector, the Histogram of Oriented Gradients (HOG) frame- with hand-designed anchors and ROI-pooling operations, instead
+work coupled with Support Vector Machines, and the Deformable Part adopting a sparse set of learnable proposal embeddings. More recently,
+Model (DPM)(Felzenszwalb et al., 2008). A fundamental limitation of DiffusionDet(Chen et al., 2022) leverages the generative capacity of
+these classical approaches lies in their restricted generalization capa- diffusion probabilistic models: departing from the static proposals of
+bility, arising from the inability of rigid, hand-crafted features to adapt Sparse R-CNN, it initializes detection hypotheses as random bounding
+to diverse imaging conditions and object appearances. boxes and progressively refines them through a reverse diffusion process
+The advent of deep convolutional neural networks precipitated a conditioned on image features. While two-stage detectors consistently
+paradigmatic shift toward learning-based representations, ushering in achieve state-of-the-art accuracy, especially in complex scenes charac-
+modern object detectors that are broadly categorized according to their terized by scale variation, occlusion, and dense object distributions.
+proposal-generation mechanism: one-stage and two-stage architectures They incur substantial computational and temporal costs, rendering
+(Zou et al., 2023). One-stage detectors unify localization and classifi- them less amenable to latency-critical applications.
+cation into a single, end-to-end regression problem, thereby enabling Despite their impressive performance on standard datasets, these
+real-time inference with reduced architectural complexity. The YOLO pre-trained detectors struggle in open-world environments. When con-
+(You Only Look Once)(Bochkovskiy et al., 2020; Redmon et al., 2016; fronted with adverse weather conditions, they experience a severe
+Redmon and Farhadi, 2018; Redmon et al., 2017; Wang et al., 2023), domain shift. To adapt to these degraded features, direct model training
+initiated in 2015, has undergone continual methodological refinement, approaches attempt to fully fine-tune the detector. However, this strat-
+with YOLOv5 offering a scalable suite of models spanning multiple egy is inherently flawed. It not only incurs prohibitive retraining costs
+computational budgets to accommodate heterogeneous deployment but also inevitably triggers catastrophic forgetting. As the detector up-
+scenarios. To mitigate the foreground-background class imbalance dates its weights to accommodate hazy or low-light features, it
+inherent in dense prediction tasks, RetinaNet(Lin et al., 2017) intro- frequently loses its original detection accuracy on clear images.
+duced the focal loss, a dynamically weighted objective that attenuates
+the influence of easily classified negative samples. Adaptive Training
+Sample Selection (ATSS) (Zhang et al., 2019) further elevates detection 2.2. All-in-One image restoration
+robustness by adaptively determining training exemplars. In the
+Currently, distributed methods frequently employ Image restoration
+3
+
+========== PAGE 4 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+(IR) models as preprocessors for downstream perception tasks. Image 3. Proposed method
+restoration is dedicated to recovering high-quality images from obser-
+vations degraded by a variety of factors, such as noise, blur, compres- 3.1. The architecture of The proposed method
+sion, and adverse weather conditions. Traditional IR methods have
+made notable progress by targeting individual degradation types. The overall pipeline of the proposed Transferable Dynamic Routing
+However, these specialized approaches often come at the cost of Enhancer (TDRE) is constructed as a three-stage detection-oriented vi-
+generalization, rendering them ill-equipped to handle the multifaceted sual filter: degradation perception, condition-specific restoration, and
+distortions encountered in real-world applications. In response to this detection-oriented enhancement as shown in Fig. 3. Unlike conventional
+challenge, the All-in-One image restoration (AIR) paradigm has distributed networks that blindly reconstruct entire images for human
+emerged, offering a unified framework that adeptly addresses multiple vision, TDRE is inserted as an ultra-lightweight plug-and-play module
+degradation types. This innovative approach enhances the convenience prior to a frozen downstream object detector, bridging the domain gap
+and versatility by adaptively learning degradation-specific features without modifying the detector's weights. The network parameter
+while simultaneously leveraging shared knowledge across diverse counts for the Clear-Sky Perceptron, DR-MoE, and Detection Enhance-
+corruptions. ment stages are 273, 2406, and 251, respectively.
+The objective of All-in-One Image Restoration models is to address a In the first stage (Degradation Perception), given an input aerial
+variety of isolated or mixed degradation tasks within a unified frame- image IInput, the Dynamic Routing Mixture-of-Experts (DR-MoE) frame-
+work, obviating the need for task-specific retraining. Based on archi- work evaluates the visual state through a novel clear-sky perceptron.
+tectural designs, learning paradigms, and core innovations, AIR methods This perceptron extracts preliminary features and outputs a clear aware
+can be categorized into the following types. Some studies employ task- score Sca, which is formulated as follows:
+specific encoders and decoders, which involve assigning a distinct (cid:0) (cid:0) (cid:0) )))
+encoder-decoder pair for each type of degradation. However, this
+Fm =frelu fBN fConv1 IInput (1)
+approach necessitates prior knowledge of the degradation type and ex- ( ( ( ( ))))
+hibits limited flexibility when confronted with multiple or unknown Sca =fSigmoid ffc2 frelu ffc1 fPooling (Fm ) (2)
+degradations.
+To this end, some research shares a single decoder but trains multiple
+where IInput and Fm are the input of images and the middle feature,
+heads for different degradation types. All-in-One Bad Weather Removal
+fSigmoid (.)represents the Sigmoid activation, fConv1 (.)represents the 3 ×3
+using Architectural Search(Li et al., 2020) is proposed to address the convolution layer, fBN (.)represents the batch normalization layer, frelu (.)
+degradation of images caused by various adverse weather conditions denotes the ReLU activation function, fPooling (.) represents the pooling
+(such as rain, fog, snow, and raindrops) using a single network. The core layer, ffc1 (.)and ffc2 (.)represent the fully connected layers. Sca represents
+contributions of this method include the design of a generator with the clear aware score. In this work, the Sca threshold is set at 0.5 to
+multiple task-specific encoders, each of which corresponds to a partic- distinguish between clear and degraded images. If the image is classified
+ular type of adverse weather degradation. as an undegraded clear image (Sca >0.5), it seamlessly bypasses the
+Meanwhile, some models utilize a unified encoder-decoder structure, subsequent object detection model. Sca threshold is set to 0.5 because it
+which serves as a foundational design adaptable to various degradation provides the best balance between avoiding unnecessary enhancement
+types, such as, AirNet(Li et al., 2022), TANet(Wang et al., 2024), and of clear images and activating TDRE for degraded inputs; this choice is
+AdaIR(Cui et al., 2024). AdaIR addresses the challenge of handling further validated by the threshold sensitivity analysis in Table 6. This
+diverse image degradations—such as noise, blur, haze, and routing strategy guarantees less interference on clear images and sub-
+raindrops—within a single model. It achieves this by employing fre- stantially mitigates the risk of catastrophic forgetting.
+quency mining and modulation to adaptively address the distinct im- In the second stage (Condition-Specific Restoration), if the image is
+pacts that different degradation types impose on image content across identified as degraded ((Sca <0.5), it is dynamically routed to parallel
+various frequency subbands. A prime exemplar of this paradigm is experts within the DR-MoE. These parallel experts explicitly disentangle
+BIDeN(Han et al., 2022). Models such as DINO-IR(Lin et al., 2023), and process diverse adverse weather conditions, such as fog and low
+Perceive-IR(Zhang et al., 2025), and DA-CLIP(Luo et al., 2023) leverage illumination, yielding an intermediate restored image IR.
+frozen vision-language models (e.g., CLIP(Radford et al., 2021), DINO In the third stage (Detection-Oriented Enhancement), the restored
+(Caron et al., 2021)) to predict high-quality feature embeddings. features undergo targeted synergistic optimization to explicitly resolve
+The mixture of expert (MoE) model has also been applied to All-in- task inconsistency. The module processes IR using an ultra-lightweight
+One image restoration tasks, where inputs are routed to different ex- convolutional structure to generate the final enhanced result IE:
+(cid:0) (cid:0) ))
+perts via a gating mechanism. For instance, MEASNet(Yu et al., 2024) IE =fConv3 frelu fConv2 (IR ) (3)
+takes into account both pixel-level and global features, including low-
+frequency and high-frequency components, to select the appropriate where fConv2 (.)and fConv3 (.)represent the 3 ×3 convolution layer. The
+expert for image restoration (IR). MoCE-IR(Zamfir et al., 2024) not only enhanced results IE along with the original clear images are fed into the
+outperforms state-of-the-art methods, but also introduces flexible expert subsequent detection model.
+blocks with varying computational complexity and receptive fields
+(Complexity Experts). This design effectively affirms its efficiency and 3.2. Dynamic routing Mixture-of-Experts for Condition-Specific
+strong practical applicability. restoration
+Unfortunately, these restoration-centric approaches suffer from a
+severe human-visual bias. To achieve high scores on human-oriented While feeding all degraded conditions into a single, monolithic
+metrics like PSNR, these models utilize massive architectures—often network might confer some basic restoration capabilities, the intrinsic
+containing millions of parameters—to blindly reconstruct visually statistical differences among diverse adverse weather scenarios are
+pleasing textures. This creates a critical task inconsistency. The heavily highly significant. Given our stringent constraint on minimizing model
+parameterized networks waste tremendous computational resources parameters, relying on a single shared feature space to handle multi-
+smoothing task-irrelevant backgrounds, often inadvertently discarding faceted degradations is highly suboptimal. To address this challenge, we
+the high-frequency semantic edges essential for machine perception. construct the Dynamic Routing Mixture-of-Experts (DR-MoE) frame-
+work as shown in Fig. 4. Instead of utilizing a generic architecture, this
+module adaptively routes degraded inputs to specialized parallel ex-
+perts, explicitly disentangling diverse weather conditions in a single
+4
+
+========== PAGE 5 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 3. The Overall Framework of TDRE.
+Fig. 4. The structure of the Dynamic Routing Mixture-of-Experts for Condition-Specific Restoration.
+forward pass. the gating network to obtain the probability representation of degra-
+When an image is identified as degraded by the first-stage clear-sky dation classification. This process can be represented as:
+perceptron, it is initially fed into a preprocessing layer to extract pre- ( ( ( )))
+liminary features. This initial feature extraction process can be mathe- VP =fsoftmax ffc3 fflatten fPooling (FP ) (5)
+matically represented as:
+(cid:0) (cid:0) (cid:0) ))) where fsoftmax (.)represents the softmax activation. fflatten (.)represents
+FP =frelu fConv5 frelu fConv4 (ID ) (4) the flattening operation. VP represents the probability representation.
+Unlike conventional sparse routing designs, our framework activates
+where ID and FP represent the degraded images and the preprocessing
+all three parallel experts simultaneously during both the training and
+features, respectively. Subsequently, the features extracted are fed into
+5
+
+========== PAGE 6 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+inference phases (Top-3 routing). These three experts are specifically
+dedicated to resolving degradations induced by fog, dust, and low-light
+LRGB =fL2 (IR ,IC ) (10)
+conditions. To effectively capture both local details and global contexts, (cid:0) )
+each expert employs a multi-scale fusion strategy. The feature process-
+LHSV =fL2 fHSV (IR ),fHSV (IC ) (11)
+ing within the i(cid:0) th expert is defined as:
+(cid:0) )
+LLAB =fL2 (fLAB (IR ),fLAB (IC )) (12)
+F
+E
+i =fcat fConv6 (frelu (FP )),fConv7 (frelu (FP )),fConv8 (frelu (FP )) (6)
+LMSR =LRGB +LHSV +LLAB (13)
+kern w e h l e s r iz e e f s C o 3 n v × 6 (. 3 ) , , 5 fC o × nv7 5 ( , . ) a , n f d Co 7 nv 8 × (. 7 ) , d r e e n s o p t e e c t m iv u e l l t y i- . s F c i al d e e c n o o n te v o th lu e t i o o u n t s p u w t i t o h f where fL2 (.), fHSV (.), fLAB (.)represent Frobenius norm, the RGB to HSV
+E
+the i(cid:0) th expert. These three experts are respectively dedicated to transformation, and the RGB to LAB transformation, respectively. By
+constraining these heterogeneous color spaces simultaneously, the
+restoring degradations caused by fog, dust, and low-light conditions
+network recovers the authentic color distribution and structural details
+present in the imagery. The expert restores the details and global fea-
+that are highly sensitive to machine perception.
+tures in the image more effectively through multi-scale fusion. The
+Detection-Oriented Enhancement Loss: In the third stage, we
+model inputs FP into each of the three experts and then performs a
+implement the core mechanism designed to break the task inconsis-
+weighted summation based on VP. The fusion convolution process can be
+tency. Conventional restoration networks calculate the loss across the
+represented as:
+( ) entire image, wasting tremendous computational resources on smooth-
+∑3
+ing task-irrelevant backgrounds. To overcome this, we propose a
+Ffusion =fConv9 F
+E
+i⋅V
+P
+i (7)
+detection-oriented enhancement loss that incorporates spatial masks
+i=1
+guided by ground-truth detection bounding boxes. The formulation is
+Finally, these fused features Ffusion are fed into an atmospheric prior expressed as:
+module. To further enhance the robustness of the restoration process, we
+incorporate an atmospheric transfer equation. The intermediate restored
+LDE =fL2 (fMask (IE ),fMask (IC )) (14)
+image IR is obtained through: where LDE represents the detection-oriented enhancement loss, fMask (.
+IR =frelu (cid:0) Ffusion ⋅ID (cid:0) Ffusion +b ) (8) )re
+T
+p
+h
+re
+is
+s e
+m
+nt
+a
+s
+s
+t
+k
+h
+in
+e
+g
+m
+s
+a
+tr
+s
+a
+k
+t e
+o
+g
+p
+y
+e r
+i
+a
+s
+t i
+t
+o
+h
+n
+e
+,
+c
+o
+o
+n
+r
+l
+n
+y
+e
+c
+r
+a
+st
+l
+o
+cu
+n
+l
+e
+a t
+o
+in
+f
+g
+o u
+th
+r
+e
+s y
+o
+n
+b
+e
+je
+rg
+ct
+i s
+p
+ti
+a
+c
+r t
+o
+l
+p
+o
+t
+s
+im
+s.
+i-
+where b is a bias term empirically set to 1 in this work. These restored zation. By coupling the multi-space color constraints LMSR with the
+results IR are subsequently fed into the third-stage enhancement module. spatial masks LDE, the enhancement module proactively discards
+Through this sophisticated yet parameter-efficient MoE design, the redundant background reconstruction. It forces the network to concen-
+DR-MoE sucessfully disentangles complex atmospheric degradations. It trate its limited capacity entirely on amplifying target-level
+provides a highly reliable intermediate restored image for the subse- discriminability—such as sharp boundaries and local contrast. Conse-
+quent detection-oriented enhancement stage, ensuring robust percep- quently, this task-driven synergy allows the TDRE to significantly boost
+tion augmentation while strictly adhering to our extreme lightweight downstream detection accuracy while maintaining an extremely
+constraints. compact architecture of fewer than 3 K additional parameters.
+3.3. Synergistic Multi-Space detection-oriented enhancement loss 4. Experiments
+mechanism
+4.1. Implementation details
+To effectively guide the model optimization and explicitly resolve
+the task inconsistency problem, we design a progressive, three-stage To comprehensively evaluate the robustness and generalization
+synergistic loss mechanism. Each stage is optimized independently capability of the proposed method under degraded conditions, we
+with its specific objectives, while the parameters of the preceding stages introduce the Cross-Application Degradation Aerial Detection Dataset
+remain entirely frozen. (CAD-ADD) as shown in Fig. 5. This comprehensive benchmark en-
+Clear-Sky Perceptron Loss: In the first stage, the objective is to train compasses four distinct real-world detection scenarios: agricultural
+the clear-sky perceptron to accurately distinguish between clear and disease, city waste, wilderness rescue, and intelligent transportation.
+degraded images. This ensures the hard gate can reliably bypass clear Furthermore, the dataset captures diverse weather conditions, including
+images. We employ the binary cross-entropy loss, formulated as follows: clear, foggy, dusty, and low-light environments, alongside an additional
+LCSP =
+N
+1
+∑N
+[(cid:0) yi ⋅ln(σ(̂yi ))(cid:0) (1(cid:0) yi )⋅log(1(cid:0) σ(̂yi ))] (9)
+r
+w
+e
+o
+a
+r
+l-
+l
+w
+d
+o
+d
+r
+e
+l
+g
+d
+r
+d
+ad
+eg
+e
+r
+d
+a
+t
+d
+e
+e
+s
+d
+ti n
+te
+g
+s t
+s
+i
+e
+n
+t
+g
+h
+s
+a
+e
+s
+t t
+n
+o
+o
+v
+g
+a
+e
+l
+o
+id
+g
+a
+r
+t
+a
+e
+p
+p
+h
+r
+ic
+a c
+o
+t
+r
+ic
+t
+a
+e
+l
+m
+re
+p
+l
+o
+ia
+r
+b
+al
+i l
+o
+it
+v
+y
+e
+.
+r
+T
+la
+h
+p
+e r
+w
+e
+i
+a
+t
+l
+h
+-
+i=1 any training set, thereby preventing data leakage during evaluation. All
+where yi is the i(cid:0) th true label, ̂yi is the i(cid:0) th predicted results. The scenarios in this dataset are constructed based on existing benchmark
+detection datasets, including PDT (Zhou et al., 2024) (agricultural
+parameters of the first stage are trained via LCSP to enable the model to
+detection), YQKJ-SARD (wilderness rescue), UAVwaste (Kraft et al.,
+distinguish between clear and degraded images.
+2021) (city waste detection), and VisDrone (Zhu et al., 2022) (urban
+Multi-Space Restoration Loss: In the second stage, the DR-MoE
+transport detection). The specific details of the dataset are presented in
+framework is trained to disentangle specific weather conditions. The
+Table 1. In Table 1, ×4 indicates that each training set contains four
+loss function at this stage comprises two distinct components. The first is
+weather variants, namely Clear, Foggy, Dusty, and Lowlight. All ex-
+a classification cross-entropy loss that optimizes the gating network to
+periments are conducted on an NVIDIA GeForce RTX 4080 GPU with 16
+accurately route images to the corresponding experts. The second
+GB of RAM and a 13th Gen Intel(R) Core(TM) i7-13700KF CPU.
+component is the multi-space restoration loss, which compares the in-
+TDRE is optimized using the Adam optimizer. To ensure stable
+termediate restored images IR with the clear ground-truth labels IC.
+convergence, the learning rate follows a decay schedule, starting from
+Because severe color distortion directly degrades semantic feature
+an initial value of 2e-3 and concluding at 2e-5.
+extraction, conventional RGB-only constraints are insufficient. There-
+Following the three-stage optimization paradigm described in
+fore, we explicitly introduce constraints within the HSV and LAB color
+Section 3, we meticulously design the training batch construction to
+spaces to form a comprehensive multi-space restoration objective:
+prevent data imbalance and mitigate catastrophic forgetting. In the first
+stage (training the clear-sky perceptron), the batch size is set to 12,
+6
+
+========== PAGE 7 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 5. The Cross-Application Degradation Aerial Detection Dataset.
+comprehensive comparison. These include specialized deep learning-
+Table 1
+based dehazing algorithms (AODNet, GridDehazeNet, FFANet, MB-
+The Specific Details of CAD-ADD.
+TaylorFormer) and recent All-in-One restoration frameworks (IDR,
+Datasets Train Images Test Images Classes MOCE-IR). To guarantee absolute fairness in comparative analysis, all
+Num Num Num
+baseline models are retrained from scratch on our dataset, utilizing the
+Agricultural Detection 4536 ×4 567 ×4 1 identical spectrum of clear and degraded images. During the evaluation
+Rescue Detection 12423 ×4 3550 ×4 5 phase, a strict plug-and-play protocol is enforced: the outputs from all
+Waste Detection 2368 ×4 1013 ×4 1
+Transport Detection 3000 ×4 700 ×4 3 restoration models are directly fed into the frozen detector without any
+Real Transport N/A 2477 3 task-specific fine-tuning.
+Detection
+4.2. Restoration performance in Real-World scenarios
+comprising a strict half-and-half split of clear and degraded images. In
+To rigorously validate the practical utility of TDRE, we focus our
+the second stage, the batch size is set to 16. To ensure unbiased expert
+visual analysis exclusively on aerial images captured under real-world
+routing and prevent the model from overfitting to a specific degradation,
+adverse weather conditions. Conventional simulated datasets often fail
+these 16 images are uniformly sampled from the four conditions (i.e.,
+to replicate the complex and unpredictable atmospheric degradations
+four images each from clear, foggy, dusty, and low-light sets) during
+found in authentic environments. Therefore, real-world performance
+every iteration. Given that clear images may also be affected by quality
+serves as the ultimate benchmark for a detection-oriented visual filter.
+degradation factors, clear images are input alongside degraded images.
+As shown in Fig. 6, we visualize the intermediate restoration results
+For the downstream perception evaluation, we employ DiffusionDet
+of TDRE under real-world degradations. Guided by DR-MoE, the
+as the baseline detector. Crucially, this detector is pre-trained exclu-
+network explicitly disentangles complex atmospheric distortions in a
+sively on clear images, and its parameters remain strictly frozen
+single forward pass. More importantly, our enhancement process is
+throughout all our experiments. To validate the superiority of our syn-
+intrinsically targeted. This is achieved through the synergy of detection-
+ergistic architecture, we select several state-of-the-art models for
+oriented optimization and spatial masking mechanisms.
+7
+
+========== PAGE 8 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 6. Restoration Visualization Results of TDRE in real scenarios.
+Visual results confirm that TDRE effectively restores global color 4.3. Detection performance comparison experiment
+fidelity in unpredictable environments. Furthermore, it specifically
+preserves and amplifies the structural details and high-frequency edges In the detection performance comparison experiment, we use the
+of potential targets. Rather than wasting limited computational re- intelligent transportation dataset for this experiment. The intermediate
+sources on reconstructing task-irrelevant backgrounds, our method en- restored results from each model are directly fed into the strictly frozen
+sures that the enhanced features are strictly optimized for machine baseline detector, which was trained exclusively on clear images. This
+perception. This target-driven restoration strategy provides a highly plug-and-play evaluation protocol rigorously verifies the actual
+reliable and robust visual foundation for downstream detection tasks. It perception gain provided by the enhancers. Detection accuracy is eval-
+perfectly meets the practical demands of complex aerial applications. uated using the mAP50 metric, and the quantitative comparison results
+are summarized in Table 2. Bold indicates optimal performance, while
+8
+
+========== PAGE 9 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Table 2 of our detection-oriented visual filter.
+Detection Performance Comparison Result. The qualitative detection results are visualized in Fig. 7and Fig. 8. As
+Clear Foggy Dusty Lowlight Real shown in the figure, under both simulated and real-world degraded
+scenarios, other traditional restoration methods can achieve superior
+Baseline 65.853 50.971 48.038 57.494 24.247
+visual effects for human eyes, while these methods often blur high-
+AODNet 61.312 48.864 55.016 40.108 20.875
+(CVPR2017) frequency semantic edges due to aggressive over-smoothing. This
+GridDehazeNet 60.259 49.545 58.820 48.250 20.622 functional misalignment inevitably leads to severe missed detections
+(ICCV2019) and localization errors for the downstream detector. Conversely, TDRE
+FFANet 64.675 50.368 53.296 58.970 24.100
+successfully preserves and amplifies target-level feature discriminability
+(AAAI2020)
+MB-TalyorFormer 62.735 53.219 61.477 58.733 25.221 in complex environments. Consequently, it empowers the frozen base-
+(ICCV2023) line detector to reliably penetrate severe domain shifts, achieving pre-
+IDR 64.892 54.435 61.550 58.530 25.545 cise object localization and recognition under highly challenging
+(CVPR2023) conditions.
+MOCE-IR 64.238 54.030 61.141 59.141 25.561
+(CVPR2025)
+TDRE 65.379 55.290 61.879 58.985 26.668
+4.4. Generalization experiments in different scenarios
+underlined denotes second-best performance. To thoroughly validate the cross-scenario generalization of the pro-
+As demonstrated in the experimental results, the proposed TDRE posed enhancer, we evaluated it across four distinct domains. These
+comprehensively and significantly boosts the detection performance of include agricultural disease detection, city waste detection, wilderness
+the original baseline across various adverse weather conditions, while rescue, and intelligent transportation. In these experiments, we tested
+utilizing an extremely minimal number of additional parameters. two versions of our model. TDRE-A was trained on the complete dataset.
+Crucially, benefiting from the bypass mechanism of the clear-sky per- In contrast, TDRE-T was trained exclusively on the transportation
+ceptron, TDRE maintains nearly identical detection accuracy on the dataset. We designed this specific setup to see how well the model
+clear image test set. In contrast, other distributed networks suffer from transfers to completely unseen scenarios. The quantitative results are
+noticeable performance degradation on clear images. This decline summarized in Table 3, where D- indicates the basic baseline detector.
+directly exposes their inherent human-visual bias, where task-irrelevant The results clearly show that TDRE-T still achieves a highly significant
+background smoothing disrupts original semantic features, leading to performance boost when transferred to unfamiliar fields under degraded
+task inconsistency. Overall, TDRE achieves the best performance on four conditions. Meanwhile, TDRE-A further maximizes this robust general-
+out of the five test sets and secures a highly competitive second-best ization, comprehensively improving detection accuracy across all tested
+result on the low-light dataset. This strongly validates the superiority scenarios. Qualitative results are illustrated in Fig. 9.
+Fig. 7. Detection Visualization Result in the Simulated Test Set.
+9
+
+========== PAGE 10 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 8. Detection Visualization Result in the Real-world Test Set.
+provides a positive but more limited gain.
+Table 3
+Finally, we analyzed the results across different weather conditions.
+Detection Performance Results under Different Scenes.
+For clear images, our initial routing mechanism ensures that the original
+Clear Foggy Dusty Lowlight accuracy is barely affected. This actively avoids the severe performance
+D-Agricultural diseases 85.681 77.242 19.645 51.686 drops frequently seen in traditional restoration models. Under foggy and
+TDRE-T 84.892 79.096 71.517 59.333 low-light conditions, the images experience global color shifts, but their
+TDRE-A 84.872 80.871 73.427 64.816 core distribution patterns are not entirely destroyed. TDRE effectively
+D-City Waste 81.701 79.285 68.858 72.888
+corrects these shifts to improve detection. Dusty conditions, however,
+TDRE-T 80.179 79.673 78.341 75.065
+TDRE-A 81.100 79.606 78.062 75.072 directly and completely disrupt the RGB channels. As a result, the
+D-Wilderness Rescue 71.850 47.169 19.395 43.059 baseline detector suffers a massive performance drop. Yet, by applying
+TDRE-T 66.363 51.722 48.169 43.770 our enhancer, the model achieves a substantial recovery and a striking
+TDRE-A 67.786 53.232 48.137 44.762
+improvement in final accuracy.
+D-Intelligent Transportation 65.853 50.971 48.038 57.494
+TDRE-T 65.379 55.290 61.879 58.985
+TDRE-A 65.618 54.602 60.061 58.126 4.5. Generalization experiment of UAV actual flight data
+To further verify the practical generalization of the proposed TDRE,
+We observed different enhancement effects across the various ap-
+we conducted additional evaluations using unconstrained, real-world
+plications. In agricultural disease detection, the targets generally have
+UAV flight data. Standard datasets typically feature unified image
+high reflectance and lack clear geometric shapes. Because they rely
+sizes and fixed data distributions. These controlled conditions may not
+heavily on subtle color features, TDRE significantly boosts detection
+fully represent the extreme variability and unpredictability of actual
+performance under all degradation conditions. For city waste and
+aerial photography. Therefore, we selected newly captured degraded
+transportation tasks, the targets are larger and have distinct geometric
+images from authentic drone flights to serve as an ultimate test bed.
+features. The baseline model handles them reasonably well, but TDRE
+The visual detection results are illustrated in Fig. 10. As shown in the
+still provides a considerable improvement. In wilderness rescue, the
+figure, TDRE effectively eliminates the severe color distortions and low
+original dataset already contains mildly degraded images. This gives the
+contrast caused by authentic adverse weather conditions. More impor-
+baseline detector some natural robustness, meaning our enhancement
+tantly, it dramatically amplifies the struc tural features of targets that
+10
+
+========== PAGE 11 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 9. Detection Visualization Result in Different Applications.
+Fig. 10. Detection Results of UAV Actual Flight Data.
+11
+
+========== PAGE 12 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+are extremely small or located at far distances. Table 5
+By leveraging our synergistic optimization mechanism, the enhancer Ablation Study on the Impact of Different Color-Space Losses on Detection
+provides a robust and clear visual input without requiring any modifi- Performance.
+cations to the frozen downstream detector. Consequently, the baseline Loss Clear Foggy Dusty Lowlight Real
+detector successfully identifies challenging targets that were previously
+RGB 61.178 54.092 61.418 49.512 25.137
+lost in the severe atmospheric degradation. This confirms the excep- HSV 60.683 53.931 61.023 53.229 25.209
+tional cross-domain generalization and high reliability of our light- LAB 61.277 53.666 61.009 52.490 25.459
+weight architecture in authentic UAV applications. RGB +HSV 61.101 53.906 61.441 54.987 25.710
+RGB +LAB 61.037 53.964 61.186 55.814 25.698
+HSV +LAB 60.891 54.021 61.228 56.376 25.733
+5. Discussion
+MSR Loss 61.125 54.139 61.569 57.258 25.922
+5.1. Component Ablation experiment
+Table 6
+To validate the individual contributions of our core designs, we
+Results of Generalization Experiments for Different Detection Baselines.
+conducted comprehensive component ablation experiments. The eval-
+uated modules include the DR-MoE framework trained solely with a Clear Foggy Dusty Lowlight Real
+standard L2 loss, the multi-space restoration (MSR) loss, the clear-sky Baseline_1 54.203 39.745 44.610 42.947 18.300
+perceptron, and the detection-oriented enhancement (DE) loss. During Baseline_1 +TDRE (cid:0) 0.228 þ4.058 þ5.276 þ5.219 þ1.727
+Baseline_2 62.459 47.128 47.234 52.476 25.729
+the training of each progressive stage, the parameters of all preceding
+Baseline_2 +TDRE (cid:0) 0.263 þ3.608 þ12.903 þ0.932 þ2.009
+stages are frozen. The quantitative results are presented in Table 4.
+Baseline_3 65.853 50.971 48.038 57.494 24.247
+The experimental results clearly demonstrate the necessity of each Baseline_3 +TDRE (cid:0) 0.474 þ4.319 þ13.841 þ1.491 þ2.421
+component. When optimizing the DR-MoE parallel experts using only
+the L2 loss, the model improves detection performance in foggy and
+shifts caused by illumination and atmospheric degradation, and the LAB-
+dusty scenarios. However, it suffers a noticeable performance drop
+domain loss provides a perceptually meaningful color correction
+under low-light conditions. By introducing the MSR loss across the RGB,
+constraint. The results also show that different color-space losses exhibit
+HSV, and LAB domains, the model explicitly constrains complex color
+inconsistent effects under different weather conditions, indicating that a
+distortions. This addition effectively recovers and boosts detection ac-
+single color representation cannot fully handle diverse degradations. In
+curacy in low-light environments.
+contrast, using the three color-space losses together achieves the best
+The experimental results clearly demonstrate the necessity of each
+detection performance across multiple degraded weather conditions and
+component. When optimizing the DR-MoE parallel experts using only
+the real-world degraded test set, demonstrating that RGB, HSV, and LAB
+the L2 loss, the model improves detection performance in foggy and
+provide complementary constraints for detection-oriented restoration.
+dusty scenarios. However, it suffers a noticeable performance drop
+Furthermore, feeding original clear images into the restoration
+under low-light conditions. To further analyze the source of this
+network causes unnecessary smoothing, which leads to a severe accu-
+improvement, we additionally conducted independent contribution
+racy drop on the clear test set. The proposed clear-sky perceptron suc-
+ablation experiments on different color-space losses, including RGB,
+cessfully resolves this issue by routing normal inputs around the
+HSV, LAB, and their combinations. The results show that the RGB-
+enhancer. Finally, incorporating the spatial mask-guided DE loss forces
+domain loss helps preserve pixel-level structural consistency, the HSV-
+the network to concentrate exclusively on target regions. This explicit
+domain loss more directly constrains hue and saturation shifts caused
+task-aligned mechanism comprehensively maximizes the detector's
+by illumination and atmospheric degradation, and the LAB-domain loss
+perception across all adverse conditions, particularly in real-world
+provides a perceptually meaningful color correction constraint. By
+scenarios.
+introducing the MSR loss across the RGB, HSV, and LAB domains, the
+To better illustrate the effectiveness of the MSR loss, we visualized
+model explicitly constrains complex color distortions from comple-
+the 3D scatter plots of the color space distributions. As shown in Fig. 11,
+mentary color representations. This addition effectively recovers and
+the original degraded images exhibit severe distributional shifts
+boosts detection accuracy in low-light environments and provides more
+compared to the clear images. These shifts critically disrupt the feature
+stable performance across different degraded conditions.
+extraction of the downstream detector. Conversely, the color distribu-
+To further verify the final impact of different color-space losses on
+tions of our intermediate restored images align tightly with those of the
+detection performance, we additionally conducted independent contri-
+clear images. This authentic color recovery provides a highly robust
+bution ablation experiments on the MSR loss as shown in Table 5.
+foundation for object detection.
+Specifically, we compared the results of using the RGB, HSV, and LAB
+Finally, to validate our target-driven enhancement mechanism, we
+losses individually, using their pairwise combinations, and using all
+visualized the feature differences using heatmaps. Specifically, the
+three color-space losses together. These comparisons allow us to eval-
+heatmaps were generated from the feature differences extracted from
+uate how each color representation contributes to the final detection
+the Stem layer of the detector backbone. As illustrated in Fig. 12, under
+performance.
+various simulated and real-world degradations, the final enhanced fea-
+The RGB-domain loss helps preserve pixel-level structural consis-
+tures exhibit exceptionally high activation values precisely on the po-
+tency, the HSV-domain loss more directly constrains hue and saturation
+tential objects. This confirms that our network successfully discards
+redundant background reconstruction. Instead, it dedicates its limited
+computational power entirely to amplifying target-level discriminabil-
+Table 4
+ity, thereby directly improving the final detection performance.
+Component Ablation Experiments Result.
+Component Clear Foggy Dusty Lowlight Real
+5.2. Generalizability experiments of different detection baselines
+(A) Baseline 65.853 50.971 48.038 57.494 24.247
+(B) A +DR-MoE 61.178 54.092 61.418 49.512 25.137
+(C) B +MSR Loss 61.125 54.139 61.569 57.258 25.922 To thoroughly validate the efficacy and architectural agnosticism of
+(D) C +Clear-Sky 65.454 53.931 61.268 57.932 26.015 TDRE, we conducted generalization experiments across various main-
+Perceptron stream detection baselines. A robust detection-oriented enhancer must
+(E) D +DE loss 65.379 55.290 61.879 58.985 26.668
+demonstrate consistent performance gains regardless of the underlying
+12
+
+========== PAGE 13 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 11. Comparison of 3D Scatter Plots in Multi Color Spaces, the first row shows the original color space distribution results, and the second row shows the output
+of TDRE.
+detection architecture. In this comprehensive evaluation, we selected 5.3. Hyperparameter experiment
+three representative models: Faster R-CNN (Baseline 1) as a classic two-
+stage detector, Sparse R-CNN (Baseline 2) as a query-based detector, and To better balance the classification performance between clear im-
+DiffusionDet (Baseline 3) as a generative paradigm detector. The ages and degraded images, and to comprehensively improve the detec-
+quantitative results are summarized in Table 6, where underlined in- tion performance under degraded conditions while minimizing the
+dicates performance decline and bolded indicates performance impact on the detection results of clear images, hyperparameter exper-
+improvement. iments were conducted on the threshold of the clear-aware score Sca and
+As demonstrated by the experimental data, TDRE effectively and the number of experts in DR-MoE. Specifically, the clear-aware score
+consistently boosts both the detection accuracy and environmental threshold was ablated to determine a suitable routing criterion, while
+robustness of all tested detectors under adverse weather conditions. The the number of experts in DR-MoE was further analyzed to evaluate its
+enhancements are highly significant. Specifically, when plugged into the influence on the balance between degradation modeling capacity and
+frozen baseline architectures, the overall mAP50 metric increased by detection performance.
+16.052 for Faster R-CNN, 19.189 for Sparse R-CNN, and 21.598 for The thresholds of clear-aware-score were set at 0.5, 0.6, 0.7, 0.8, and
+DiffusionDet. 0.9, where this value indicates that images with a probability greater
+These substantial performance gains confirm that our synergistic than this value after the softmax activation function are classified as
+optimization mechanism is not overfitted to a specific detection frame- clear images. The experimental results are shown in Table 7. The
+work. Instead, TDRE successfully provides a universally reliable visual experimental results show that when the threshold is higher, that is,
+foundation. By filtering out task-irrelevant degradations and amplifying when more clear images are classified as degraded images, although the
+structural features, it empowers diverse detection architectures to reli- detection performance under degraded conditions can be slightly
+ably penetrate severe domain shifts. enhanced in some cases, it leads to a significant drop in the detection
+performance of clear images. Moreover, the performance on the real test
+set also decreases. Therefore, TDRE sets this hyperparameter to 0.5.
+13
+
+========== PAGE 14 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 12. Visualization of the Heatmap of the Difference between Detection Enhancement Results and Restoration Results.
+experts in DR-MoE, which achieves the best overall balance between
+Table 7
+degradation-specific modeling capacity, detection accuracy, and light-
+Ablation Study Results on the Threshold of the Clear Aware Score.
+weight computation.
+Sca Clear Foggy Dusty Lowlight Real
+0.5 65.379 55.290 61.879 58.985 26.668
+5.4. Model efficiency and complexity analysis
+0.6 64.077 55.505 61.909 58.783 26.570
+0.7 63.044 55.383 61.925 58.646 26.579
+0.8 62.352 55.237 62.023 58.386 26.532 To comprehensively evaluate the performance of the proposed
+0.9 61.588 55.240 61.966 58.386 26.490 TDRE, we compared it with state-of-the-art methods across multiple
+metrics, including the number of parameters, inference speed, GPU
+memory usage, and detection accuracy on a real-world test set (Table 9).
+Table 8 The reported inference time of TDRE measures the complete end-to-end
+Ablation Study Results on the Number of Experts (Num_E) in DR-MoE. forward process, including the routing calculation of the Clear-Sky
+Perceptron and the subsequent enhancement stage. The results
+Num_E Clear Foggy Dusty Lowlight Real
+demonstrate that our method achieves approximately 100 times fewer
+1 64.822 54.382 61.301 58.634 25.854
+parameters and over ten times the inference speed of the high-
+2 65.289 55.111 61.422 58.981 26.113
+3 65.379 55.290 61.879 58.985 26.668
+4 65.214 55.311 61.782 58.661 26.410 Table 9
+Comprehensive Performance Comparison Result.
+The Ablation Study Results on the Number of Experts in DR-MoE is Methods Params InferenceSpeed GPU Performance
+shown in Table 8. The results show that increasing the number of experts Memory
+(M) (s) (MB) (mAP)
+from 1 to 3 generally improves the detection performance, especially on
+the real-world degraded test set. This indicates that multiple experts AODNet 1.76 K 0.0006 58.0 20.875
+GridDehazeNet 958.05 K 0.0178 351.7 20.622
+help DR-MoE better model heterogeneous weather degradations. How-
+FFANet 4455.91 K 0.1701 472.2 24.100
+ever, further increasing the number of experts to 4 does not consistently MB-TalyorFormer 2676.52 K 0.3674 1545.5 25.221
+improve performance. Although the 4-expert setting obtains a slightly IDR 2985.09 K 0.0803 1737.6 25.545
+higher result on the foggy subset, it decreases the performance on clear, MOCE-IR 2950.40 K 0.0873 454.5 25.561
+dusty, low-light, and real-world degraded images. Therefore, we adopt 3 TDRE 2.93 K 0.0020 77.2 26.668
+14
+
+========== PAGE 15 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+performing models, such as IDR / MOCE-IR / MB-TaylorFormer, while 5.5. Failure Case analysis
+maintaining superior detection accuracy.
+This efficiency is further validated by its significantly lower GPU Although the proposed TDRE achieves consistent performance im-
+memory footprint, making it ideal for edge deployment in real-time provements under various degraded conditions, several challenging
+aerial detection tasks. These comprehensive results are visualized in failure cases still remain. To further analyze the limitations of our
+Fig. 13, where the x-axis denotes inference speed, the y-axis represents method, we visualize three representative failure cases under extremely
+detection accuracy, and the bubble size indicates the number of pa- low-light and dense foggy conditions. As shown in Fig. 16, when the
+rameters. This visualization clearly highlights the proposed model's su- degradation is particularly severe, the domain gap between the
+perior balance between detection performance and deployment degraded target images and the clear source-domain images becomes
+efficiency. extremely large. In such cases, the restoration results produced by TDRE
+Furthermore, we conducted extensive hardware-specific experi- are still not fully satisfactory, and the detection results may contain
+ments to assess practical utility. In CPU-based tests, we analyzed the missed detections or inaccurate localization.
+correlation between CPU utilization and inference latency, confirming This limitation mainly arises because the discriminative object cues
+the model's stability under varying computational loads. On GPU plat- in the original images are severely weakened by extreme illumination
+forms, we evaluated the impact of input resolution on processing speed, degradation or dense atmospheric interference. When the object texture,
+demonstrating consistent real-time performance across different image boundary, and color information are largely suppressed, the enhance-
+scales. ment module cannot completely recover the missing visual information.
+The results for inference speed under varying CPU utilization are Consequently, the detector may still fail to identify some objects, espe-
+presented in Table 10and Fig. 14. The data indicate that TDRE main- cially small or heavily degraded targets.
+tains acceptable inference speeds even under constrained CPU re- Nevertheless, compared with the original baseline detector, TDRE
+sources, which is critical for deployment on mobile platforms such as still improves the visual consistency between degraded images and clear
+UAVs. Conversely, competing methods exhibit a sharp increase in la- images to a certain extent. Specifically, the enhanced results exhibit
+tency as CPU availability decreases, with processing times often reach- better color consistency, clearer local contrast, and more salient object
+ing the order of seconds. Such delays are prohibitive for real-time UAV regions, which help the detector capture more reliable target-level cues.
+applications, highlighting the superior efficiency and robustness of our Therefore, even in these difficult failure cases, the proposed method can
+proposed model. still achieve better detection performance than the baseline model.
+With continuous advancements in UAV sensor technology, the abil- These observations indicate that future work may further explore
+ity to process high-resolution imagery has become a critical performance stronger domain adaptation strategies or multi-frame contextual infor-
+metric. The correlation between input resolution and inference speed on mation to improve robustness under extremely challenging degradation
+the GPU is illustrated in Fig. 15. The results demonstrate that the pro- conditions.
+posed TDRE maintains efficient processing speeds even at large scales,
+such as 4096 × 4096 pixels. In contrast, several compared methods, 6. Conclusion
+including MB-TaylorFormer, IDR, and MOCE-IR, suffer from Out of
+Memory (OOM) errors at these resolutions, while others require seconds In this paper, we identified that aerial object detection under adverse
+per frame. These findings underscore the superior memory efficiency weather conditions is fundamentally hindered by severe domain shifts.
+and real-time scalability of our model for high-definition aerial imaging. Existing solutions frequently fall into two critical traps: direct model
+training inevitably triggers catastrophic forgetting on clear images,
+while traditional distributed methods suffer from a severe human-visual
+bias, leading to task inconsistency and wasted computational resources.
+Fig. 13. Visualization of Comprehensive Performance.
+15
+
+========== PAGE 16 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Table 10
+The Results for Inference Speed under Varying CPU Utilization.
+Methods 10 % 20 % 30 % 40 % 50 % 60 % 70 % 80 % 90 % 100 %
+AODNet 0.0605 0.3128 0.0261 0.0200 0.0157 0.0121 0.0101 0.0098 0.0092 0.0095
+GridDehazeNet 2.0813 1.0206 0.0873 0.6932 0.5585 0.5038 0.4661 0.4522 0.4498 0.4456
+FFANet 19.4919 8.0047 6.4357 5.4297 4.7730 4.3918 4.1153 3.9901 3.8018 3.8599
+MB-TalyorFormer 25.9058 18.5024 16.2235 14.6319 13.6839 12.3918 11.5153 11.4922 11.3609 11.3745
+IDR 8.2574 3.5389 2.904 2.3529 2.1096 1.9436 1.8232 1.8416 1.8356 1.7912
+MOCE-IR 4.9928 2.4002 1.9641 1.6333 1.4984 1.4228 1.3881 1.3002 1.2895 1.2743
+TDRE 0.1106 0.0676 0.0622 0.0609 0.0581 0.0557 0.0538 0.0541 0.0529 0.0522
+Fig. 14. Line Plot of Inference Speed as a Function of CPU Utilization.
+Fig. 15. Heatmap Visualization of Model Inference Speed as a Function of Image Resolution.
+To break this deadlock, we proposed the Transferable Dynamic features and color fidelity of potential targets.
+Routing Enhancer (TDRE), an ultra-lightweight, plug-and-play visual Extensive evaluations on our comprehensive Cross-Application
+filter designed exclusively for machine perception. At its architectural Degradation Aerial Detection Dataset (CAD-ADD) thoroughly validate
+core, the Dynamic Routing Mixture-of-Experts (DR-MoE) explicitly dis- the superiority of the proposed method. With an incredibly compact
+entangles multifaceted atmospheric degradations in a single forward architecture of fewer than 3 K additional parameters and extremely fast
+pass. Concurrently, the novel clear-sky perceptron acts as a highly reli- inference speeds, TDRE consistently and significantly boosts the robust
+able hard gate. By seamlessly bypassing undegraded inputs, it effectively generalization of various frozen baseline detectors, yielding a remark-
+alleviates the catastrophic forgetting problems of clear images. able cumulative improvement of 126.9 mAP50 points across 17 distinct
+Furthermore, we introduced a synergistic optimization mechanism to test sets. It successfully provides a highly reliable visual foundation for
+explicitly resolve the task inconsistency problem. By tightly coupling a complex and unpredictable real-world aerial applications.
+multi-space restoration loss with a detection-oriented masking strategy,
+our framework proactively discards visually redundant background CRediT authorship contribution statement
+reconstruction. It forces the network to concentrate its limited compu-
+tational capacity entirely on amplifying the high-frequency structural Yu Wan: Writing – review & editing, Writing – original draft,
+16
+
+========== PAGE 17 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Fig. 16. Visualization of representative failure cases under extremely degraded conditions.
+Visualization, Validation, Supervision, Resources, Project administra- References
+tion, Methodology, Investigation, Formal analysis, Data curation,
+Conceptualization. Jie Li: Writing – review & editing, Visualization, Badgujar, C.M., Poulose, A., Gan, H., 2024. Agricultural object detection with you only
+look once (YOLO) Algorithm: a bibliometric and systematic literature review.
+Project administration, Methodology, Investigation, Funding acquisi-
+Comput. Electron. Agric. 223, 18.
+tion, Conceptualization. Liupeng Lin: Funding acquisition, Data cura- Bochkovskiy, A., Wang, C.-Y. and Liao, H.-Y.M., 2020. YOLOv4: Optimal Speed and
+tion, Conceptualization. Zhaowen Lv: Writing – review & editing, Accuracy of Object Detection. ArXiv, abs/2004.10934.
+Investigation, Formal analysis. Zaiyan Zhang: Writing – review & Caron, M., Touvron, H., Misra, I., Jegou, H., Mairal, J., Bojanowski, P., Joulin, A. and
+Ieee, 2021. Emerging Properties in Self-Supervised Vision Transformers, 18th IEEE/
+editing, Investigation, Formal analysis, Conceptualization. Qiangqiang CVF International Conference on Computer Vision (ICCV). Ieee, Electr Network, pp.
+Yuan: Writing – review & editing, Resources, Funding acquisition. 9630-9640.
+Chen, S., Sun, P., Song, Y., Luo, P., 2022. DiffusionDet: Diffusion Model for Object
+Huanfeng Shen: Funding acquisition, Formal analysis.
+Detection. In: 2023 IEEE/CVF International Conference on Computer Vision (ICCV),
+pp. 19773–19786.
+Declaration of competing interest Cui, Y., Zamir, S.W., Khan, S.H., Knoll, A., Shah, M. and Khan, F.S., 2024. AdaIR:
+Adaptive All-in-One Image Restoration via Frequency Mining and Modulation.
+ArXiv, abs/2403.14614.
+The authors declare that they have no known competing financial Felzenszwalb, P., McAllester, D., Ramanan, D. and Ieee, 2008. A discriminatively trained,
+interests or personal relationships that could have appeared to influence multiscale, deformable part model, IEEE Conference on Computer Vision and Pattern
+the work reported in this paper. Recognition. IEEE Conference on Computer Vision and Pattern Recognition. Ieee,
+Anchorage, AK, pp. 1984-+.
+Girshick, R., Donahue, J., Darrell, T., Malik, J. and Ieee, 2014. Rich feature hierarchies
+Acknowledgment for accurate object detection and semantic segmentation, 27th IEEE Conference on
+Computer Vision and Pattern Recognition (CVPR). IEEE Conference on Computer
+Vision and Pattern Recognition. Ieee, Columbus, OH, pp. 580-587.
+This work is supported in part by the National Natural Science
+Han, J.L., Li, W.H., Fang, P.F., Sun, C.Y., Hong, J., Armin, M.A., Petersson, L. and Li, H.
+Foundation of China under Grant 42471504 and 42301417 and the D., 2022. Blind Image Decomposition, 17th European Conference on Computer
+Fundamental Research Funds for the Central Universities under Grant Vision (ECCV). Lecture Notes in Computer Science. Springer International Publishing
+Ag, Tel Aviv, ISRAEL, pp. 218-237.
+No. 2042026kf001. (Corresponding author: Jie Li.).
+Hu, K., Wu, F., Zhan, Z.F., Luo, J., Pu, H.Y., 2024. High-low level task combination for
+object detection in foggy weather conditions. J. Vis. Commun. Image Represent. 98,
+Data availability 8.
+Huang, S.C., Le, T.H., Jaw, D.W., 2021. DSNet: Joint Semantic Learning for Object
+Detection in Inclement Weather Conditions. IEEE Trans. Pattern Anal. Mach. Intell.
+Data will be made available on request. 43 (8), 2623–2633.
+17
+
+========== PAGE 18 ==========
+Y. Wan et al. I S P R S J o u r n a l o f P h o t o g r a m m e t r y a n d R e m o t e S e n sing 242 (2026) 1–18
+Kraft, M., Piechocki, M., Ptak, B., Walas, K., 2021. Autonomous, Onboard Vision-based Sun, P.Z., Zhang, R.F., Jiang, Y., Kong, T., Xu, C.F., Zhan, W., Tomizuka, M., Li, L.,
+Trash and Litter Detection in Low Altitude Aerial Images Collected by an Unmanned Yuan, Z.H., Wang, C.H., Luo, P., Ieee Comp, S.O.C., 2021. Sparse R-CNN: End-to-End
+Aerial Vehicle. Remote Sens. (Basel) 13 (5), 965. Object Detection with Learnable proposals. In: IEEE/CVF Conference on Computer
+Li, B.Y., Liu, X., Hu, P., Wu, Z.Q., Lv, J.C., Peng, X. and Ieee Comp, S.O.C., 2022. All-In- Vision and Pattern Recognition (CVPR). IEEE Conference on Computer Vision and
+One Image Restoration for Unknown Corruption, IEEE/CVF Conference on Computer Pattern Recognition. Ieee Computer Soc, Electr Network, pp. 14449–14458.
+Vision and Pattern Recognition (CVPR). IEEE Conference on Computer Vision and Wan, Y., Li, J., Lin, L., Yuan, Q., Shen, H., 2025. Collaboration of Dehazing and Object
+Pattern Recognition. Ieee Computer Soc, New Orleans, LA, pp. 17431-17441. Detection Tasks: a Multi-Task Learning Framework for Foggy image. IEEE Trans.
+Li, C.Y., Zhou, H., Liu, Y., Yang, C.D., Xie, Y.Q., Li, Z.B., Zhu, L.P., 2023. Detection- Geosci. Remote Sens. 1.
+Friendly Dehazing: Object Detection in Real-World Hazy Scenes. IEEE Trans. Pattern Wang, C., Li, C., Luo, B., Wang, W. and Liu, J., 2021. RiWNet: A moving object instance
+Anal. Mach. Intell. 45 (7), 8284–8295. segmentation Network being Robust in adverse Weather conditions, pp. arXiv:
+Li, R.T., Tan, R.T., Cheong, L.F. and Ieee, 2020. All in One Bad Weather Removal using 2109.01820.
+Architectural Search, IEEE/CVF Conference on Computer Vision and Pattern Wang, C.Y., Bochkovskiy, A., Liao, H.Y.M. and Ieee, 2023. YOLOv7: Trainable bag-of-
+Recognition (CVPR). IEEE Conference on Computer Vision and Pattern Recognition. freebies sets new state-of-the-art for real-time object detectors, IEEE/CVF Conference
+Ieee Computer Soc, null, ELECTR NETWORK, pp. 3172-3182. on Computer Vision and Pattern Recognition (CVPR). IEEE Conference on Computer
+Li, Y. and Zhao, Y.F., 2023. RSID: A Remote Sensing Image Dehazing Network, 6th Vision and Pattern Recognition. Ieee Computer Soc, Vancouver, CANADA, pp. 7464-
+Chinese Conference on Pattern Recognition and Computer Vision (PRCV). Lecture 7475.
+Notes in Computer Science. Springer-Verlag Singapore Pte Ltd, Xiamen Univ, Wang, H.H., Tsai, F.J., Lin, Y.Y. and Lin, C.W., 2024. TANet: Triplet Attention Network
+Xiamen, PEOPLES R CHINA, pp. 3-14. for All-In-One Adverse Weather Image Restoration, 17th Asian Conference on
+Lin, T.Y., Goyal, P., Girshick, R., He, K.M., Dolla´r, P. and Ieee, 2017. Focal Loss for Dense Computer Vision-ACCV-Biennial. Lecture Notes in Computer Science. Springer-
+Object Detection, 16th IEEE International Conference on Computer Vision (ICCV). Verlag Singapore Pte Ltd, Hanoi, VIETNAM, pp. 3-19.
+IEEE International Conference on Computer Vision. Ieee, Venice, ITALY, pp. 2999- Xia, J., Chen, T., Qiao, J., 2022. Vehicle Detection based on YOLOv3 in adverse Weather
+3007. Conditions. In: 2022 IEEE 4th International Conference on Civil Aviation Safety and
+Lin, X., Yue, J., Chan, K.C.K., Qi, L., Ren, C., Pan, J., Yang, M.-H., 2023. Multi-Task Image Information Technology (ICCASIT), pp. 692–696.
+Restoration Guided by Robust DINO Features. ArXiv, abs/2312.01677. Yang, S., Lu, H.M., Li, J.R., 2023. Multifeature Fusion-based Object Detection for
+Liu, W.Y., Ren, G.F., Yu, R.S., Guo, S., Zhu, J.K., Zhang, L. and Assoc Advancement Intelligent Transportation Systems. IEEE Trans. Intell. Transp. Syst. 24 (1),
+Artificial, I., 2022. Image-Adaptive YOLO for Object Detection in Adverse Weather 1126–1133.
+Conditions, 36th AAAI Conference on Artificial Intelligence. AAAI Conference on Yu, X., Zhou, S., Li, H., Zhu, L., 2024. Multi-Expert Adaptive selection: Task-Balancing for
+Artificial Intelligence. Assoc Advancement Artificial Intelligence, Electr Network, pp. All-in-one image Restoration. IEEE Trans. Circuits Syst. Video Technol. 35,
+1792-1800. 4619–4634.
+Long, J., Shi, Z.W., Tang, W., Zhang, C.S., 2014. Single Remote Sensing image Dehazing. Zamfir, E., Wu, Z., Mehta, N., Tan, Y., Paudel, D.P., Zhang, Y., Timofte, R., 2024.
+IEEE Geosci. Remote Sens. Lett. 11 (1), 59–63. Complexity experts are Task-Discriminative Learners for any image Restoration. In:
+Luo, Z., Gustafsson, F.K., Zhao, Z., Sjolund, J., Schon, T.B., 2023. Controlling Vision- 2025 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR),
+Language Models for Multi-Task image Restoration. International Conference on pp. 12753–12763.
+Learning. Representations. Zhang, S., Chi, C., Yao, Y., Lei, Z. and Li, S.Z., 2019. Bridging the Gap Between Anchor-
+Qin, X., Wang, Z.L., Bai, Y.C., Xie, X.D., Jia, H.Z. and Assoc Advancement Artificial, I., based and Anchor-free Detection via Adaptive Training Sample Selection, pp. arXiv:
+2020. FFA-Net: Feature Fusion Attention Network for Single Image Dehazing, 34th 1912.02424.
+AAAI Conference on Artificial Intelligence / 32nd Innovative Applications of Zhang, X., Ma, J., Wang, G., Zhang, Q., Zhang, H., Zhang, L., 2025. Perceive-IR: Learning
+Artificial Intelligence Conference / 10th AAAI Symposium on Educational Advances to Perceive Degradation Better for All-in-one image Restoration. IEEE Trans. Image
+in Artificial Intelligence. AAAI Conference on Artificial Intelligence. Assoc Process. 1.
+Advancement Artificial Intelligence, New York, NY, pp. 11908-11915. Zhang, Y., Xue, J.R., Zhang, G., Zhang, Y.W., Zheng, N.N. and Ieee, 2014. A Multi-
+Qiu, Y.W., Zhang, K.H., Wang, C.X., Luo, W.H., Li, H.D., Jin, Z. and Ieee, 2023. MB- Feature Fusion Based Traffic Light Recognition Algorithm for Intelligent Vehicles,
+TaylorFormer: Multi-branch Efficient Transformer Expanded by Taylor Formula for 33rd Chinese Control Conference (CCC). Chinese Control Conference. Ieee, Nanjing,
+Image Dehazing, IEEE/CVF International Conference on Computer Vision (ICCV). PEOPLES R CHINA, pp. 4924-4929.
+IEEE International Conference on Computer Vision. Ieee Computer Soc, Paris, Zhang, Y., Ye, M., Zhu, G.Y., Liu, Y., Guo, P.Y., Yan, J.H., 2024. FFCA-YOLO for Small
+FRANCE, pp. 12756-12767. Object Detection in Remote Sensing Images. IEEE Trans. Geosci. Remote Sens. 62,
+Radford, A., Kim, J.W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry, G., Askell, 15.
+A., Mishkin, P., Clark, J., Krueger, G. and Sutskever, I., 2021. Learning Transferable Zhang, Z., Li, J., Liang, Y., Yan, J., Xiao, Y., Su, X., Yuan, Q., 2026. ECRformer: an
+Visual Models From Natural Language Supervision, International Conference on efficient cloud removal Transformer with semantic-decoupled learning for
+Machine Learning (ICML). Proceedings of Machine Learning Research. Jmlr-Journal multimodal satellite imagery. ISPRS J. Photogramm. Remote Sens. 237, 323–338.
+Machine Learning Research, Electr Network. Zhang, Z., Zhao, L., Liu, Y., Zhang, S., Yang, J., 2020. Unified Density-Aware image
+Redmon, J., Divvala, S., Girshick, R., Farhadi, A. and Ieee, 2016. You Only Look Once: Dehazing and Object Detection in Real-World Hazy Scenes. Asian Conference on
+Unified, Real-Time Object Detection, 2016 IEEE Conference on Computer Vision and Computer Vision.
+Pattern Recognition (CVPR). IEEE Conference on Computer Vision and Pattern Zhao, C.J., Liu, R.W., Qu, J.X., Gao, R.B., 2024. Deep learning-based object detection in
+Recognition. Ieee, Seattle, WA, pp. 779-788. maritime unmanned aerial vehicle imagery: Review and experimental comparisons.
+Redmon, J. and Farhadi, A., 2018. YOLOv3: An Incremental Improvement. arXiv e- Eng. Appl. Artif. Intel. 128, 21.
+prints. Zhao, T., Feng, R.Y., Wang, L.Z., 2025. SCENE-YOLO: a One-Stage Remote Sensing
+Redmon, J., Farhadi, A. and Ieee, 2017. YOLO9000: Better, Faster, Stronger, 30th IEEE/ Object Detection Network with Scene Supervision. IEEE Trans. Geosci. Remote Sens.
+CVF Conference on Computer Vision and Pattern Recognition (CVPR). IEEE 63, 15.
+Conference on Computer Vision and Pattern Recognition. Ieee, Honolulu, HI, pp. Zhou, M., Xing, R., Han, D., Qi, Z. and Li, G., 2024. PDT: Uav Target Detection Dataset
+6517-6525. for Pests and Diseases Tree, European Conference on Computer Vision.
+Ren, S.Q., He, K.M., Girshick, R., Sun, J., 2017. Faster R-CNN: Towards Real-Time Object Zhu, P., Wen, L., Du, D., Bian, X., Fan, H., Hu, Q., Ling, H., 2022. Detection and Tracking
+Detection with Region Proposal Networks. IEEE Trans. Pattern Anal. Mach. Intell. 39 Meet Drones Challenge. IEEE Trans. Pattern Anal. Mach. Intell. 44 (11), 7380–7399.
+(6), 1137–1149. Zou, Z.X., Chen, K.Y., Shi, Z.W., Guo, Y.H., Ye, J.P., 2023. Object Detection in 20 Years: a
+Survey. Proc. IEEE 111 (3), 257–276.
+18
