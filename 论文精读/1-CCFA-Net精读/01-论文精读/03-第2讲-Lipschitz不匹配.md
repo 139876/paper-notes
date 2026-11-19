@@ -5,7 +5,7 @@ aliases: [第2讲, Lipschitz不匹配]
 created: 2026-10-29
 stage: 2 · 理论地基
 series: 主讲 · 第 2 讲
-related: "[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[14-附录A-公式速查手册]]"
+related: ["[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[14-附录A-公式速查手册]]"]
 ---
 
 # 第 2 讲：Lipschitz 不匹配到底在说什么

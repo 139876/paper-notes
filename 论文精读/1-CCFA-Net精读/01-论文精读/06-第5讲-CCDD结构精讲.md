@@ -5,7 +5,7 @@ aliases: [第5讲, CCDD 结构精讲, 跨域协同去雾解码器]
 created: 2026-11-03
 stage: 3 · 架构拆解
 series: 主讲 · 第 5 讲
-related: "[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[05-第4讲-架构张量尺寸逐层推导]]", "[[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/05-上采样与PixelShuffle]]", "[[04-第3讲-多任务损失与梯度冲突]]"
+related: ["[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[05-第4讲-架构张量尺寸逐层推导]]", "[[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/05-上采样与PixelShuffle]]", "[[04-第3讲-多任务损失与梯度冲突]]"]
 ---
 
 # 第 5 讲：CCDD 结构精讲（Cross-domain Collaborative Dehazing Decoder）

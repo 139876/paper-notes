@@ -4,7 +4,7 @@ aliases: [SGD, 优化器, 梯度下降优化器, 学习率策略, momentum]
 created: 2026-11-05
 stage: 1 · 打地基
 series: 基础 · 第 18 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[09-梯度下降与反向传播]]", "[[10-损失函数]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/15-附录B-复现清单与实验设计]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[09-梯度下降与反向传播]]", "[[10-损失函数]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/15-附录B-复现清单与实验设计]]"]
 track: 公共基础
 ---
 

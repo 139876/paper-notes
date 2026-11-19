@@ -5,7 +5,7 @@ aliases: [PixelShuffle 精讲, 上采样与采样的区别]
 created: 2026-11-03
 stage: 1 · 打地基
 series: 基础 · 第 5 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/06-第5讲-CCDD结构精讲]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/05-第4讲-架构张量尺寸逐层推导]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/06-第5讲-CCDD结构精讲]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/05-第4讲-架构张量尺寸逐层推导]]"]
 ---
 
 # 补充：PixelShuffle 与「上采样 vs 采样」

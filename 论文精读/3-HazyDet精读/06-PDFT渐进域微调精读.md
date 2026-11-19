@@ -4,7 +4,7 @@ aliases: [PDFT 精读, HazyDet 4.2, 渐进域微调, Progressive Domain Fine-Tun
 created: 2026-11-12
 stage: 2 · 模型原理
 series: HazyDet 精读 · 第 06 篇
-related: "[[00-索引 MOC]]", "[[05-DeCoDet原理精读]]", "[[04-复现必查项与坑]]", "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/04-深度监督三件套与SiLog尺度性质]]"
+related: ["[[00-索引 MOC]]", "[[05-DeCoDet原理精读]]", "[[04-复现必查项与坑]]", "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/04-深度监督三件套与SiLog尺度性质]]"]
 track: HazyDet
 ---
 

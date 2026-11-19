@@ -11,7 +11,9 @@
 > **复现 ≠ 拿到作者代码。**
 > 复现 = 你自己把论文的公式翻译成代码 + 用论文给的超参训练 + 复现论文的数字。
 
-这四篇论文（CCFA-Net、Cross-Modal UAV、HazyDet、HyperSpectral）**全部没有官方代码**，但它们都属于"信息足够"的类型——这才是判断一篇论文能不能复现的唯一标准，而不是"作者放没放 GitHub"。
+这四篇论文（CCFA-Net、Cross-Modal UAV、HazyDet、HyperSpectral）**全部没有官方代码**；
+第 5 篇 TDRE 是例外 —— 它**开源了代码**（github.com/KIKYOUWY/TDRE），但数据集 CAD-ADD 只 "available on request"。
+它们都属于"信息足够"的类型——这才是判断一篇论文能不能复现的唯一标准，而不是"作者放没放 GitHub"。
 
 ---
 

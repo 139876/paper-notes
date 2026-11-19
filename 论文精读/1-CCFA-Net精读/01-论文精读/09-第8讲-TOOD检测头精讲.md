@@ -5,7 +5,7 @@ aliases: [TOOD, TOOD检测头, 第8讲 TOOD, Task-aligned One-stage Object Detec
 created: 2026-11-03
 stage: 3 · 架构拆解
 series: 主讲 · 第 8 讲
-related: "[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[08-第7讲-MFAM多尺度前景感知]]", "[[04-第3讲-多任务损失与梯度冲突]]", "[[13-第12讲-批判性评价与可做选题]]", "[[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/06-空间注意力图]]"
+related: ["[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[08-第7讲-MFAM多尺度前景感知]]", "[[04-第3讲-多任务损失与梯度冲突]]", "[[13-第12讲-批判性评价与可做选题]]", "[[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/06-空间注意力图]]"]
 ---
 
 # 第 8 讲：TOOD 检测头（Task-aligned One-stage Object Detection）

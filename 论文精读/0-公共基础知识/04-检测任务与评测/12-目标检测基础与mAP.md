@@ -4,7 +4,7 @@ aliases: [目标检测基础, mAP, IoU, NMS, 评价指标基础]
 created: 2026-11-04
 stage: 1 · 打地基
 series: 基础 · 第 12 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/10-损失函数]]", "[[paper-notes/论文精读/0-公共基础知识/02-骨干网络与特征融合/07-FPN特征金字塔]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/10-损失函数]]", "[[paper-notes/论文精读/0-公共基础知识/02-骨干网络与特征融合/07-FPN特征金字塔]]"]
 track: 公共基础
 ---
 

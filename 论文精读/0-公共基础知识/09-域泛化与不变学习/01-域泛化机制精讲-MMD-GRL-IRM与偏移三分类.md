@@ -4,7 +4,7 @@ aliases: [域泛化机制精讲, MMD, GRL, 梯度反转, IRM, 协变量偏移, �
 created: 2026-11-16
 stage: 1 · 打地基
 series: 基础 · 第 19 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]]", "[[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/03-域适应域泛化与测试时适应]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]]", "[[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/03-域适应域泛化与测试时适应]]"]
 track: 公共基础
 ---
 

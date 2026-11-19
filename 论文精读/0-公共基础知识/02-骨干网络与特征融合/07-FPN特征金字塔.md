@@ -5,7 +5,7 @@ aliases: [FPN, Feature Pyramid Network, 特征金字塔网络]
 created: 2026-11-04
 stage: 1 · 打地基
 series: 基础 · 第 7 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/05-第4讲-架构张量尺寸逐层推导]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/08-第7讲-MFAM多尺度前景感知]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/09-第8讲-TOOD检测头精讲]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/05-第4讲-架构张量尺寸逐层推导]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/08-第7讲-MFAM多尺度前景感知]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/09-第8讲-TOOD检测头精讲]]"]
 ---
 
 # 补充 7 · FPN 特征金字塔网络

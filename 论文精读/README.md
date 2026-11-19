@@ -22,12 +22,12 @@
 
 | # | 论文 | 角色 | 精读产出 | 状态 |
 |---|---|---|---|---|
-| 1 | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [00-索引 MOC](论文精读/1-CCFA-Net精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) · [详细索引](论文精读/1-CCFA-Net精读/README.md) | ✅ 19 篇 + 38 附件 |
-| 2 | Cross-Modal Object Detection via UAV | 方法 | [00-索引 MOC](论文精读/2-Cross-Modal-UAV精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 14 篇 + 13 附件 |
+| 1 | CCFA-Net: Cross-domain collaborative and foreground-aware for UAV object detection in hazy scenes | 背景 + baseline | [00-索引 MOC](论文精读/1-CCFA-Net精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) · [详细索引](论文精读/1-CCFA-Net精读/README.md) | ✅ 22 篇 + 40 附件 |
+| 2 | Cross-Modal Object Detection via UAV | 方法 | [00-索引 MOC](论文精读/2-Cross-Modal-UAV精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 20 篇 + 22 附件 |
 | 0 | 📚 公共基础知识（跨论文通用地基） | 地基 | [00-公共知识总览](论文精读/0-公共基础知识/00-公共知识总览.md) | ✅ 39 篇 |
-| 3 | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [00-索引 MOC](论文精读/3-HazyDet精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 10 篇 |
-| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 16 篇（依据 IEEE 原文摘要 + 专利重写） |
-| 5 | TDRE: Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather | 方法 · 对照组 | [00-索引 MOC](论文精读/5-TDRE精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 10 篇（依据 ISPRS 原文全文） |
+| 3 | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [00-索引 MOC](论文精读/3-HazyDet精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 10 篇 + 13 附件 |
+| 4 | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance | 理论 | [00-索引 MOC](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 16 篇 + 3 附件（依据 IEEE 原文摘要 + 专利重写） |
+| 5 | TDRE: Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather | 方法 · 对照组 | [00-索引 MOC](论文精读/5-TDRE精读/00-%E7%B4%A2%E5%BC%95%20MOC.md) | ✅ 10 篇 + 2 附件（依据 ISPRS 原文全文） |
 
 ---
 
@@ -49,7 +49,7 @@
 **论文**：Cross-Modal Object Detection via UAV
 **出处**：IEEE Transactions on Vehicular Technology, Vol. 72, No. 8, pp. 10894–10905, Aug. 2023
 **DOI**：[10.1109/TVT.2023.3262129](https://doi.org/10.1109/TVT.2023.3262129)
-**规模**：14 篇笔记 + 13 个附件
+**规模**：20 篇笔记 + 22 个附件
 
 > 模态鸿沟怎么跨？答案不是特征对齐，是**预测模仿** —— 让 IR 分支去模仿 RGB 分支的输出。
 
@@ -60,7 +60,7 @@
 **论文**：HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes
 **出处**：arXiv:2409.19833（2024）
 **仓库**：[GrokCV/HazyDet](https://github.com/GrokCV/HazyDet)
-**规模**：5 篇笔记
+**规模**：10 篇笔记 + 13 个附件
 
 > 11000 对配对图像、364,393 个框、只有 3 类（Car 占 91.6%），而且**带深度标注** ——
 > 这是 CCFA-Net 完全没用上的那条线。
@@ -74,13 +74,29 @@
 **DOI**：[10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332)
 **配套专利**：CN202610642401（2026-07-03 公开）
 **定位**：**域泛化（MDG）** · 多源训练 → 未见目标域零样本 · 跨传感器 / 跨场景高光谱分类
-**规模**：13 篇（00 索引 + 01 速览 + 9 讲 + 3 附录）
+**规模**：16 篇笔记 + 3 个附件（00 索引 + 01 速览 + 02~09 共 8 讲 + 10~12 附录 + 13 公共知识回顾 + 14 架构图解析 + 附件原文）
 
 > 三个模块分工：**JVC 管"别学错"**（联合变量分布对齐 + 互信息最小化），
 > **ASI 管"别拉歪"**（动态簇锚点保住几何结构），**DBFDF 管"分得清"**（域特有 / 域共性解耦后融合）。
 > 真实基准：Houston 2013 / Pavia University / Indian Pines，平均 OA **+1.74%**，std **相对降 11.25%**。
 
 [→ 进入项目](论文精读/4-跨域高光谱精读/00-%E7%B4%A2%E5%BC%95%20MOC.md)
+
+### 5️⃣ TDRE 精读 · 方法 · 对照组
+
+**论文**：Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather
+**出处**：ISPRS Journal of Photogrammetry and Remote Sensing, Vol. 242 (2026), pp. 1–18
+**DOI**：[10.1016/j.isprsjprs.2026.08.041](https://doi.org/10.1016/j.isprsjprs.2026.08.041)
+**代码**：[KIKYOUWY/TDRE](https://github.com/KIKYOUWY/TDRE)（⚠️ 但数据集 CAD-ADD 是 *available on request*，**不公开**）
+**规模**：10 篇笔记 + 2 个附件
+
+> 恶劣天气下的航拍检测，两条老路都走不通：**直接微调检测器**会灾难性遗忘（清晰图能力掉光），
+> **先复原再检测**会牺牲机器检测真正需要的高频语义边缘（human-visual bias）。
+> TDRE 的做法：一个 **2.93K 参数的即插即用视觉滤波器**插在**冻结**的检测器前面，
+> 三阶段：清晰天感知器（`Sca>0.5` 硬旁路）→ DR-MoE 三专家动态路由 → GT 框掩码的检测导向损失。
+> **17 个测试集累计 +126.9 mAP50**（作者口径），推理仅 0.0020 s、显存 77.2 MB。
+
+[→ 进入项目](论文精读/5-TDRE精读/00-%E7%B4%A2%E5%BC%95%20MOC.md)
 
 ---
 
@@ -109,11 +125,11 @@ paper-notes/
     │   ├── CCFA-Net.md
     │   ├── 01-论文精读/             # 18 篇
     │   ├── 02-公共知识回顾.md       # 🔁 本篇用到的公共基础（复述版）
-    │   └── 附件/                   # 38 个附件
-    ├── 2-Cross-Modal-UAV精读/      # 第 2 篇 · 方法（12 篇 + 13-公共知识回顾）
-    ├── 3-HazyDet精读/              # 第 3 篇 · 数据（01~07 + 08-公共知识回顾 + 09-实验部分总结）
-    ├── 4-跨域高光谱精读/            # 第 4 篇 · 理论（01~12 + 13-公共知识回顾 + 14-架构图解析）
-    └── 5-TDRE精读/                  # 第 5 篇 · 方法·对照组（00 索引 + 01~09 + 附件）
+    │   └── 附件/                   # 40 个附件
+    ├── 2-Cross-Modal-UAV精读/      # 第 2 篇 · 方法（20 篇）
+    ├── 3-HazyDet精读/              # 第 3 篇 · 数据（10 篇）
+    ├── 4-跨域高光谱精读/            # 第 4 篇 · 理论（16 篇）
+    └── 5-TDRE精读/                  # 第 5 篇 · 方法·对照组（10 篇 + 2 附件）
 ```
 
 > 📌 **2026-11-16 重排**

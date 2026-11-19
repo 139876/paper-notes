@@ -113,8 +113,8 @@ status: 进行中
 | 文件 | 内容 |
 |---|---|
 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-论文汇报.pptx]] | 19 页 CCF-A 风格汇报 PPT（每页带演讲者备注） |
-| [[paper-notes/论文精读/2-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-完整讲解.md]] | 完整讲解稿（46 KB，五段式） |
-| [[paper-notes/论文精读/2-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-速查笔记.md]] | 一页速查卡 |
+| [[paper-notes/论文精读/2-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-完整讲解]] | 完整讲解稿（46 KB，五段式） |
+| [[paper-notes/论文精读/2-Cross-Modal-UAV精读/附件/Cross-Modal-UAV-速查笔记]] | 一页速查卡 |
 
 ---
 

@@ -4,7 +4,7 @@ aliases: [COCO, COCO数据集, COCO口径, COCO评测协议,  coco]
 created: 2026-11-05
 stage: 1 · 打地基
 series: 基础 · 第 15 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/04-检测任务与评测/12-目标检测基础与mAP]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/10-第9讲-数据集与实验设置]]", "[[paper-notes/论文精读/0-公共基础知识/04-检测任务与评测/14-单阶段检测与样本分配]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[paper-notes/论文精读/0-公共基础知识/04-检测任务与评测/12-目标检测基础与mAP]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/10-第9讲-数据集与实验设置]]", "[[paper-notes/论文精读/0-公共基础知识/04-检测任务与评测/14-单阶段检测与样本分配]]"]
 track: 公共基础
 ---
 

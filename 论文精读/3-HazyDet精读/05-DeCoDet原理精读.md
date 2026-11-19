@@ -2,7 +2,7 @@
 tags: [HazyDet, DeCoDet, DCK, MSDP, SIRLoss, 消融实验, 动态卷积, 复现]
 aliases: [DeCoDet 原理, HazyDet 模型, DCK 动态卷积核, DeCoDet 精读]
 created: 2026-11-10
-related: "[[00-索引 MOC]]", "[[03-深度标注与被浪费的多模态线索]]", "[[04-复现必查项与坑]]"
+related: ["[[00-索引 MOC]]", "[[03-深度标注与被浪费的多模态线索]]", "[[04-复现必查项与坑]]"]
 ---
 
 # 05 · DeCoDet 原理精读（论文视角）

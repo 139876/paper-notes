@@ -4,7 +4,7 @@ aliases: [遥感UAV检测特有问题, UAV检测特点, 小目标检测, 遥感�
 created: 2026-11-04
 stage: 0 · 建立地图
 series: 方向 · 第 6 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[00-方向地图总览]]", "[[06-遥感UAV检测的特有问题]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[00-方向地图总览]]", "[[06-遥感UAV检测的特有问题]]"]
 track: 方向知识脉络
 ---
 

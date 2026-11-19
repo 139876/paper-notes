@@ -5,7 +5,7 @@ aliases: [第6讲, CFFM 精讲, 跨域特征融合模块]
 created: 2026-11-03
 stage: 3 · 架构拆解
 series: 主讲 · 第 6 讲
-related: "[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[06-第5讲-CCDD结构精讲]]", "[[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/05-上采样与PixelShuffle]]", "[[04-第3讲-多任务损失与梯度冲突]]", "[[13-第12讲-批判性评价与可做选题]]"
+related: ["[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]", "[[06-第5讲-CCDD结构精讲]]", "[[paper-notes/论文精读/0-公共基础知识/01-图像与卷积基础/05-上采样与PixelShuffle]]", "[[04-第3讲-多任务损失与梯度冲突]]", "[[13-第12讲-批判性评价与可做选题]]"]
 ---
 
 # 第 6 讲：CFFM 跨域特征融合（Cross-domain Feature Fusion Module）

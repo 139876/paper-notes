@@ -4,7 +4,7 @@ aliases: [max_depth, max_depth.txt, 深度监督三件套, SiLog 尺度不变性
 created: 2026-11-11
 stage: 1 · 打地基
 series: 基础 · 第 4 篇
-related: "[[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]]", "[[paper-notes/论文精读/0-公共基础知识/05-数据标注与协议/03-标注文件与真值gt]]", "[[paper-notes/论文精读/3-HazyDet精读/02-数据集构成与标注格式]]", "[[paper-notes/论文精读/3-HazyDet精读/03-深度标注与被浪费的多模态线索]]"
+related: ["[[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]]", "[[paper-notes/论文精读/0-公共基础知识/05-数据标注与协议/03-标注文件与真值gt]]", "[[paper-notes/论文精读/3-HazyDet精读/02-数据集构成与标注格式]]", "[[paper-notes/论文精读/3-HazyDet精读/03-深度标注与被浪费的多模态线索]]"]
 track: 公共基础
 ---
 

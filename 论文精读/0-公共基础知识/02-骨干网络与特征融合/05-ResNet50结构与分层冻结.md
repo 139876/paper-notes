@@ -4,7 +4,7 @@ aliases: [ResNet50 结构, ResNet 结构详解, ResNet50 分层冻结]
 created: 2026-11-12
 stage: 1 · 打地基
 series: 基础 · 第 05 篇
-related: "[[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]]", "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/04-深度监督三件套与SiLog尺度性质]]", "[[paper-notes/论文精读/3-HazyDet精读/06-PDFT渐进域微调精读]]"
+related: ["[[paper-notes/论文精读/0-公共基础知识/00-公共知识总览]]", "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/04-深度监督三件套与SiLog尺度性质]]", "[[paper-notes/论文精读/3-HazyDet精读/06-PDFT渐进域微调精读]]"]
 track: 公共基础
 ---
 

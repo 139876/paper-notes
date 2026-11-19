@@ -5,7 +5,7 @@ aliases: [padding, padding彻底理解, 卷积padding, 补充2-padding]
 created: 2026-11-03
 stage: 1 · 打地基
 series: 基础 · 第 2 篇
-related: "[[paper-notes/论文精读/00-索引 MOC]]", "[[01-卷积基础]]", "[[05-上采样与PixelShuffle]]", "[[04-感受野深度理解]]"
+related: ["[[paper-notes/论文精读/00-索引 MOC]]", "[[01-卷积基础]]", "[[05-上采样与PixelShuffle]]", "[[04-感受野深度理解]]"]
 ---
 
 # 补充：padding 彻底理解
