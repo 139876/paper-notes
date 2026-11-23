@@ -59,17 +59,35 @@ related: ["[[paper-notes/论文精读/5-TDRE精读/00-索引 MOC]]", "[[paper-no
 
 > *"**Data will be made available on request.**"*
 
-> [!warning] CAD-ADD **不是开源数据集**
-> 和第 3 篇 **HazyDet（open-source benchmark）** 不同，CAD-ADD 需要**写信向作者要**。
-> 这对复现是**实打实的障碍**。
+> [!warning] 论文口径：CAD-ADD **不是"论文层面"的开源数据集**
+> 和第 3 篇 **HazyDet（open-source benchmark）** 不同，CAD-ADD 在论文里的口径是"按需索取"。
+> 这对复现曾经是**实打实的障碍**。
 >
-> **你的应对方案**：
-> ① 既然它是用 PDT / YQKJ-SARD / UAVwaste / VisDrone **改造**的，
->    而这四个源数据集**都是公开的** → 你可以**自己复刻它的退化流程**（雾/沙尘/低照合成），
->    得到一个"类 CAD-ADD"，只是分布和作者的略有差异。
+> [!success] ✅ **2026-11-23 更正：官方仓库已放出直链，不用写信了**
+> 官方仓库 <https://github.com/KIKYOUWY/TDRE> 的 README「Datasets」一节给出：
+>
+> | 项 | 内容 |
+> |---|---|
+> | 下载 | [CAD-ADD(1).zip](https://pan.baidu.com/s/1xxRiqZfkahLUiHi9KsAcKA?pwd=6ebm)（百度网盘） |
+> | 提取码 | `6ebm` |
+> | 仓库内更新记录 | 2026-09 更新数据包与分享链接；**2026-10-26 更新下载链接与解压说明** |
+> | 期望目录 | `datasets/CAD-ADD`（VOC 风格，标注是 `xml`） |
+> | 备用路径 | `G:\UAVdata\CAD-ADD` |
+> | 官方联系邮箱 | `2024282140091@whu.edu.cn`（仓库 Contact 一节） |
+> | 通讯作者 | Jie Li，`jili89@sgg.whu.edu.cn`（武汉大学 测绘学院） |
+>
+> **仓库里还附带的工具**（复现时会用到）：
+> - `tools/visualize_cadadd_labels.py` —— 随机抽 10 张做 VOC 标注可视化，**先跑它确认标注没坏**
+> - `tools/convert_rescue_labels_to_voc.py` —— Rescue Detection 的 YOLO 标注转 VOC
+> - `tools/normalize_cadadd_filenames.py` —— 文件名规范化（下载后如果读图报错，先跑这个）
+> - `train.py --data_root datasets/CAD-ADD --stage all` —— 三阶段训练入口
+>
+> [!tip] 仍然要注意的两件事
+> ① **百度网盘需要登录 + 客户端**才能高速下载；网页直接下载会被限速，必要时用官方客户端。
 > ② 论文正文**没给退化的具体参数**（雾的浓度模型、沙尘的强度、光照衰减曲线），
->    这是**复现的第二个大坑**。
-> ③ 官方代码 <https://github.com/KIKYOUWY/TDRE> 里可能含合成脚本 —— **先去看代码**。
+>    仓库里也**没有合成脚本** —— 数据是"给成品"，不是"给配方"。
+>    所以"用 VisDrone 自己合成一个类 CAD-ADD"这条备选路线**依然成立**，
+>    但优先级下降了：**先下官方包**。
 
 ---
 
