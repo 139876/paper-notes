@@ -8,6 +8,12 @@ related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层�
 status: 待快速阅读 · ⚪ 第二层
 ---
 
+## 📎 原文与存档
+
+- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/AOD-Net-论文原文.pdf|AOD-Net 原文 PDF]]（ICCV 2017）
+- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/AOD-Net-全文文本.txt|AOD-Net 全文文本]]（方便全文检索 / 摘抄）
+
+
 # 06 · AOD-Net（All-in-One Dehazing Network）
 
 **ICCV 2017** · [ICCV 官方页面](https://openaccess.thecvf.com/content_iccv_2017/html/Li_AOD-Net_All-in-One_Dehazing_ICCV_2017_paper.html)

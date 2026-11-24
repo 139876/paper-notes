@@ -8,6 +8,12 @@ related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层�
 status: 待精读 · 🔴 第二层 · 方向一核心
 ---
 
+## 📎 原文与存档
+
+- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/UDN-论文原文.pdf|UDN 原文 PDF]]（AAAI 2022）
+- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/UDN-全文文本.txt|UDN 全文文本]]（方便全文检索 / 摘抄）
+
+
 # 03 · UDN（Uncertainty-Driven Dehazing Network）
 
 **AAAI 2022** · [论文 PDF](https://cdn.aaai.org/ojs/19973/19973-13-23986-1-2-20220628.pdf)
