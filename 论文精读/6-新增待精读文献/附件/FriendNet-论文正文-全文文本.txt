@@ -1,0 +1,1495 @@
+
+
+========== PAGE 1 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 1
+FriendNet: Detection-Friendly Dehazing Network
+Yihua Fan, Yongzhen Wang, Mingqiang Wei, Senior Member, IEEE, Fu Lee Wang, Senior Member, IEEE, and
+Haoran Xie, Senior Member, IEEE
+Abstract—Adverse weather conditions often impair the qual-
+ity of captured images, inevitably inducing cutting-edge object
+detection models for advanced driver assistance systems (ADAS)
+and autonomous driving. In this paper, we raise an intriguing
+question – can the combination of image restoration and object
+detection enhance detection performance in adverse weather
+conditions? To answer it, we propose an effective architecture
+that bridges image dehazing and object detection together
+via guidance information and task-driven learning to achieve
+detection-friendly dehazing, termed FriendNet. FriendNet aims
+to deliver both high-quality perception and high detection ca-
+pacity. Different from existing efforts that intuitively treat image
+dehazing as pre-processing, FriendNet establishes a positive
+correlation between these two tasks. Clean features generated
+by the dehazing network potentially contribute to improvements
+in object detection performance. Conversely, object detection
+crucially guides the learning process of the image dehazing
+network under the task-driven learning scheme. We shed light on
+how downstream tasks can guide upstream dehazing processes,
+considering both network architecture and learning objectives.
+We design Guidance Fusion Block (GFB) and Guidance Attention
+Block (GAB) to facilitate the integration of detection information
+into the network. Furthermore, the incorporation of the detection
+task loss aids in refining the optimization process. Addition-
+ally, we introduce a new Physics-aware Feature Enhancement
+Block (PFEB), which integrates physics-based priors to enhance
+the feature extraction and representation capabilities. Extensive
+experiments on synthetic and real-world datasets demonstrate
+the superiority of our method over state-of-the-art methods on
+both image quality and detection precision. Our source code is
+available at https://github.com/fanyihua0309/FriendNet.
+Index Terms —FriendNet, image dehazing, detection-friendly,
+object detection, detection guidance, task-driven
+I. I NTRODUCTION
+I
+MAGES captured by outdoor vision systems, such as
+unmanned aerial vehicles (UA Vs), traffic monitoring, and
+surveillance, often face inevitable degradation [1]. Despite the
+effectiveness of leading vision approaches such as object de-
+tection [2] and vehicle re-identification [3], they struggle with
+the formidable challenges posed by hazy conditions [4]. This
+is primarily due to the degradation of visual quality, which
+severely hampers subsequent feature extraction and analysis
+Y . Fan and M. Wei are with the School of Computer Science and
+Technology, Nanjing University of Aeronautics and Astronautics, Nanjing
+210016, China, and also with the Shenzhen Institute of Research, Nanjing
+University of Aeronautics and Astronautics, Shenzhen 518038, China (e-mail:
+fanyihua@nuaa.edu.cn, mingqiang.wei@gmail.com).
+Y . Wang is with the School of Computer Science and Technol-
+ogy, Anhui University of Technology, Ma’anshan 24303, China (e-mail:
+wangyz@ahut.edu.cn).
+F. L. Wang is with the School of Science and Technology, Hong
+Kong Metropolitan University, Kowloon, Hong Kong SAR (e-mail:
+pwang@hkmu.edu.hk).
+H. Xie is with the Department of Computing and Decision Sci-
+ences, Lingnan University, New Territories, Hong Kong SAR (e-mail:
+hrxie2@gmail.com).
+in downstream tasks. Therefore, we attempt to explore how
+to obtain high-quality restoration results while simultaneously
+improving detection accuracy under degraded conditions.
+Dehazing 
+Module
+Detection 
+Module
+Detection 
+Module
+Detection 
+Module
+Dehazing Module
+Loss
+ܮ
+ௗ௘௧
+Dehazing 
+Module
+Detection 
+Module
+Detection Module
+Focus
+Dehazing
+Detection
+Dehazing
++
+Detection
+Detection
+Dehazing 
+Module
+Detection 
+Module
+Sharing Weights
+ܮ
+ௗ௘௧
+ܮ
+௥௘௦
+Detection
+(a) Direct
+(b) Separate
+(c) Union
+IA
+-
+YOLO
+TogetherNet
+DH
+-
+YOLO
+Ours
+ܮ
+௥௘௦
+ܮ
+ௗ௘௧
++
+Detection 
+Guidance
+ܮ
+௥௘௦
+ܮ
+ௗ௘௧
++
+Update parameters of the 
+module
+Freeze parameters of the 
+module
+Fig. 1. Three primary categories of methods for object detection in hazy
+conditions. (a) Direct: detectors are trained directly on hazy images. (b)
+Separate: dehazing models serve as a pre-processing step, restoring images
+before feeding them into subsequent detectors. (c) Union: methods that con-
+currently address dehazing and detection under a unified pipeline (including
+IA-YOLO [5], TogetherNet [6], DH-YOLO [7] and the proposed FriendNet).
+These methods differ in terms of training losses and the decision to freeze or
+update the dehazing or detection module. Previous wisdom only focuses on
+optimizing one aspect of performance. Our FriendNet uniquely emphasizes
+the enhancement of both restoration quality and detection accuracy.
+In previous studies, efforts to improve detection accuracy
+in hazy conditions typically fall into three categories, as
+illustrated in Fig. 1. One straightforward solution is to train
+and evaluate detectors directly on hazy images. However,
+the presence of blurring and occlusion in degraded images
+poses challenges for detectors to learn essential features,
+inevitably leading to poor performance. A prevalent strategy is
+to initially pre-process hazy images through existing dehazing
+algorithms [8]–[11]. Subsequently, the restored images are
+fed into the detection network for bounding box regression.
+Albeit images processed with dehazing algorithms exhibit
+better visual quality, they may not confer the same benefits
+upon high-level computer vision tasks. Recent research [7],
+[12]–[14] also reveals that there is no apparent correlation
+between the visual quality of dehazed images and the accuracy
+of object detection. We consider that the reason is rooted in
+the divergent objectives of restoration and detection, which
+can cause potential conflicts between them. Images generated
+by restoration models may contain imperceptible noise and
+unintentionally lose crucial details, potentially hindering the
+performance of subsequent detection models.
+To tackle this challenge, a more effective solution lies in
+the pursuit of a unified paradigm that establishes connections
+arXiv:2403.04443v1  [cs.CV]  7 Mar 2024
+
+========== PAGE 2 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 2
+between low-level image dehazing and high-level object de-
+tection, indicating the relation and influence between them.
+Only a limited number of works [15]–[18] have ventured
+into this challenging direction. IA-YOLO [5] incorporates an
+image processing module into a YOLO detector to adaptively
+enhance each hazy image for better detection performance.
+DSNet [19], TogetherNet [6], and DH-YOLO [7] integrate
+an additional feature recovery branch to learn clean features.
+The feature extraction layers are shared between this branch
+and the detection backbone, thus facilitating the detection.
+Despite the promising results yielded by previous methods,
+attention has been narrowly focused on optimizing one aspect
+of performance. Some methods concentrate solely on the
+dehazing task, ignoring whether the dehazing results could
+improve detection performance. Conversely, other methods
+exclusively assess the detection performance and overlook
+the restoration quality, thereby compromising their practical
+applicability in scenarios where the quality of restored results
+is equally crucial. The precise mechanism for optimizing both
+low-level and high-level tasks remains unclear and intricate.
+Therefore, the design of a unified optimization paradigm
+emerges as a pivotal research direction.
+Moving beyond previous wisdom, we uniquely place em-
+phasis on enhancing both restoration quality and detection
+accuracy. Our approach offers a fresh perspective to investigate
+the potential advantage of leveraging detection prediction in-
+formation and task-driven learning to better guide the dehazing
+process, thereby resulting in improvements in downstream
+detection accuracy. The interaction between low-level dehazng
+and high-level detection occurs bidirectionally. On one hand,
+clean features generated by the dehazing network potentially
+contribute to improvements in object detection performance.
+On the other hand, object detection crucially guides the
+learning process of the image dehazing network. The two tasks
+yield mutual benefits within a unified deep learning framework
+that connects image dehazing and object detection, termed
+FriendNet. FriendNet comprises two core components, i.e., the
+dehazing network and the detection network. Considering the
+impressive capabilities of YOLOv7 in object detection, we opt
+for YOLOv7-tiny, the most compact version of the YOLOv7
+family, as the detector to facilitate deployments.
+Specifically, we commence by pre-training the detector and
+maintaining its parameters fixed while updating the dehazing
+network. Given a hazy input image, we employ the frozen
+detector to obtain detection predictions, which may contain
+crucial information that could facilitate the dehazing optimiza-
+tion process. Hence, we derive detection guidance resembling
+a mask image from the predictions. In pursuit of detection-
+friendly objectives, we integrate the information conducive to
+detection into the dehazing learning process, considering both
+network structure and learning objectives.
+Taking into account the network architecture, we design two
+key components, namely Guidance Fusion Block (GFB) and
+Guidance Attention Block (GAB) to fully leverage detection
+guidance. They offer instructive cues to the dehazing network
+at both coarse and fine levels. Moreover, we develop the
+Physics-aware Feature Enhancement Block (PFEB) which
+leverages the inherent understanding of the atmospheric scat-
+tering model in the feature space. It enhances the capabilities
+of our model in feature extraction and representation. Ab-
+sorbing both the physics-based prior and guidance wisdom,
+the feature maps generated by the dehazing network tend to
+estimate more essential features that are beneficial for both
+dehazing and detection. In terms of optimization objectives,
+we consider not only the regular restoration loss but also
+a detection loss. This additional loss term encourages the
+model to be more adept at facilitating detection within a
+task-driven learning paradigm. With detection guidance and
+task-driven learning, FriendNet ultimately achieves both high-
+quality perception and outstanding detection capacity.
+Extensive experiments conducted on both synthetic datasets
+and real-world hazy images demonstrate the superiority of
+our FriendNet over existing state-of-the-art approaches. In
+summary, our primary contributions are three-fold:
+• We propose an effective and unified deep learning frame-
+work designed for detection-friendly dehazing, named
+FriendNet. By leveraging detection guidance and the task-
+driven learning paradigm, FriendNet ensures the dehazing
+network is optimized for detection, leading to outstanding
+detection capacity.
+• We propose a Physics-aware Feature Enhancement Block
+(PEFB) which integrates physics-based priors into our
+fundamental dehazing block. This module enhances the
+feature extraction and representation abilities of Friend-
+Net, resulting in visually pleasing dehazing outcomes and
+offering benefits for detection tasks.
+• Through extensive comparisons with various state-of-
+the-art approaches across direct, separate, and union
+categories, FriendNet consistently exhibits its superiority,
+emerging as a promising new solution in this field.
+II. R ELATED WORK
+A. Image Dehazing
+Image dehazing, aiming to recover clean scenes from cor-
+responding hazy images, has attracted significant attention
+over the past decade. Image dehazing solutions are generally
+categorized into prior-based and learning-based methods. Tra-
+ditional methods typically rely on hand-crafted priors, such
+as the dark channel prior (DCP) [20], color attenuation prior
+[21], non-local prior [22], etc. However, these empirical priors
+exhibit limited practical capacity in handling complex and
+diverse hazy scenes.
+The rapid advancement of deep learning has propelled
+learning-based methods to the forefront in recent years. Some
+approaches [23] combine CNN with the atmospheric scattering
+model, which separately estimates global atmospheric light
+and transmission map. AOD-Net [24] stands out by predict-
+ing a single output that jointly represents the atmospheric
+light and transmission map through a lightweight network.
+GridDehazeNet [25] proposes a grid-like multi-scale network
+architecture, which directly learns the haze-free feature map
+rather than estimating the transmission map. This shift has
+triggered a new trend where methods aim to estimate haze-free
+images or the residual between hazy and haze-free images.
+Subsequently, many learning-based methods tend to design
+
+========== PAGE 3 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 3
+intricate network architectures and attention mechanisms to
+improve the expressive capacity of networks. For instance,
+FFANet [8] incorporates feature attention blocks, leveraging
+both channel and pixel attention to boost haze removal. AECR-
+Net [9] reuses the feature attention mechanism and proposes a
+contrastive regularization, drawing benefits from both positive
+and negative samples. C 2PNet [10] further applies a curric-
+ular contrastive regularization that considers the difficulty of
+different negatives and enforces physics-based priors in the
+feature space. gUNet [11] and SFNet [26] represent a series
+of methods that develop variations of U-Net [27] with certain
+modifications. Despite the notable progress these methods
+have made in dehazing tasks, their emphasis solely revolves
+around enhancing image quality, often neglecting their broader
+impact on downstream tasks. In this paper, we investigate a
+solution aimed at establishing a positive correlation between
+low-level dehazing and high-level detection.
+B. Object Detection
+As a pivotal task in the realm of computer vision, object
+detection has gained substantial research attention in both
+academic and industrial communities. Current methods for
+object detection can fall into two categories, namely region
+proposal-based and regression-based approaches [28]. Region
+proposal-based methods typically entail generating regions of
+interest (ROIs) from an input image and then conducting object
+localization and classification on these candidate regions.
+Among them, R-CNN [29] represents a pioneering approach.
+Subsequently, Fast R-CNN [30] and Faster R-CNN [31] fur-
+ther strengthen speed and accuracy. Albeit their impressive
+detection accuracy, region proposal-based approaches often
+fall short in terms of inference speed, making them less
+suitable for real-time applications.
+In contrast to region proposal-based methods, regression-
+based methods treat object detection as a regression problem,
+directly predicting bounding box coordinates and classification
+probabilities with a single CNN. The single shot multibox
+detector (SSD) [32] addresses the challenge of detecting small
+objects by leveraging VGG16 [33] to extract hierarchical
+feature maps from different layers to detect objects at different
+scales. RetinaNet [34] achieves superior accuracy by introduc-
+ing focal loss and a feature pyramid network for multiscale
+predictions. The YOLO series [35]–[40] stands out as rep-
+resentative detectors, which achieves real-time detection and
+superior accuracy by simultaneously handling classification
+and localization. In a nutshell, regression-based detectors are
+generally faster, but their detection performance may slightly
+lag behind region proposal-based detectors. In this paper, we
+employ the advanced YOLOv7-tiny (the smallest version of
+the YOLOv7 family) as the detector. This offers additional
+guidance for the dehazing network to optimize itself in a
+manner conducive to detection tasks.
+C. Object Detection in Adverse Weather
+In contrast to the extensive research efforts dedicated to
+general object detection, relatively few studies have ventured
+into the challenging realm of object detection under adverse
+weather conditions. Some methods [41]–[44] directly train and
+evaluate detection models on degraded datasets. However, the
+presence of blurring and occlusion in degraded images hinders
+the ability of models to learn essential detection features.
+One prevailing strategy is to pre-process degraded images by
+existing dehazing algorithms to enhance the visual quality
+before feeding them into the subsequent object detection
+network. Despite the improved overall quality, it does not nec-
+essarily guarantee a significant boost in detection performance.
+Previous studies have revealed a weak correlation between
+image quality and detection accuracy [7], [12]–[14].
+Moving forward, some methods [45] cast object detection in
+adverse weather as a domain adaption task, transitioning from
+a source domain (clean images) to a target domain (degraded
+images). Since images captured in adverse weather inherently
+suffer from an obvious domain shift problem. Adversarial
+training is primarily employed to align the target features with
+the source features. An alternative trend involves joint training
+and optimization on degraded images. IA-YOLO [5] proposes
+a novel Image-Adaptive YOLO (IA-YOLO) framework, where
+each image can be adaptively enhanced for better detection
+performance. DSNet [19] integrates a feature recovery module
+that aims at visibility enhancement for detection, sharing
+feature extraction layers with the detection subnet. Further-
+more, TogetherNet [6] develops a multi-task joint learning
+paradigm that concurrently handles image restoration and
+object detection. Lee et al. [18] introduce a task-driven training
+strategy that guides the high-level task model suitable for
+both image restoration and accurate perception. However,
+achieving universality and robustness in such scenarios re-
+mains a formidable challenge. In this paper, inspired by the
+insights of [18], we present a task-driven learning paradigm
+infused with detection guidance to deliver high performance
+and fast convergence, enforcing the dehazing process to be
+more detection-friendly.
+III. M ETHODOLOGY
+To enhance both the image quality and the detection capa-
+bilities in adverse weather conditions, we present a solution
+that integrates image dehazing and object detection networks.
+Our method promotes a collaborative interaction between these
+two components, allowing them to mutually benefit from
+each other. This section provides an in-depth exploration of
+our proposed framework, named DFD-Net, highlighting its
+key modules in achieving detection-friendly dehazing and
+haze-resistant detection. We begin by presenting an overview
+of the framework architecture. Following this, we explore
+the specifics of the image dehazing network and the object
+detection network. We reveal how the detection guidance and
+task-driven learning contribute to the outcomes, indicating
+their respective roles and functionalities within the framework.
+Finally, we introduce the loss terms employed for optimizing
+our network geared towards high-quality restoration and highly
+accurate detection.
+A. Overview of FriendNet
+Previous research [7], [12]–[14] has revealed a notable lim-
+itation – directly sending recovered images generated by the
+
+========== PAGE 4 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 4
+Image 
+Dehazing
+Network
+Object Detection 
+Network
+Bounding Box, Class ID
+250,161,336,255,4 
+207,235,239,307,0 
+337,218,448,288,2
+Restoration Loss
+Detection Loss
+Hazy Image
+Dehazed
+Image
+Clean 
+Image
+Detection Prediction
+Guidance 
+Fusion
+Detection Guidance
+Guidance 
+Attention
+Update
+Frozen
+Object Detection 
+Network
+Frozen
+Detection Label
+Total Loss
+Fig. 2. Overview of our proposed framework. Our framework comprises an image dehazing network and an object detection network. These two components
+are integrated into a unified pipeline and trained in an end-to-end manner. The detector is pre-trained to offer additional wisdom for the optimization process
+of dehazing. It facilitates training through guidance fusion, guidance attention, and detection loss constraints.
+dehazing network to the object detector does not necessarily
+lead to improved accuracy. In some cases, it may even result
+in a performance decline. This phenomenon is attributed to the
+observation that the restored image might compromise certain
+features inherent in the original hazy image and potentially
+create a new domain shift issue during the dehazing process.
+Consequently, this hinders the attainment of optimal perfor-
+mance when employing such a strategy.
+In response to this challenge, we offer fresh insight to estab-
+lish a positive relation between the image dehazing task and
+the object detection task to achieve mutual gain. With detection
+guidance feature fusion and attention mechanism, the feature
+maps produced by the dehazing network tend to pay more
+attention to the objects of interest. Besides, the introduction
+of detection loss serves to guide the dehazing network towards
+optimizing in a manner conducive to detection tasks. This
+strategy not only encourages attention to relevant objects but
+also promotes the dehazing network to align its optimization
+with the requirements of the subsequent detection task, thereby
+contributing to an overall improvement in performance.
+The overall pipeline of the proposed FriendNet is depicted
+in Fig. 2. FriendNet consists of an image dehazing network and
+an object detection network. These two components collabo-
+rate within a unified pipeline and undergo end-to-end training
+for optimal performance. Given that the joint framework
+includes two sub-networks tailored for image dehazing and
+object detection tasks, it inevitably introduces more uncertain-
+ties to the training process if initializing them completely at
+random, which in turn makes the training converge slowly.
+To mitigate this issue, the detector is trained in advance and
+frozen during the learning process of dehazing, which ensures
+fast convergence and high performance of our method.
+Specifically, given a hazy input image, the pre-trained
+detector is initially employed to obtain detection predictions.
+Acknowledging that these initial results may not be optimal,
+we discern the potential presence of valuable information that
+can guide the dehazing optimization process. Therefore, we
+generate a detection guidance which is a mask-like image
+derived from the detection predictions. To effectively make
+use of this guidance, we design the Guidance Fusion Block
+(GFB) and the Guidance Attention Block (GAB). Additionally,
+we develop the Physics-aware Feature Enhancement Block
+(PFEB) which leverages the prior knowledge of the atmo-
+spheric scattering model in the feature space. Absorbing both
+the physics and guidance wisdom, the feature maps produced
+by the dehazing network tend to estimate more useful features
+which are beneficial both for dehazing and detection. Further-
+more, we employ a high-level task loss from the pre-trained
+detector to provide the dehazing network with connectivity
+that promotes it to be detection-friendly.
+B. Dehazing Network Architecture
+Recently, deep learning-based methods [11], [26], [47] have
+demonstrated remarkable performance in image restoration
+tasks, with many of them being derived from the classical
+U-Net solution. Following the previous wisdom, we establish
+U-shaped architecture with skip connections. As illustrated
+in Fig. 3, the basic dehazing block within our framework is
+the Physics-aware Feature Enhancement Block (PFEB). This
+block operates as a two-stage feature extractor, encompassing
+both shallow and deep features. In each stage, the input feature
+undergoes normalization via a BatchNorm layer, leveraging its
+ability to accelerate network convergence, enhance generaliza-
+tion, and mitigate overfitting. The output is finally combined
+with the identity shortcut of the input feature.
+In the first stage, drawing inspiration from gUNet-T [11],
+we employ a point-wise convolutional layer and a depth-wise
+convolutional layer to extract feature x. Subsequently, a point-
+wise convolutional layer coupled with a Sigmoid function
+operates as the gating signal for x. The output is then projected
+using an additional point-wise convolutional layer. The gating
+mechanisms are helpful in improving the expressive capability
+of networks, which has garnered widespread consensus in the
+realm of image restoration [47].
+In the second stage, considering the prevailing influence of
+attention mechanisms in computer vision, existing methods [8]
+
+========== PAGE 5 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 5
+PWConv
+GELU
+PWConv
+PWConv
+GAP
+Conv
+3
+×
+3
+GELU
+Conv
+3
+×
+3
+1
+ଔ
+̃
+1
+ݐ
+̃
+ܣ
+ሚ
+BN
+PWConv
+PWConv
+DWConv
+PWConv
+BN
+CA
+PDB
+Conv
+3
+×
+3
+PFEB
+Down
+PFEB
+Down
+PFEB
+Up
+PFEB
+Conv
+3
+×
+3
+Up
+PFEB
+Up
+PFEB
+GAB
+PFEB
+Down
+GFB
+Detection Guidance
+Dehazed
+Image
+Hazy Image
+Unfold
+Unfold
+Element
+-
+wise Addition
+Element
+-
+wise 
+Substraction
+Element
+-
+wise Multiplication
+PWC
+D
+WC
+GAP
+Point
+-
+wise Convolution
+Depth
+-
+wise 
+Convolution
+Group Average Pooling
+PFEB
+PDB
+GAB
+Guidance Attention Block
+GFB
+Guidance Fusion Block
+ܫ
+Sigmoid Activation Function
+BN
+Batch 
+Normalization
+1
+−
+1
+ݐ
+̃
+S
+tage
+1
+Stage
+2
+Fig. 3. The network architecture of FriendNet. FriendNet takes detection guidance as an auxiliary input and integrates it into the network through Guidance
+Fusion Block (GFB) and Guidance Attention Block (GAB). FriendNet is a u-shaped architecture with multiple Physics-aware Feature Enhancement Blocks
+(PFEB) and skip-connections. The detailed structure of PFEB is depicted in the lower-left section, where CA refers to Channel Attention [46], and the intricate
+design of the Physics-aware Dehazing Block (PDB) is presented in the lower-right section. PFEB plays a critical role in augmenting the feature extraction
+and representation capabilities of FriendNet.
+introduce different attention mechanisms into image dehazing
+tasks and yield promising performance. We incorporate Chan-
+nel Attention (CA) [46] into the basic block as it captures the
+global information and it is computationally efficient.
+To more effectively guide the learning direction of our
+model, deepen its comprehension of haze characteristics, and
+enhance its dehazing performance, we integrate physics-based
+priors into the design of PFEB. The atmospheric scattering
+model serves as a theoretical foundation that describes the
+formation principle of a hazy image, which can be mathemat-
+ically formulated as:
+I(x) =J(x)t(x) +A(1 − t(x)), (1)
+where I and J refer to the hazy and clean image, respectively.
+A denotes the global atmospheric light, and t denotes the trans-
+mission map. x is the index of pixels. It can be reformulated
+to derive the estimated hazy-clean image as follows:
+J(x) =I(x) 1t(x) + A(1 − 1t(x) ). (2)
+Inspired by recent works [10], [48], we introduce a physics-
+aware dehazing block (PDB) derived from the physics model
+in the feature space. Previous wisdom that combines deep
+learning with the atmospheric scattering model involves the
+entire network estimating the two unknown factors A and
+t. However, this can lead to cumulative errors due to the
+inherently ill-posed nature of this problem. In contrast, we
+impose the physics prior in the feature space rather than the
+raw space. As illustrated in the bottom right of Fig. 3, we
+incorporate the physics-based prior into the basic feature-
+extracting block design, creating two branches to estimate A
+and 1t corresponding to their distinct characteristics.
+Recognizing that atmospheric light is often assumed to be
+homogeneous, we opt for global average pooling to accelerate
+computation and eliminate redundant information in the fea-
+ture space. Conversely, due to the non-homogeneous nature of
+the transmission map, utilizing global average pooling poses
+a risk of information loss. Therefore, we initially employ a
+point-wise convolutional layer to increase channel numbers.
+Subsequently, convolutional layers with a kernel size of 3
+are applied to extract intricate deep-level features. Gaussian
+Error Linear Unit (GELU) [49] is employed as the activation
+function, owing to its demonstrated efficacy in yielding im-
+provements in image restoration tasks [47]. After obtaining the
+estimated ˜A and 1˜t , the output feature is computed followingthe same principles as expressed in Eq. 2.
+With the proposed PDB, interpretable features ˜J can be
+generated from the input features I for restoring hazy images.
+This design enhances the interpretability of the network,
+aligning with the hazy image formation process and thereby
+facilitating haze removal.
+C. Object Detector Architecture
+The YOLO series detectors stand out as prominent
+regression-based detection models, which have been suc-
+cessfully applied in various scenarios. The latest iteration,
+YOLOv7 [40] has recently emerged and showcased compet-
+
+========== PAGE 6 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 6
+itive performance. In our framework, we employ YOLOv7-
+tiny as the detector, which is the smallest version within
+the YOLOv7 family. Although larger detectors might of-
+fer increased detection capacity, we deliberately opt for a
+lightweight alternative to strike a favorable balance between
+computational efficiency and performance.
+To ensure fast convergence and stable training, the object
+detection network YOLOv7-tiny is initially pre-trained. The
+network takes clean images as inputs and produces outputs
+containing object classes along with their corresponding loca-
+tion coordinates within the image. Subsequently, we maintain
+the parameters of the detector fixed during the training phase
+for image dehazing. Next, a crucial challenge arises: how do
+we effectively integrate the pre-trained detector and its initial
+predictions into the dehazing task? This will be demonstrated
+in the following section.
+D. Detection Guidance Integration Modules
+Our goal is to recover detection-friendly images with
+promising visual quality. The challenge lies in narrowing the
+objective gap between low- and high-level tasks. Drawing
+inspiration from [50], we comprehensively leverage the pre-
+trained detector to offer valuable guidance to FriendNet,
+considering both network structure and learning objectives. We
+primarily adopt three operations to fulfill detection guidance,
+illustrated schematically in Fig. 2. Guidance Fusion Block
+(GFB) and Guidance Attention Block (GAB) integrate the
+detection information into the network structure, while the
+detection loss Ldet facilitates the optimization process.
+Recognizing the limitations in the initial detection outcomes
+produced by YOLOv7-tiny, we discern the potential presence
+of valuable information that can serve as effective priors. They
+can indicate a more effective pattern, directing the focus of
+dehazing toward areas containing objects of interest. It aims
+to enrich the high-level scene understanding ability of the
+dehazing model throughout its training phase.
+To implement this strategy, we generate a detection guid-
+ance image, denoted as g, serving as an auxiliary mask-like
+input to the dehazing network. It is initially set as an all-zero
+image, and then its values are determined by:
+g(x, y) =
+(
+0, (x, y) not in b
+(class ID + 1)∗ score, (x, y) in b, (3)
+where (x, y) refers to the pixel coordinates, and b refers to
+the predicted bounding box. In areas within the bounding
+boxes, values are assigned with the product of the score
+and its class ID plus 1 (considering class ID starts from
+zero). This assignment enables differentiation between areas
+with and without objects, as well as among different objects,
+thereby providing valuable guidance for the dehazing network
+throughout the training process.
+To give full play to the guidance of detection predictions,
+we elaborately design the Guidance Fusion Block (GFB) and
+the Guidance Attention Block (GAB). The schematic diagrams
+of GFB and GAB are depicted in Fig. 4. In particular, for
+GFB, we employ point-wise and depth-wise convolutional
+layers to extract latent features of g. To maintain consistency
+PWConv PWConv
+ReLU
+PWConv
+ReLU
+PWConv
+DWConv
+ReLU
+PWConv
+DWConv
+GAB GFB
+𝑓
+𝑔
+𝑓
+𝑔
+Unfold
+Unfold
+𝑈𝑝𝑠𝑎𝑚𝑝𝑙𝑒 𝑆𝑖𝑔𝑚𝑜𝑖𝑑
+Fig. 4. The detailed structure of Guidance Fusion Block (GFB) and Guidance
+Attention Block (GAB). The integration of GFB and GAB into the dehazing
+network contributes to acquiring feature representations that are highly con-
+ducive to improved detection capabilities.
+in resolution between the original feature and the guidance
+feature, an upsample operation is applied. The fused feature is
+obtained through their summation, enhancing the directional
+and effective propagation of shallow features. As for GAB,
+one point-wise convolutional layer is applied to the original
+feature f and guidance g, respectively. The combination
+proceeds through a ReLU function, a PWConv operation,
+and another ReLU function to derive the attention coefficient.
+Consequently, the output feature is obtained by multiplying
+f with the attention coefficient. This process transforms the
+feature maps of the detection guidance into attention, refining
+high-level features with greater specificity at the pixel level.
+GFB is employed for shallow feature maps, while GAB is
+utilized for deep feature maps, ensuring guidance from both
+coarse and fine levels, respectively.
+In addition to offering instructive guidance to the network,
+we incorporate a high-level task loss to facilitate the opti-
+mization process of low-level image dehazing. The detection
+loss is imposed to endow the dehazing network with connec-
+tivity that encourages optimization toward a more detection-
+friendly direction. With the comprehensive exploration of
+cooperative strategies, three key operations, namely guidance
+fusion, guidance attention, and detection loss, harmonize to
+aggregate dehazing effects conducive to detection, considering
+both network structure and learning objectives.
+E. Loss Function Design
+Based on the above introduction, the total loss function for
+the network is defined as follows:
+Ltotal = Lres + λLdet, (4)
+where Lres denotes the loss function of the image restoration
+task, Ldet denotes the loss function of the object detection task,
+and λ is a trade-off hyper-parameter to balance the significance
+of these two tasks. According to the ablation study on loss
+weights, we set λ at 0.4 to yield optimal performance.
+To conduct image dehazing, the Mean Absolute Error
+(MAE) loss is employed to attain the estimated clean image.
+The Mean Square Error (MSE) loss tends to decrease gradient
+information for semantics, resulting in inferior performance,
+
+========== PAGE 7 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 7
+as evidenced by our experiments. The restoration loss Lres
+can be expressed by:
+Lres =
+NX
+n=1
+||J − ˆJ||1, (5)
+where N denotes the total number of training samples. J and
+ˆJ denote the clean and estimated restored images, respectively.
+To promote the dehazing optimization towards a more
+detection-friendly direction, we employ the detection loss of
+the original YOLOv7-tiny as Ldet, which is expressed by:
+Ldet = λboxLbox + λobjLobj + λclsLcls, (6)
+where Lbox, Lobj, and Lcls refer to localization loss, con-
+fidence loss, and classification loss, respectively. The corre-
+sponding weight coefficients λbox, λobj, and λcls adhere to
+the original configuration.
+IV. E XPERIMENT
+In this section, comprehensive experiments are performed to
+assess both the image quality and the detection performance of
+our proposed method in comparison to state-of-the-art methods
+in hazy scenes. To facilitate these experiments, we establish a
+synthetic dataset named VOC-FOG specifically designed for
+detecting objects in foggy weather. For evaluation, both syn-
+thetic and real-world datasets are employed as the testing set.
+Moreover, ablation studies are conducted to further validate
+the effectiveness of each module and loss function.
+A. Dataset
+1) Training Set: There are few publicly available datasets
+for object detection in adverse weather conditions. To over-
+come this, we establish a specialized benchmark for image
+dehazing geared toward object detection. Leveraging the well-
+known atmospheric scattering model, we simulate fog on the
+original VOC dataset [51] to create the VOC-Fog dataset.
+The atmospheric scattering model is formulated as Eq. 1.
+The transmission map t(x) in this model is calculated by:
+t(x) =e−β×d(x), (7)
+where β represents the hazy thickness level, and d(x) refers
+to the scene depth, which can be calculated by:
+d(x) =−0.04 × ρ +
+p
+max(h, w), (8)
+where ρ refers to the Euclidean distance from the current pixel
+to the central pixel. h and w refer to the height and width of
+the image, respectively.
+The synthesis process for a hazy image is outlined in
+Algorithm. 1. In our experiments, we set A to be 0.5, and β
+in the range between 0.07 and 0.12. Additionally, the starting
+point for synthesizing haze is chosen as the center of the
+image, as it typically corresponds to the position with the
+largest depth value. Consequently, the haze in the central area
+appears thicker than in the surrounding areas. Some examples
+from VOC-FOG are provided in Fig. 5.
+Algorithm 1: Synthesis Process of a Hazy Image
+Input: Clean image J, global atmospheric light A,
+hazy thickness level β.
+Output: Synthesized hazy image I.
+// Get dimensions of the clean image
+1 (h, w, ) = J.shape
+// Initialize the synthesized hazy
+image
+2 I = J.copy()
+// Compute the size and center of the
+image
+3 size = max(h, w)
+4 ch = h // 2
+5 cw = w // 2
+// Apply atmospheric scattering to
+each pixel
+6 for i in range(h) do
+7 for j in range(w) do
+8 d = −0.04 ×
+p
+(i − ch)2 + (j − cw)2 + √size
+9 t = e−β×d
+10 I[i][j] = I[i][j] × t + A × (1 − t)
+11 end
+12 end
+2008_001541
+2008_007352
+2010_006361
+2011_003132
+Hazy
+Clean
+Fig. 5. Some examples from the proposed VOC-FOG dataset. The first row
+presents the clean images, and the second row displays the corresponding
+synthetic hazy images.
+2) Testing Set: For evaluation, the corresponding synthetic
+dataset, VOC-FOG-Test, is employed as the testing set. The
+synthesis process for VOC-FOG-Test follows the same proce-
+dure as VOC-FOG. The value of A remains set at 0.5, while
+β is chosen from the range of 0.05 to 0.14 to simulate the
+complexity and variability of real-world scenes.
+Furthermore, to explore the generality of the proposed
+method in wild scenarios, a challenging real-world dataset,
+named the Foggy Driving dataset [52] is adopted. This dataset
+offers a comprehensive collection of real-world scenes anno-
+tated with five object categories: bicycle, bus, car, motorbike,
+and person. To ensure consistency between the training and
+testing phases, we specifically select images containing these
+categories from the VOC dataset. More statistical details about
+datasets are presented in Tab. I.
+
+========== PAGE 8 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 8
+TABLE I
+DETAILS OF TRAINING AND TESTING DATASETS .
+Usage Dataset Type Images Bicycle Bus Car Motorbike Person Instances
+Train VOC-FOG Synthetic 9578 615 499 1673 632 14206 17625
+Test VOC-FOG-Test Synthetic 2129 138 139 432 131 3258 4098Foggy Driving Real 101 17 17 425 7 269 735
+TABLE II
+QUANTITATIVE COMPARISON RESULTS OF THE PROPOSED METHOD WITH STATE -OF-THE -ART METHODS ON THE SYNTHETIC VOC-FOG-T EST DATASET .
+BOLD AND UNDERLINED INDICATE THE BEST AND THE SECOND BEST RESULTS , RESPECTIVELY .
+Strategy Method Publication PSNR SSIM Bicycle Bus Car Motorbike Person mAP
+Direct YOLOv7-tiny* [40] CVPR’23 / / 69.01 85.90 79.73 72.84 83.08 78.11
+Baseline YOLOv7-tiny [40] CVPR’23 / / 67.94 85.00 78.09 69.08 81.31 76.28
+Separate
+DCP+YOLOv7-tiny [20] TPAMI’10 13.79 0.735 69.18 86.94 76.69 72.05 82.85 78.14
+AOD-Net+YOLOv7-tiny [24] ICCV’17 16.05 0.594 65.26 83.05 75.41 62.21 78.78 72.94
+MSBDN+YOLOv7-tiny [54] CVPR’20 28.87 0.879 70.92 85.78 79.32 70.80 83.10 77.98
+FFA-Net+YOLOv7-tiny [8] AAAI’20 25.37 0.895 70.09 86.40 79.36 73.81 83.19 78.57
+PSD+YOLOv7-tiny [55] CVPR’21 30.99 0.944 70.44 86.87 80.07 73.76 83.50 78.93
+LD-Net+YOLOv7-tiny [56] TIP’21 21.02 0.768 67.18 85.51 77.34 67.25 81.52 75.76
+gUNet-T+YOLOv7-tiny [11] arXiv’22 32.21 0.948 68.32 86.89 80.00 73.75 84.17 78.63
+SFNet+YOLOv7-tiny [26] ICLR’23 26.80 0.911 68.73 87.33 79.74 72.69 83.24 78.35
+Union
+IA-YOLO [5] AAAI’22 / / 31.13 53.84 40.63 35.16 67.82 45.72
+TogetherNet [6] CGF’22 / / 68.92 83.94 77.46 70.57 83.25 76.83
+DH-YOLO [7] ICANN’23 / / 58.75 83.32 78.29 66.42 84.53 74.26
+Ours / 32.93 0.951 70.92 87.25 79.86 74.91 83.61 79.31
+B. Implementation Details
+1) Training Details: The experiments are implemented
+using Pytorch on an NVIDIA GeForce RTX 2080 Ti GPU. The
+model is trained by the AdamW optimizer with a batch size of
+16. The initial learning rate is set to 4×10−4, and the learning
+rate is adjusted using a cosine annealing decay strategy. The
+training images are randomly cropped into 256 × 256 patches.
+We set the total number of epochs to 100 with 16,384 samples
+processed per epoch. Mixed precision training is enabled to
+increase the mini-batch size and reduce the training time.
+2) Evaluation Metrics: To quantitatively evaluate the per-
+formance of our proposed method, we employ Peak Signal-to-
+Noise Ratio (PSNR) and Structural Similarity (SSIM) [53] to
+assess the image quality. In terms of the object detection task,
+we adopt the mean Average Precision (mAP) as the evaluation
+criterion with a confidence threshold of 0.5. Higher values of
+PSNR, SSIM, and mAP indicate better performance.
+C. Comparisons with State-of-the-Arts
+We conduct a comprehensive comparative analysis of the
+proposed method against several state-of-the-art approaches,
+with YOLOv7-tiny [40] serving as the baseline detector. The
+existing methods fall into the following three categories:
+1) Direct: Hazy images are directly employed to train the
+detection model, denoted as YOLOv7-tiny* to distin-
+guish it from YOLOv7-tiny trained on clean images;
+2) Separate: Several dehazing algorithms are adopted as a
+pre-processing step, followed by object detection using
+YOLOV7-tiny trained on clean images. We select 8
+popular dehazing methods, namely DCP [20], AOD-Net
+[24], MSBDN [54], FFA-Net [8], PSD [55], LD-Net
+[56], gUNet-T [11] and SFNet [26];
+3) Union: This category comprises methods that jointly
+consider low-level and high-level tasks and are trained
+on hazy images. We select 3 advanced methods, namely
+IA-YOLO [5], TogetherNet [6], and DH-YOLO [7].
+All the methods are re-trained on our VOC-FOG dataset
+with recommended settings for fair comparisons.
+1) Comparisons on Synthetic Dataset: The qualitative com-
+parisons are illustrated in Fig. 6, with the respective PSNR
+and SSIM values presented below each image. Some methods,
+such as DCP, AOD-Net, and LD-Net exhibit limitations in
+completely removing haze. MSBDN tends to sacrifice details,
+resulting in a blurred appearance. Other methods introduce ar-
+tifacts and amplify noise throughout the image. Our proposed
+FriendNet stands out by delivering superior perceptual quality
+compared to existing state-of-the-art methods.
+The quantitative comparison results of FriendNet and state-
+of-the-art approaches on the synthetic VOC-FOG-Test dataset
+are presented in Tab. II. Among separate-category methods,
+such as AOD-Net and LD-Net, despite the improvement in
+image quality after dehazing, there is a noticeable decline
+in detection performance. This observation reveals the ab-
+sence of a strong cause-and-effect relationship between image
+quality improvement and detection accuracy. Remarkably, our
+FriendNet demonstrates superior performance in both image
+dehazing and object detection. It is worth mentioning that
+the detection performance of YOLOv7-tiny on clean images
+stands at 79.70, and our method achieves dehazing results with
+only a minimal gap (0.39) compared to clean images.
+
+========== PAGE 9 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 9
+(a) Hazy input
+(b) DCP
+(c) AOD
+-
+Net
+(d) MSBDN
+(e) FFA
+-
+Net
+14.06/0.607
+14.77/0.768
+21.01/0.767
+31.49/0.920
+29.71/0.940
+(f) PSD
+(g) LD
+-
+Net
+(h) 
+gUNet
+-
+T
+(
+i
+) 
+SFNet
+(j) Ours
+35.93/0.972
+23.43/0.844
+37.11/0.949
+31.00/0.936
+38.49/0.973
+Fig. 6. Image dehazing results on VOC-FOG-Test. From (a) to (j): (a) the hazy image, and the dehazing outcomes of (b) DCP [20], (c) AOD-Net [24], (d)
+MSBDN [54], (e) FFA-Net [8], (f) PSD [55], (g) LD-Net [56], (h) gUNet-T [11], (i) SFNet [26], and (j) our FriendNet, respectively. PSNR and SSIM values
+are provided below each image. Our FriendNet can generate clearer and visually pleasing images.
+TABLE III
+QUANTITATIVE COMPARISON RESULTS OF THE PROPOSED METHOD WITH STATE -OF-THE -ART METHODS ON THE REAL -WORLD FOGGY DRIVING
+DATASET. BOLD AND UNDERLINED INDICATE THE BEST AND THE SECOND BEST RESULTS , RESPECTIVELY .
+Method Bicycle Bus Car Motorbike Person mAP
+YOLOv7-tiny* 35.29 30.92 61.68 14.29 31.27 34.69
+YOLOv7-tiny 36.57 34.12 63.59 4.76 30.10 33.83
+DCP+YOLOv7-tiny 31.15 37.00 62.73 0.00 30.28 32.23
+AOD-Net+YOLOv7-tiny 33.79 27.01 53.54 0.00 26.22 28.11
+MSBDN+YOLOv7-tiny 32.13 37.97 58.75 7.14 30.53 33.30
+FFA-Net+YOLOv7-tiny 38.73 33.92 61.25 0.00 29.77 32.73
+PSD+YOLOv7-tiny 36.76 40.28 54.56 0.00 25.12 31.35
+LD-Net+YOLOv7-tiny 37.08 37.67 53.46 7.14 30.80 33.23
+gUNet-T+YOLOv7-tiny 38.57 32.41 60.80 0.00 30.56 32.47
+SFNet+YOLOv7-tiny 36.27 33.72 63.74 3.57 30.53 33.57
+IA-YOLO 11.67 5.28 30.63 0.00 11.46 10.75
+TogetherNet 30.72 29.11 56.03 3.57 29.88 29.86
+DH-YOLO 23.68 45.38 55.29 0.00 21.98 29.27
+Ours 42.03 36.66 63.36 14.29 32.21 37.71
+2) Comparisons on Real-world Datasets: To further in-
+vestigate the applicability of the proposed method across di-
+verse real-world scenarios, we conduct a comparative analysis
+between FriendNet and several cutting-edge methods on a
+challenging real-world dataset, namely Foggy Driving. As
+presented in Tab. III, our approach consistently maintains a
+leading position among state-of-the-art methods, achieving the
+highest mAP values and surpassing the second-best method by
+a significant margin (3.02 on mAP).
+For qualitative detection comparisons, we select images
+from both synthetic and real-world datasets as test samples.
+The visualization of detection results is depicted in Fig. 7.
+Our method is compared with cutting-edge models, including
+YOLOv7-tiny, SF-Net+YOLOv7-tiny, IA-YOLO, Together-
+Net, and DH-YOLO. Notably, FriendNet delivers more satis-
+factory visualization results compared to methods employing
+the separate strategy, along with a notable improvement in
+detecting more objects with higher confidence levels. This
+observation verifies the effectiveness of our proposed method
+in handling both synthetic and real-world hazy scenes, show-
+casing its superior generalizability.
+TABLE IV
+THE COMPUTATIONAL OVERHEAD COMPARISONS OF THE PROPOSED
+METHOD WITH STATE -OF-THE -ART IMAGE DEHAZING METHODS TESTED
+ON AN IMAGE WITH A RESOLUTION OF 256 × 256 PIXELS .
+Method Parameters (M) FLOPs (G) Latency (ms)
+AOD-Net 0.002 0.11 0.20
+MSBDN 31.35 41.52 14.03
+FFA-Net 4.46 287.53 70.52
+PSD 5.32 288.48 74.50
+LD-Net 0.03 1.97 1.18
+gUNet-T 0.84 2.81 4.74
+SFNet 13.23 125.06 59.43
+Ours 1.59 5.00 9.00
+3) Comparisons on Computational Efficiency: Given the
+substantial disparity between the tasks of image dehazing and
+object detection, it is unjust to compare their computational
+overheads together. The proposed method essentially serves as
+a dehazing solution specifically designed for detection-friendly
+
+========== PAGE 10 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 10
+(c) IA
+-
+YOLO 
+(a)YOLOv7
+-
+tiny
+(d) TogetherNet
+(f) Ours
+(e) DH
+-
+YOLO
+(b) SF
+-
+Net+YOLOv7
+-
+tiny
+Fig. 7. Detection results by different methods on both synthetic and real-world foggy datasets. From (a) to (f): the detection results by (a) YOLOv7-tiny
+[40], (b) SF-Net+YOLOv7-tiny [26], (c) IA-YOLO [5], (d) TogetherNet [6], (e) DH-YOLO [7], and (f) our FriendNet, respectively. Clearly, FriendNet can
+discern more objects with higher confidence.
+dehazing. Therefore, we exclusively measure the computa-
+tional efficiency with state-of-the-art image dehazing methods
+for fair comparisons. The number of parameters, the number
+of floating-point operations (FLOPs), and latency serve as the
+primary indicators of computational efficiency. The results are
+reported in Tab. IV. Note that FLOPs are computed on a color
+image with a resolution of 256 × 256 pixels. The earlier
+dehazing method (i.e., AOD-Net) and the lightweight design
+(i.e., LD-Net) contain considerably small parameter sizes at
+the cost of a notable performance decline. Compared with
+recent SOTA methods, our FriendNet introduces an acceptable
+overhead compared to gUNet-T (0.75 increase in parameters
+and 2.19 increase in FLOPs). However, this modest increase
+in computational load leads to a substantial improvement in
+performance, as evidenced by a 5.24 gain in mAP on Foggy
+Driving. This implies the ability of FriendNet to strike a
+favorable balance between performance and model complexity.
+D. Ablation Study
+1) Ablation on Network Components: To further investi-
+gate the effectiveness of the proposed method, we conduct
+extensive ablation studies to analyze different components. We
+systematically eliminate each of the key components of the
+proposed FriendNet and establish several variants, including:
+1) w/o PFEB s2: remove the second stage of feature ex-
+traction process in Physics-aware Feature Enhancement
+Block (PFEB);
+2) w/o GFB: remove Guidance Fusion Block (GFB);
+3) w/o GAB: remove Guidance Attention Block (GAB);
+4) MAE → MSE: replace the restoration loss from Mean
+Absolute Error (MAE) to Mean Squared Error (MSE);
+5) w/o Ldet: remove the object detection loss Ldet.
+All these variants are retrained in the same way as previ-
+ously described. The quantitative results of ablation studies
+on network components are presented in Tab. V. Evidently,
+the full model stands out as the best-ranked approach that
+outperforms the other variants. Each component introduced
+in our method significantly contributes to performance en-
+hancement. Notably, the absence of the second stage in
+the feature extraction process in PFEB results in the model
+exhibiting poor performance on VOC-FOG-Test, with a 3.31
+mAP drop in Foggy Driving. This emphasizes the effectiveness
+of incorporating physics priors into the feature space. Further-
+more, the model trained without GFB and GAB experiences
+significant performance drops of 1.93 and 3.11 mAP on
+Foggy Driving, respectively. This reveals the crucial role of
+integrating detection guidance. In terms of loss functions,
+the model trained with MSE loss exhibits the least favorable
+performance, indicating the suitability for our network and
+its capacity to deliver superior results. Moreover, the model
+trained without the detection loss leads to a 3.33 mAP drop
+on Foggy Driving, highlighting the effectiveness of the task-
+driven learning paradigm. These findings collectively demon-
+strate the rationality and validity of our framework, which
+incorporates the feature enhancement module while leveraging
+detection guidance and high-level detection loss.
+TABLE V
+QUANTITATIVE RESULTS OF ABLATION STUDIES ON NETWORK
+COMPONENTS . BOLD INDICATES THE BEST RESULTS .
+Variant VOC-FOG-Test Foggy DrivingPSNR SSIM mAP mAP
+w/o PFEB s2 32.79 0.950 78.90 34.40
+w/o GFB 31.98 0.944 79.08 35.78
+w/o GAB 32.64 0.948 79.04 34.60
+MAE → MSE 29.57 0.920 78.67 35.24
+w/o Ldet 32.62 0.949 79.18 34.38
+Ours 32.93 0.951 79.31 37.71
+2) Ablation on Loss Weights: The loss function for the
+entire framework is a combination of both image restoration
+and object detection. Given the significant differences in
+magnitude and learning difficulty among various tasks, we
+
+========== PAGE 11 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 11
+aim to find the optimal balance between restoration loss and
+detection loss. As formulated in Eq. 4, the weight of the
+restoration loss is fixed at 1.0. Comparison results for different
+values of the balancing parameter λ are presented in Tab. VI.
+As observed, we explore λ within the range of 0.01 to 10.
+Since the primary objective is to update the dehazing network,
+setting λ to large values, such as 10, inevitably introduces
+challenges in convergence, thereby leading to extremely poor
+outcomes. A more suitable value for λ is below 1.0, indicating
+a smaller weight than that of the restoration loss. Based on
+the analysis of experimental results, we set λ to 0.4 to yield
+the optimal detection performance. Although PSNR and SSIM
+do not reach their peak values under this configuration, the
+deviation from the optimum is minimal when compared to the
+best performance attained with λ set at 0.01.
+TABLE VI
+QUANTITATIVE RESULTS OF ABLATION STUDIES ON LOSS WEIGHTS .
+BOLD INDICATES THE BEST RESULTS .
+λ VOC-FOG-Test Foggy DrivingPSNR SSIM mAP mAP
+0.01 32.9526 0.9513 79.23 35.67
+0.1 32.5956 0.9507 79.28 35.51
+0.2 32.9510 0.9506 78.83 36.46
+0.4 32.9331 0.9506 79.31 37.71
+0.5 32.8411 0.9492 79.16 35.93
+0.6 32.8756 0.9506 78.98 34.78
+1 32.3910 0.9475 79.21 35.52
+10 21.7408 0.6070 51.84 27.76
+E. Limitation and Discussion
+(a) Input
+(b) Output
+Fig. 8. Failure cases. Our FriendNet faces challenges in handling images
+captured in extremely hazy conditions, where even humans have difficulty
+discerning all objects in such challenging scenarios.
+Although our proposed method yields superior performance
+in both synthetic and real-world scenarios, it is essential
+to acknowledge certain failure cases. As illustrated in Fig.
+8, our method faces challenges in handling extremely hazy
+degradations and struggles to successfully detect all objects in
+the image. It is noteworthy that even humans have difficulty
+discerning all the objects in such challenging scenarios. The
+limited information available for the network makes it chal-
+lenging to generate the missing details crucial for accurate
+detection in the neighborhood.
+Moving forward, we are committed to addressing this
+limitation by exploring some powerful prior knowledge and
+integrating it into feature extraction modules. Furthermore, we
+intend to extend our current work to encompass other low-level
+and high-level tasks, aiming to investigate the versatility of
+our method. Through these efforts, we aspire to continually
+enhance the capability and applicability of our proposed
+method across various intricate and diverse settings.
+V. C ONCLUSION
+In this paper, we propose an effective framework that assem-
+bles image dehazing and object detection to achieve detection-
+friendly dehazing, named FriendNet. From a fresh perspective,
+FriendNet investigates the potential advantages of building a
+positive interaction between low-level dehazing and high-level
+detection. It incorporates detection guidance into the dehazing
+network to generate features that are beneficial for detection.
+Furthermore, it employs a task-driven learning paradigm to
+endow the dehazing network with connectivity, encouraging
+optimization toward a more detection-friendly direction. In one
+direction, clean features produced by the dehazing network
+have the potential to enhance object detection performance.
+In the opposite direction, the object detection network can
+provide valuable information and conversely guide the learning
+process of dehazing. It reveals that low-level and high-level
+tasks can jointly promote each other and realize mutual gains.
+Additionally, we leverage physics-based priors to boost the
+feature extraction and representation capabilities of our model.
+Comprehensive experiments demonstrate the superiority of
+FriendNet in obtaining visually pleasing and realistic output
+images. The application of object detection further highlights
+our potential in settling and improving the performance of the
+downstream task. FriendNet emerges as a promising solution
+for bridging low-level and high-level tasks.
+REFERENCES
+[1] Y . Wang, X. Yan, D. Guan, M. Wei, Y . Chen, X.-P. Zhang, and J. Li,
+“Cycle-snspgan: Towards real-world image dehazing via cycle spectral
+normalized soft likelihood estimation patch gan,” IEEE Transactions on
+Intelligent Transportation Systems , vol. 23, no. 11, pp. 20 368–20 382,
+2022.
+[2] Q. Ding, P. Li, X. Yan, D. Shi, L. Liang, W. Wang, H. Xie, J. Li, and
+M. Wei, “Cf-yolo: Cross fusion yolo for object detection in adverse
+weather with a high-quality real snow dataset,” IEEE Transactions on
+Intelligent Transportation Systems, 2023.
+[3] W.-T. Chen, I.-H. Chen, C.-Y . Yeh, H.-H. Yang, J.-J. Ding, and S.-Y .
+Kuo, “Sjdl-vehicle: Semi-supervised joint defogging learning for foggy
+vehicle re-identification,” in Proceedings of the AAAI Conference on
+Artificial Intelligence, vol. 36, no. 1, 2022, pp. 347–355.
+[4] N. Lyu, J. Zhao, P. Liu, L. Li, Y . He, T. Su, and J. Wen, “Scene-
+adaptive real-time fast dehazing and detection in driving environment,”
+IEEE Transactions on Intelligent Transportation Systems , 2023.
+[5] W. Liu, G. Ren, R. Yu, S. Guo, J. Zhu, and L. Zhang, “Image-adaptive
+yolo for object detection in adverse weather conditions,” in Proceedings
+of the AAAI Conference on Artificial Intelligence , vol. 36, no. 2, 2022,
+pp. 1792–1800.
+[6] Y . Wang, X. Yan, K. Zhang, L. Gong, H. Xie, F. L. Wang, and M. Wei,
+“Togethernet: Bridging image restoration and object detection together
+via dynamic enhancement learning,” in Computer Graphics Forum ,
+vol. 41, no. 7. Wiley Online Library, 2022, pp. 465–476.
+
+========== PAGE 12 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 12
+[7] K. Zhang, X. Yan, Y . Wang, and J. Qi, “Adaptive dehazing yolo
+for object detection,” in International Conference on Artificial Neural
+Networks. Springer, 2023, pp. 14–27.
+[8] X. Qin, Z. Wang, Y . Bai, X. Xie, and H. Jia, “Ffa-net: Feature fusion
+attention network for single image dehazing,” in Proceedings of the
+AAAI conference on artificial intelligence , vol. 34, no. 07, 2020, pp.
+11 908–11 915.
+[9] H. Wu, Y . Qu, S. Lin, J. Zhou, R. Qiao, Z. Zhang, Y . Xie, and
+L. Ma, “Contrastive learning for compact single image dehazing,” in
+Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition, 2021, pp. 10 551–10 560.
+[10] Y . Zheng, J. Zhan, S. He, J. Dong, and Y . Du, “Curricular contrastive
+regularization for physics-aware single image dehazing,” in Proceedings
+of the IEEE/CVF Conference on Computer Vision and Pattern Recogni-
+tion, 2023, pp. 5785–5794.
+[11] Y . Song, Y . Zhou, H. Qian, and X. Du, “Rethinking performance gains
+in image dehazing networks,” arXiv preprint arXiv:2209.11448 , 2022.
+[12] B. Li, W. Ren, D. Fu, D. Tao, D. Feng, W. Zeng, and Z. Wang,
+“Benchmarking single-image dehazing and beyond,” IEEE Transactions
+on Image Processing , vol. 28, no. 1, pp. 492–505, 2018.
+[13] Y . Li, Y . Liu, Q. Yan, and K. Zhang, “Deep dehazing network with latent
+ensembling architecture and adversarial learning,” IEEE Transactions on
+Image Processing, vol. 30, pp. 1354–1368, 2020.
+[14] C. Li, H. Zhou, Y . Liu, C. Yang, Y . Xie, Z. Li, and L. Zhu, “Detection-
+friendly dehazing: Object detection in real-world hazy scenes,” IEEE
+Transactions on Pattern Analysis and Machine Intelligence , 2023.
+[15] D. Liu, B. Wen, J. Jiao, X. Liu, Z. Wang, and T. S. Huang, “Connecting
+image denoising and high-level vision tasks via deep learning,” IEEE
+Transactions on Image Processing , vol. 29, pp. 3695–3706, 2020.
+[16] M. Haris, G. Shakhnarovich, and N. Ukita, “Task-driven super resolu-
+tion: Object detection in low-resolution images,” in Neural Information
+Processing: 28th International Conference, ICONIP 2021, Sanur, Bali,
+Indonesia, December 8–12, 2021, Proceedings, Part V 28 . Springer,
+2021, pp. 387–395.
+[17] K. Wang, T. Wang, J. Qu, H. Jiang, Q. Li, and L. Chang, “An end-to-end
+cascaded image deraining and object detection neural network,” IEEE
+Robotics and Automation Letters , vol. 7, no. 4, pp. 9541–9548, 2022.
+[18] Y . Lee, J. Jeon, Y . Ko, B. Jeon, and M. Jeon, “Task-driven deep image
+enhancement network for autonomous driving in bad weather,” in 2021
+IEEE International Conference on Robotics and Automation (ICRA) .
+IEEE, 2021, pp. 13 746–13 753.
+[19] S.-C. Huang, T.-H. Le, and D.-W. Jaw, “Dsnet: Joint semantic learning
+for object detection in inclement weather conditions,” IEEE transactions
+on pattern analysis and machine intelligence , vol. 43, no. 8, pp. 2623–
+2633, 2020.
+[20] K. He, J. Sun, and X. Tang, “Single image haze removal using dark
+channel prior,” IEEE transactions on pattern analysis and machine
+intelligence, vol. 33, no. 12, pp. 2341–2353, 2010.
+[21] Q. Zhu, J. Mai, and L. Shao, “Single image dehazing using color
+attenuation prior.” in BMVC, 2014.
+[22] D. Berman, S. Avidan et al., “Non-local image dehazing,” in Proceed-
+ings of the IEEE conference on computer vision and pattern recognition,
+2016, pp. 1674–1682.
+[23] B. Cai, X. Xu, K. Jia, C. Qing, and D. Tao, “Dehazenet: An end-to-end
+system for single image haze removal,” IEEE transactions on image
+processing, vol. 25, no. 11, pp. 5187–5198, 2016.
+[24] B. Li, X. Peng, Z. Wang, J. Xu, and D. Feng, “Aod-net: All-in-one
+dehazing network,” in Proceedings of the IEEE international conference
+on computer vision , 2017, pp. 4770–4778.
+[25] X. Liu, Y . Ma, Z. Shi, and J. Chen, “Griddehazenet: Attention-
+based multi-scale network for image dehazing,” in Proceedings of the
+IEEE/CVF international conference on computer vision, 2019, pp. 7314–
+7323.
+[26] Y . Cui, Y . Tao, Z. Bing, W. Ren, X. Gao, X. Cao, K. Huang, and
+A. Knoll, “Selective frequency network for image restoration,” in The
+Eleventh International Conference on Learning Representations , 2023.
+[27] O. Ronneberger, P. Fischer, and T. Brox, “U-net: Convolutional networks
+for biomedical image segmentation,” in Medical Image Computing
+and Computer-Assisted Intervention–MICCAI 2015: 18th International
+Conference, Munich, Germany, October 5-9, 2015, Proceedings, Part III
+18. Springer, 2015, pp. 234–241.
+[28] Z.-Q. Zhao, P. Zheng, S.-t. Xu, and X. Wu, “Object detection with deep
+learning: A review,” IEEE transactions on neural networks and learning
+systems, vol. 30, no. 11, pp. 3212–3232, 2019.
+[29] R. Girshick, J. Donahue, T. Darrell, and J. Malik, “Rich feature
+hierarchies for accurate object detection and semantic segmentation,”
+in Proceedings of the IEEE conference on computer vision and pattern
+recognition, 2014, pp. 580–587.
+[30] R. Girshick, “Fast r-cnn,” in Proceedings of the IEEE international
+conference on computer vision , 2015, pp. 1440–1448.
+[31] S. Ren, K. He, R. Girshick, and J. Sun, “Faster r-cnn: Towards real-time
+object detection with region proposal networks,” Advances in neural
+information processing systems , vol. 28, 2015.
+[32] W. Liu, D. Anguelov, D. Erhan, C. Szegedy, S. Reed, C.-Y . Fu, and
+A. C. Berg, “Ssd: Single shot multibox detector,” in Computer Vision–
+ECCV 2016: 14th European Conference, Amsterdam, The Netherlands,
+October 11–14, 2016, Proceedings, Part I 14 . Springer, 2016, pp.
+21–37.
+[33] K. Simonyan and A. Zisserman, “Very deep convolutional networks for
+large-scale image recognition,” arXiv preprint arXiv:1409.1556 , 2014.
+[34] T.-Y . Lin, P. Goyal, R. Girshick, K. He, and P. Doll ´ar, “Focal loss
+for dense object detection,” in Proceedings of the IEEE international
+conference on computer vision , 2017, pp. 2980–2988.
+[35] J. Redmon, S. Divvala, R. Girshick, and A. Farhadi, “You only look
+once: Unified, real-time object detection,” in Proceedings of the IEEE
+conference on computer vision and pattern recognition , 2016, pp. 779–
+788.
+[36] J. Redmon and A. Farhadi, “Yolo9000: better, faster, stronger,” in
+Proceedings of the IEEE conference on computer vision and pattern
+recognition, 2017, pp. 7263–7271.
+[37] A. Bochkovskiy, C.-Y . Wang, and H.-Y . M. Liao, “Yolov4: Op-
+timal speed and accuracy of object detection,” arXiv preprint
+arXiv:2004.10934, 2020.
+[38] G. Jocher, A. Chaurasia, A. Stoken, J. Borovec, Y . Kwon, K. Michael,
+J. Fang, Z. Yifu, C. Wong, D. Montes et al. , “ultralytics/yolov5: v7.
+0-yolov5 sota realtime instance segmentation,” Zenodo, 2022.
+[39] C. Li, L. Li, H. Jiang, K. Weng, Y . Geng, L. Li, Z. Ke, Q. Li, M. Cheng,
+W. Nie et al. , “Yolov6: A single-stage object detection framework for
+industrial applications,” arXiv preprint arXiv:2209.02976 , 2022.
+[40] C.-Y . Wang, A. Bochkovskiy, and H.-Y . M. Liao, “Yolov7: Trainable
+bag-of-freebies sets new state-of-the-art for real-time object detectors,”
+in Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition, 2023, pp. 7464–7475.
+[41] J. Yim and K.-A. Sohn, “Enhancing the performance of convolutional
+neural networks on quality degraded datasets,” in 2017 International
+Conference on Digital Image Computing: Techniques and Applications
+(DICTA). IEEE, 2017, pp. 1–8.
+[42] D. Hendrycks and T. Dietterich, “Benchmarking neural network ro-
+bustness to common corruptions and perturbations,” arXiv preprint
+arXiv:1903.12261, 2019.
+[43] M. Singh, S. Nagpal, R. Singh, and M. Vatsa, “Dual directed capsule
+network for very low resolution image recognition,” in Proceedings of
+the IEEE/CVF International Conference on Computer Vision , 2019, pp.
+340–349.
+[44] C. Wang, C. Li, B. Luo, W. Wang, and J. Liu, “Riwnet: A moving
+object instance segmentation network being robust in adverse weather
+conditions,” arXiv preprint arXiv:2109.01820 , 2021.
+[45] S. Zhang, H. Tuo, J. Hu, and Z. Jing, “Domain adaptive yolo for
+one-stage cross-domain detection,” in Asian Conference on Machine
+Learning. PMLR, 2021, pp. 785–797.
+[46] J. Hu, L. Shen, and G. Sun, “Squeeze-and-excitation networks,” in
+Proceedings of the IEEE conference on computer vision and pattern
+recognition, 2018, pp. 7132–7141.
+[47] L. Chen, X. Chu, X. Zhang, and J. Sun, “Simple baselines for image
+restoration,” in European Conference on Computer Vision . Springer,
+2022, pp. 17–33.
+[48] J. Dong and J. Pan, “Physics-based feature dehazing networks,” in
+Computer Vision–ECCV 2020: 16th European Conference, Glasgow,
+UK, August 23–28, 2020, Proceedings, Part XXX 16 . Springer, 2020,
+pp. 188–204.
+[49] D. Hendrycks and K. Gimpel, “Gaussian error linear units (gelus),” arXiv
+preprint arXiv:1606.08415, 2016.
+[50] T. Hong, X. Guo, Z. Zhang, and J. Ma, “Sg-net: Semantic guided
+network for image dehazing,” in Asian Conference on Computer Vision.
+Springer, 2022, pp. 274–289.
+[51] M. Everingham, L. Van Gool, C. K. Williams, J. Winn, and A. Zisser-
+man, “The pascal visual object classes (voc) challenge,” International
+journal of computer vision , vol. 88, pp. 303–338, 2010.
+[52] C. Sakaridis, D. Dai, and L. Van Gool, “Semantic foggy scene under-
+standing with synthetic data,” International Journal of Computer Vision,
+vol. 126, pp. 973–992, 2018.
+
+========== PAGE 13 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2021 13
+[53] Z. Wang, A. C. Bovik, H. R. Sheikh, and E. P. Simoncelli, “Image
+quality assessment: from error visibility to structural similarity,” IEEE
+transactions on image processing , vol. 13, no. 4, pp. 600–612, 2004.
+[54] H. Dong, J. Pan, L. Xiang, Z. Hu, X. Zhang, F. Wang, and M.-H.
+Yang, “Multi-scale boosted dehazing network with dense feature fusion,”
+in Proceedings of the IEEE/CVF conference on computer vision and
+pattern recognition, 2020, pp. 2157–2167.
+[55] Z. Chen, Y . Wang, Y . Yang, and D. Liu, “Psd: Principled synthetic-to-real
+dehazing guided by physical priors,” in Proceedings of the IEEE/CVF
+conference on computer vision and pattern recognition, 2021, pp. 7180–
+7189.
+[56] H. Ullah, K. Muhammad, M. Irfan, S. Anwar, M. Sajjad, A. S. Imran,
+and V . H. C. de Albuquerque, “Light-dehazenet: a novel lightweight cnn
+architecture for single image dehazing,” IEEE transactions on image
+processing, vol. 30, pp. 8968–8982, 2021.
+Yihua Fan is currently a Ph.D candidate with
+the School of Computer Science and Technology,
+Nanjing University of Aeronautics and Astronautics
+(NUAA). She received her B.S. degree from NUAA
+in 2022. Her research interests include deep learning,
+image processing, and computer vision.
+Yongzhen Wang received the Ph.D. degree in Com-
+puter Science and Technology from the Nanjing
+University of Aeronautics and Astronautics (NUAA)
+in 2023. He is currently a Lecturer at the Anhui
+University of Technology, China. He has published
+more than 20 research papers, including IEEE TIP,
+IEEE TITS, IEEE TGRS, etc. His research interests
+include deep learning, computer vision, and image
+processing, particularly in the domains of object
+detection and image restoration. He has served as
+a PC Member for AAAI from 2022 to 2024.
+Mingqiang Wei (Senior Member, IEEE) received
+his Ph.D degree (2014) in Computer Science and
+Engineering from the Chinese University of Hong
+Kong (CUHK). He is a professor at the School of
+Computer Science and Technology, Nanjing Uni-
+versity of Aeronautics and Astronautics (NUAA).
+He is now an Associate Editor for ACM TOMM,
+The Visual Computer, and a Guest Editor for IEEE
+Transactions on Multimedia. His research interests
+focus on 3D vision, and computer graphics.
+Fu Lee Wang (SM’15) received the B.Eng. degree
+in computer engineering and the M.Phil. degree in
+computer science and information systems from the
+University of Hong Kong, Hong Kong, and the
+Ph.D. degree in systems engineering and engineering
+management from the Chinese University of Hong
+Kong, Hong Kong. Prof. Wang is the Dean of
+the School of Science and Technology, at Hong
+Kong Metropolitan University, Hong Kong. He has
+over 290 publications in international journals and
+conferences and led more than 20 competitive grants
+with a total greater than HK$20 million. His current research interests
+include educational technology, information retrieval, computer graphics, and
+bioinformatics. Prof. Wang is a fellow of BCS and HKIE and a Senior Member
+of ACM. He was the Chair of the IEEE Hong Kong Section Computer Chapter
+and ACM Hong Kong Chapter.
+Haoran Xie (Senior Member, IEEE) received a
+Ph.D. degree in Computer Science from City Uni-
+versity of Hong Kong and an Ed.D degree in Digital
+Learning from the University of Bristol. He is cur-
+rently the Department Head and Associate Professor
+at the Department of Computing and Decision Sci-
+ences, Lingnan University, Hong Kong. His research
+interests include artificial intelligence, big data, and
+educational technology. He has published 400 re-
+search publications, including 226 journal articles
+such as IEEE TPAMI, IEEE TKDE, IEEE TAFFC,
+and IEEE TCVST. He is the Editor-in-Chief of Natural Language Processing
+Journal, Computers & Education: Artificial Intelligence and Computers &
+Education: X Reality. He has been listed as one of the World’s Top 2%
+Scientists by Stanford University.

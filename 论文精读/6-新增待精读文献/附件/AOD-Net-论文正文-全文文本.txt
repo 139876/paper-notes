@@ -1,0 +1,987 @@
+
+
+========== PAGE 1 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 1
+An All-in-One Network for Dehazing and Beyond
+Boyi Li, Xiulian Peng, Member, IEEE, Zhangyang Wang, Member, IEEE,
+Jizheng Xu, Senior Member, IEEE, Dan Feng, Member, IEEE
+Abstract—This paper proposes an image dehazing model built
+with a convolutional neural network (CNN), called All-in-One
+Dehazing Network (AOD-Net). It is designed based on a re-
+formulated atmospheric scattering model. Instead of estimating
+the transmission matrix and the atmospheric light separately
+as most previous models did, AOD-Net directly generates the
+clean image through a light-weight CNN. Such a novel end-
+to-end design makes it easy to embed AOD-Net into other
+deep models, e.g., Faster R-CNN, for improving high-level task
+performance on hazy images. Experimental results on both
+synthesized and natural hazy image datasets demonstrate our
+superior performance than the state-of-the-art in terms of PSNR,
+SSIM and the subjective visual quality. Furthermore, when
+concatenating AOD-Net with Faster R-CNN and training the joint
+pipeline from end to end, we witness a large improvement of the
+object detection performance on hazy images.
+Index Terms —Dehazing, Image Restoration, Deep Learning,
+Joint Training, Object Detection.
+I. I NTRODUCTION
+The existence of haze, due to the presence of aerosols such
+as dust, mist, and fumes, adds complicated noise to the images
+captured by cameras. It dramatically degrades the visibility
+of outdoor images, where contrasts are reduced and surface
+colors become faint. Moreover, a hazy image will put the
+effectiveness of many subsequent high-level computer vision
+tasks in jeopardy, such as object detection and recognition.
+The dehazing algorithms have thus been widely considered,
+as a challenging instance of (ill-posed) image restoration and
+enhancement. Similar to other problems like image denoising
+and super-resolution [37], [15], earlier dehazing work [23],
+[30], [38], [12] assumed the availability of multiple images
+from the same scene. However, the haze removal from one
+single image has now gained the dominant popularity, since it
+is more practical for realistic settings [7]. This paper focused
+on the problem of single image dehazing.
+A. Prior Work
+As a prior knowledge to be exploited for dehazing, the
+hazy image generation follows a well-received physical model
+(see Section II-A for details). Apart from estimating a global
+atmospheric light magnitude, the key to achieve haze removal
+has been recognized to be the recovery of the transmission
+matrix. [7] proposed a physically-grounded method by es-
+timating the albedo of the scene. [9], [34] discovered the
+Boyi Li and Dan Feng are with the Wuhan National Laboratory for
+Optoelectronics, Huazhong University of Science and Technology, Wuhan,
+China. Email: boyilics@gmail.com, dfeng@hust.edu.cn.
+Xiulian Peng and Jizheng Xu are with Microsoft Research, Beijing, China.
+Email: xipe@microsoft.com, jzxu@microsoft.com.
+Zhangyang Wang is with the Department of Computer Science and Engi-
+neering, Texas A&M University, USA. Email: atlaswang@tamu.edu.
+The work was done when Boyi Li was an intern at Microsoft Research.
+effective dark channel prior (DCP) to more reliably calculate
+the transmission matrix, followed by a series of works [13],
+[24], [36]. [20] enforced the boundary constraint and contex-
+tual regularization for sharper restored images. An accelerated
+method for the automatic recovery of the atmospheric light
+was presented in [33]. [45] developed a color attenuation prior
+and created a linear model of scene depth for the hazy image,
+and then learned the model parameters in a supervised way.
+[16] illustrate the method to jointly estimate scene depth and
+recover the clear latent image from a foggy video sequence.
+[1] proposed an algorithm based on the non-local prior (haze-
+line), based on the assumption that each color cluster in the
+clear image becomes a haze-line in RGB space. All above
+methods hinge on the physical model and various sophisticated
+image statistics assumptions. However, since the estimation of
+physical parameters from a single image is often inaccurate,
+the dehazing performance of the above methods appears not
+always satisfactory. Lately, as Convolutional Neural Networks
+(CNNs) have witnessed prevailing success in computer vision
+tasks, they have been introduced to image dehazing as well.
+DehazeNet [3] proposed a trainable model to estimate the
+transmission matrix from a hazey image. [27] further ex-
+ploited a multi-scale CNN (MSCNN), that ﬁrst generated a
+coarse-scale transmission matrix and later reﬁned it.
+B. Key Challenges and Bottlenecks
+1) Absence of End-to-End Dehazing: Most deep learning
+approaches for image restoration and enhancement have fully
+embraced end-to-end modeling: training a model to directly
+regress the clean image from the corrupted image. Examples
+include image denoising [42], deblurring [31], and super
+resolution [41]. In comparison, there has been no end-to-end
+deep model for dehazing so far, that directly regresses a clean
+image from a hazy one . While that might appear weird at the
+ﬁrst glance, one needs to realize that haze essentially brings
+in non-uniform, signal-dependent noise: the scene attenuation
+of a surface caused by haze is correlated with the physical
+distance between the surface the camera (i.e., the pixel depth).
+That is different from most image degradation models that
+assume signal-independent noise, in which case all signals go
+through the same parameterized degradation process. Hence
+their restoration models could be easily modeled with one
+static mapping function. The same is not directly applicable
+to dehazing: the degradation process varies by signals, and the
+restoration model has to be input-adaptive as well.
+Existing methods share the same belief, that in order to
+recover a clean scene from haze, it is the key to estimate
+an accurate medium transmission map [1], [3], [27]. The
+atmospheric light is calculated separately by empirical rules,
+arXiv:1707.06543v1  [cs.CV]  20 Jul 2017
+
+========== PAGE 2 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 2
+14.3364
+17.0205 16.8488
+17.4479
+18.9781
+20.9653
+21.3046 21.4544 21.5412
+14
+15
+16
+17
+18
+19
+20
+21
+22
+ATM BCCR FVR NLD DCP MSCNN Dehazenet CAP Ours
+AVERAGE PSNR
+Method
+Average PSNR on Various State-of-the-art Methods
+(a) Comparison on PSNR
+0.713
+0.8003
+0.8556
+0.7463
+0.8584 0.8589
+0.8756
+0.8879
+0.9272
+0.7
+0.75
+0.8
+0.85
+0.9
+0.95
+ATM BCCR FVR NLD DCP MSCNN Dehazenet CAP Ours
+AVERAGE SSIM
+Method
+Average SSIM on Various State-of-the-art Methods (b) Comparison on SSIM
+Fig. 1. The PSNR and SSIM comparisons between AOD-Net and and several state-of-art methods on dehazing 800 synthetic images from Middlebury stereo
+database [29], [28], [10]. The results certify that AOD-Net presents more faithful reconstructions of clean images.
+(a) Inputs
+ (b) DCP [9]
+ (c) CAP [45]
+(d) DehazeNet [3]
+ (e) MSCNN [27]
+ (f) AOD-Net
+Fig. 2. Visual quality comparison between AOD-Net and several state-of-the-art methods on a natural hazy image. Please amplify ﬁgures to view the detail
+differences in bounded regions.
+and the clean image is recovered based on the physical model.
+Albeit being intuitive, such a procedure does not directly
+measure or minimize the reconstruction distortions. The errors
+in the two separate steps for estimating transmission matrix
+and atmospheric light will accumulate and potentially amplify
+each other. As a result, the traditional separate pipeline gives
+rise to the sub-optimal image restoration quality.
+2) Missing Link with High-Level Vision Tasks: Currently,
+dehazing models rely on two sets of evaluation criteria: (1) for
+syntehtic hazy images where their groundtruth clean images
+are known, PSNR and SSIM are typically computed to mea-
+sure the restoration ﬁdelity; (2) for real natural hazy images
+with unknown groundtruth, the only available comparison of
+dehazing results is on the subjective visual quality. However,
+unlike image denoising and super resolution results whose
+suppression effects of visual artifacts are visible (e.g., on
+textures and edges), the visual differences between state-of-
+the-art dehazing models [1], [3], [27] typically manifest in the
+global illumination and tone, and are often too subtle to tell.
+General image restoration and enhancement, known as part
+of low-level vision tasks, are usually thought as the pre-
+processing step for mid-level and high-level vision tasks. It
+
+========== PAGE 3 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 3
+has been known that the performance of high-level computer
+vision tasks, such as object detection and recognition, will
+deteriorate in the presence of various degradations, and is
+then largely affected by the quality of image restoration and
+enhancement. However, up to our best knowledge, there has
+been no exploration to correlate the dehazing algorithms and
+results with the high-level vision task performance.
+C. Main Contributions
+In this paper, we propose the All-in-One Dehazing Network
+(AOD-Net), a CNN-based dehazing model with two key
+innovations in response to the above two challenges:
+• We are the ﬁrst to propose an end-to-end trainable dehaz-
+ing model, that directly produces the clean image from a
+hazy image, rather than relying on than any separate and
+intermediate parameter estimation step 1. . AOD-Net is
+designed based on a re-formulated atmospheric scattering
+model, thus preserving the same physical ground as exist-
+ing works [3], [27]. However, it is built with our different
+belief that the physical model could be formulated in
+a “more end-to-end” fashion, with all its parameters
+estimated in one uniﬁed model .
+• We are the ﬁrst to quantitatively study how the dehazing
+quality could affect the subsequent high-level vision task,
+which serves as a new objective criterion for comparing
+dehazing results. Moreover, AOD-Net can be seamlessly
+embedded with other deep models, to constitute one
+pipeline that performs high-level tasks on hazy images,
+with an implicit dehazing process. Thanks to our unique
+all-in-one design, such a pipeline can be jointly tuned
+from end to end for improving performance further,
+which is infeasible if replacing AOD-Net with other deep
+hehazing alternatives [3], [27].
+AOD-Net is trained on synthetic hazy images, and tested on
+both synthetic and real natural images. Experiments demon-
+strate the superiority of AOD-Net over several state-of-the-art
+methods, in terms of not only PSNR and SSIM (see Figure 1),
+but also visual quality (see Figure 2). As a lightweight and
+efﬁcient model, AOD-Net costs as low as 0.026 second to
+process one 480× 640 image with a single GPU. When
+concatenated with Faster R-CNN [26], AOD-Net notably
+outperforms other dehazing models in improving the object
+detection performance over hazy images, and the performance
+margin is boosted even more when we jointly tune the pipeline
+of AOD-Net and Faster R-CNN from end to end.
+This paper is extended from a previous conference version
+[14]2. The most notable improvement of this current paper
+lies in Section IV, where we present an in-depth discussion
+on evaluating and enhancing dehazing on object detection,
+and introduce the joint training part with abundant details
+and analysis. We also provide a more detailed and thorough
+analysis on the architecture of AOD-Net (e.g. Section III-D).
+Besides, we have included more extensive comparison results.
+1[3] performed end-to-end learning from the hazy image to the transmission
+matrix, which is different from what we deﬁned above.
+2The conference paper and codes are available at: https://sites.google.com/
+site/boyilics/website-builder/project-page
+(a) Inputs
+ (b) AOD-Net using (4)
+ (c) Baseline using (3)
+Fig. 3. Visual comparison between AOD-Net using (4), and the naive baseline
+using (3). The images are from the Challenging Real Photos in Section III.
+II. AOD-N ET: THE ALL-IN-ONE DEHAZING MODEL
+In this section, the proposed AOD-Net is explained. We
+ﬁrst introduce the transformed atmospheric scattering model,
+based on which the AOD-Net is designed. The architecture of
+AOD-Net is then described in detail.
+A. Physical Model and Transformed Formula
+The atmospheric scattering model has been the classical
+description for the hazy image generation [19], [21], [22]:
+I (x) = J (x)t (x) +A (1−t (x)), (1)
+where I (x) is observed hazy image, J (x) is the scene
+radiance (i.e., the ideal “clean image”) to be recovered. There
+are two critical parameters: A denotes the global atmospheric
+light, and t (x) is the transmission matrix deﬁned as:
+t (x) = e−βd(x), (2)
+where β is the scattering coefﬁcient of the atmosphere, and
+d (x) is the distance between the object and the camera. We
+can re-write the model (1) for the clean image as the output:
+J (x) = 1t (x)I (x)−A 1t (x) +A. (3)
+Existing works such as [27], [3] follows the identical three-
+step procedure: 1) estimating the transmission matrix t (x)
+from the hazy image I (x) using sophisticated deep models;
+2) estimating A using some empirical methods; 3) estimating
+the clean image J (x) via (3). Such a procedure leads to
+a sub-optimal solution that does not directly minimize the
+image reconstruction errors. The separate estimation of t (x)
+and A will cause accumulated or even ampliﬁed errors, when
+combining them together to calculate (3).
+Our core idea is to unify the two parameterst (x) andA into
+one formula, i.e. K (x) in (4), and to directly minimize the
+
+========== PAGE 4 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 4
+Hazy images
+K-estimation module
+𝑱
+ 𝒙
+ =
+ 𝑲
+ 𝒙
+ 𝑰
+ 𝒙
+ −
+ 𝑲
+ 𝒙
+ +
+ 𝒃
+AOD-Net  Model
+𝑲
+(
+𝒙
+)
+Clean images
+Clean image generation module
+(a) The diagram of AOD-Net
+Input Conv11×1 Conv23×3 Concat13×3 Concat23×3 Concat33×3Conv35×5 Conv47×7 Conv5 (K)3×3 (b) A closer look of the K-estimation module
+Fig. 4. The network diagram and conﬁguration of AOD-Net.
+pixel-domain reconstruction errors. To this end, the formula
+in (3) is re-expressed as the Transformed Formula below:
+J (x) = K (x)I (x)−K (x) +b, where
+K (x) =
+1
+t(x) (I (x)−A) + (A−b)
+I (x)− 1 .
+(4)
+In that way, both 1t(x) and A are integrated into the new
+variable K (x). b is the constant bias with the default value
+1. Since K (x) is dependent on I (x), we then aim to build
+an input-adaptive deep model, whose parameters will change
+with input hazy images, that minimizes the reconstruction error
+between the output J (x) and the groundtruth clean image.
+B. Network Design
+The proposed AOD-Net consists of two modules, as illus-
+trated in Figure 4 (a): a K-estimation module that estimates
+K (x) from the input I (x), followed by a clean image
+generation module that utilizes K (x) as its input-adaptive
+parameters to estimate J (x).
+The K-estimation module is the critical component of
+AOD-Net, being responsible for estimating the depth and
+relative haze level. As depicted in Figure 4 (b), we use ﬁve
+convolutional layers, and form multi-scale features by fusing
+varied size ﬁlters. In [3], parallel convolutions with varying
+ﬁlter sizes are used in the second layer. [27] concatenated the
+coarse-scale network features with an intermediate layer of
+the ﬁne-scale network. Inspired by them, the “concat1” layer
+of AOD-Net concatenates features from the layers “conv1”
+and “conv2”. Similarly, “concat2” concatenates those from
+“conv2” and “conv3”; “concat3” concatenates those from
+“conv1”, “conv2”, “conv3”, and “conv4”. Such a multi-
+scale design captures features at different scales, and the
+intermediate connections also compensate for the information
+loss during convolutions. Notably, each convolutional layer of
+AOD-Net uses only three ﬁlters. As a result, AOD-Net is much
+light-weight, compared to existing deep methods, e.g., [3],
+[27]. Following the K-estimation module, the clean image
+generation module consists of an element-wise multiplication
+layer and several element-wise addition layers, in order to
+generate the recovered image via calculating (4)
+To justify why jointly learning t (x) andA in one is impor-
+tant, we compare a naive baseline that ﬁrst estimates A with
+the traditional method [9] and then learns t (x) from (3) using
+an end-to-end deep network by minimizing the reconstruction
+errors (see Section III for the synthetic settings). As observed
+in Figure 3, the baseline is found to overestimate A and cause
+overexposure visual effects. AOD-Net clearly produces more
+realistic lighting conditions and structural details, since the
+joint estimation of 1t(x) andA enables them to mutually reﬁne
+each other. The inaccurate estimate of other hyperparameters
+(e.g., the gamma correction), can also be compromised and
+compensated in the all-in-one formulation.
+III. E VALUATIONS ON DEHAZING
+A. Datasets and Implementation
+We create synthesized hazy images by (1), using the ground-
+truth images with depth meta-data from the indoor NYU2
+Depth Database [32]. We set different atmospheric lightsA, by
+choosing each channel uniformly between [0.6, 1.0], and select
+β∈{ 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6}. For the NYU2 database,
+we take 27, 256 images as the training set and 3,170 as the
+non-overlapping TestSet A . We also take the 800 full-size
+synthetic images from the Middlebury stereo database as the
+TestSet B. Besides, we test on natural hazy images to evaluate
+our model generalization.
+During the training process, the weights are initialized using
+Gaussian random variables. We utilize ReLU neuron as we
+found it more effective than the BReLU neuron proposed by
+[3], in our speciﬁc setting. The momentum and the decay
+parameter are set to 0.9 and 0.0001, respectively. We use a
+batch size of 8 images( 480× 640) and the learning rate is
+0.001. We adopt the simple Mean Square Error (MSE) loss
+function, and are pleased to ﬁnd that it boosts not only PSNR,
+but also SSIM as well as visual quality.
+The AOD-Net model takes around 10 training epochs to
+converge, and usually performs sufﬁciently well after 10
+epochs. In this paper, we have trained the model for 40 epochs.
+It is also found helpful to clip the gradient to constrain the
+norm within [−0.1, 0.1]. The technique has been popular in
+stabilizing the recurrent network training [25].
+B. Quantitative Results on Synthetic Images
+We compared the proposed model with several state-of-the-
+art dehazing methods: Fast Visibility Restoration ( FVR) [35],
+Dark-Channel Prior (DCP) [9], Boundary Constrained Context
+Regularization ( BCCR) [20], Automatic Atmospheric Light
+
+========== PAGE 5 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 5
+Fig. 5. Visual results on dehazing synthetic images. From left to right columns: hazy images, DehazeNet results [3], MSCNN results [27], AOD-Net results,
+and the groundtruth images. Please amplify the ﬁgure to view the detail differences in bounded regions.
+Recovery ( A TM) [33], Color Attenuation Prior ( CAP) [45],
+Non-local Image Dehazing ( NLD) [1], [2], DehazeNet [3],
+and MSCNN [27]. Among previous experiments, few quanti-
+tative results about the restoration quality were reported, due
+to the absence of haze-free ground-truth when testing on real
+hazy images. Our synthesized hazy images are accompanied
+with ground-truth images, enabling us to compare those de-
+hazing results in terms of PSNR and SSIM.
+Tables I and III-B display the average PSNR and SSIM
+results on TestSets A and B, respectively. Since AOD-Net is
+optimized from end to end under the MSE loss, it is not too
+surprising to see its higher PSNR performance than others.
+More appealing is the observation that AOD-Net gains even
+greater SSIM advantages over all competitors, even though
+SSIM is not directly referred to as an optimization criterion. As
+SSIM measures beyond pixel-wise errors and is well-known
+to more faithfully reﬂect the human perception, we become
+curious through which part of AOD-Net, such a consistent
+improvement is achieved.
+We conduct the following investigation: each image in
+TestSet B is decomposed into the sum of a mean image
+and a residual image. The former is constructed by all pixel
+locations taking the same mean value (the average 3-channel
+vector across the image). It is easily justiﬁed that the MSE
+between the two images equals the MSE between their mean
+images added with that between two residual images. The
+mean image roughly corresponds to the global illumination
+and is related to A, while the residual concerns more the
+local structural variations and contrasts, etc. We observe that
+AOD-Net produces the similar residual MSE (averaged on
+TestSet B) to a few competitive methods such as DehazeNet
+and CAP. However, the MSEs of the mean parts of AOD-
+Net results are drastically lower than DehazeNet and CAP, as
+shown in Table III. Implied by that, AOD-Net could be more
+capable to correctly recover A (global illumination), thanks
+to our joint parameter estimation scheme under an end-to-end
+reconstruction loss. Since the human eyes are certainly more
+sensitive to large changes in global illumination than to any
+local distortion, it is no wonder why the visual results of AOD-
+Net are also evidently better, while some other results often
+look unrealistically bright.
+The above advantage also manifests in the illumination (l)
+term of computing SSIM [39], and partially interprets our
+strong SSIM results. The other major source of SSIM gains
+seems to be from the contrast (c) term. For examples, we
+randomly select ﬁve images for test, the mean of contrast
+values of AOD-Net results on TestSetB is 0.9989, signiﬁcantly
+higher than ATM (0.7281), BCCR (0.9574), FVR (0.9630),
+NLD(0.9250), DCP (0.9457) , MSCNN (0.9697), DehazeNet
+(0.9076), and CAP (0.9760).
+C. Qualitative Visual Results
+a) Synthetic Images: Figure 5 shows the dehazing results
+on synthetic images from TestSet A. We observe that AOD-Net
+results generally possess sharper contours and richer colors,
+and are more visually faithful to the ground-truth.
+b) Challenging Natural Images: Although trained with
+synthesized by indoor images, ADO-Net is found to generalize
+
+========== PAGE 6 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 6
+(a) Inputs
+ (b) FVR
+ (c) DCP
+ (d) BCCR
+ (e) ATM
+(f) CAP
+ (g) NLD [1], [2]
+ (h) DehazeNet [3]
+ (i) MSCNN [27]
+ (j) AOD-Net
+Fig. 6. Challenging natural images results compared with the state-of-the-art methods.
+
+========== PAGE 7 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 7
+TABLE I
+AVERAGE PSNR AND SSIM RESULTS ON TEST SET A.
+Metrics ATM [33] BCCR [20] FVR [35] NLD [1], [2] DCP [9] MSCNN [27] DehazeNet [3] CAP [45] AOD-Net
+PSNR 14.1475 15.7606 16.0362 16.7653 18.5385 19.1116 18.9613 19.6364 19.6954
+SSIM 0.7141 0.7711 0.7452 0.7356 0.8337 0.8295 0.7753 0.8374 0.8478
+TABLE II
+AVERAGE PSNR AND SSIM RESULTS ON TEST SET B.
+Metrics ATM [33] BCCR [20] FVR [35] NLD [1], [2] DCP [9] MSCNN [27] DehazeNet [3] CAP [45] AOD-Net
+PSNR 14.3364 17.0205 16.8488 17.4479 18.9781 20.9653 21.3046 21.4544 21.5412
+SSIM 0.7130 0.8003 0.8556 0.7463 0.8584 0.8589 0.8756 0.8879 0.9272
+TABLE III
+AVERAGE MSE BETWEEN THE MEAN IMAGES OF THE DEHAZED IMAGES AND THE GROUNDTRUTH IMAGES , ON TEST SET B.
+Metrics ATM [33] BCCR [20] FVR [35] NLD [1], [2] DCP [9] MSCNN [27] DehazeNet [3] CAP [45] AOD-Net
+MSE 4794.40 917.20 849.23 2130.60 664.30 329.97 424.90 356.68 260.12
+well on outdoor images. We evaluate it against the state-
+of-art methods on a few natural image examples, that are
+signiﬁcantly more challenging to dehaze than general outdoor
+images found by authors of [9], [8], [3]. The challenges lie
+the dominance of highly cluttered objects, ﬁne textures, or
+illumination variations. As revealed by Figure 6, FVR suffers
+from overly-enhanced visual artifacts. DCP, BCCR, ATM,
+NLD, and MSCNN produce unrealistic color tones on one
+or several images, such as DCP, BCCR and ATM results on
+the second row (notice the sky color), or BCCR, NLD and
+MSCNN results on the fourth row (notice the stone color).
+CAP, DehazeNet, and AOD-Net have the most competitive
+visual results among all, with plausible details. Yet by a
+closer look, we still observe that CAP sometimes blurs image
+textures, and DehazeNet darkens some regions. AOD-Net
+recovers richer and more saturated colors (compare among
+third- and fourth-row results), while suppressing most artifacts.
+c) White Scenery Natural Images: White scenes or object
+has always been a major obstacle for haze removal. Many ef-
+fective priors such as [9] fail on white objects since for objects
+of similar color to the atmospheric light, the transmission value
+is close to zero. DehazeNet [3] and MSCNN [27] both rely
+on carefully-chosen ﬁltering operations for post-processing,
+which improve their robustness to white objects but inevitably
+sacriﬁce more visual details.
+Although AOD-Net does not explicitly consider handling
+white scenes, our end-to-end optimization scheme seems to
+contribute stronger robustness here. Figure 7 displays two
+hazy images of white scenes and their dehazing results by
+various methods. It is easy to notice the intolerable artifacts
+of DCP results, especially in the sky region of the ﬁrst row.
+The problem is alleviated, but persists in CAP, DehazeNet
+and MSCNN results, while the AOD-Net is almost artifact-
+free. Moreover, CAP seems to blur the textural details on
+white objects, while MSCNN creates the opposite artifact of
+over-enhancement: see the cat head region for a comparison.
+AOD-Net manages to remove the haze, without introducing
+fake color tones or distorted object contours.
+d) Little Hurt on Haze-Free images: Although trained
+over hazy images, AOD-Net is veriﬁed to possess the highly
+desirable property, that it causes little negative impacts on the
+input image if it is haze-free. That endorses the robustness and
+effectiveness of our K-estimation module. Figure 8 shows the
+results on two challenging clean images from Colorlines[8].
+e) Image Anti-Halation: We try AOD-Net on another
+image enhancement task, called image anti-halation, without
+re-training. Halation is a spreading of light beyond proper
+boundaries, forming an undesirable fog effect in the bright
+areas of photos. Being related to dehazing but following
+different physical models, the anti-halation results by AOD-
+Net are decent too: see Figure 9 for a few examples.
+D. Effectiveness of Multi-Scale Features
+In this section, we speciﬁcally analyze the usefulness of
+inter-layer concatenations of the K-estimation module, which
+combine multi-scale features from varied size ﬁlters. We con-
+jecture that despite an empirical ﬁnding, the current concatena-
+tion way facilitates smooth feature transition from low-level to
+higher-level by consistently feeding several consecutive lower
+layers into the immediate next layer. For comparison purposes,
+we designed a baseline: “conv1→ conv2→ conv3→ conv4
+→ conv5(K)”, that involves no inter-layer concatenation. For
+TestSet A, the average PSNR is 17.0517 dB and SSIM is
+0.7688. For TestSet B, the average PSNR is 22.3359 dB
+and SSIM is 0.9032. Those results are generally inferior to
+AOD-Net (except PSNR on TestSet B gets marginally higher),
+especially both SSIM values suffer from signiﬁcant drops.
+
+========== PAGE 8 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 8
+(a) Input
+ (b) DCP [9]
+ (c) CAP [45]
+ (d) DehazeNet [3]
+ (e) MSCNN [27]
+ (f) AOD-Net
+Fig. 7. White scenery image dehazing results. Please amplify ﬁgures to view the detail differences in bounded regions.
+Fig. 8. Examples on impacts over haze-free images. Left column: haze-free
+images. Right column: outputs by AOD-Net.
+Fig. 9. Examples for anti-halation enhancement. Left column: real photos
+with halation. Right column: results by AOD-Net.
+TABLE IV
+COMPARISON OF AVERAGE MODEL RUNNING TIME (IN SECONDS ).
+Image Size 480 × 640 Platform
+ATM [33] 35.19 Matlab
+DCP [9] 18.38 Matlab
+FVR [35] 6.15 Matlab
+NLD [1], [2] 6.09 Matlab
+BCCR [20] 1.77 Matlab
+MSCNN [27] 1.70 Matlab
+CAP [45] 0.81 Matlab
+DehazeNet (Matlab) [3] 1.81 Matlab
+DehazeNet (Pycaffe)3 [3] 5.09 Pycaffe
+AOD-Net 0.65 Pycaffe
+E. Running Time Comparison
+The light-weight structure of AOD-Net leads to faster de-
+hazing. We select 50 images from TestSet A for all models
+to run, on the same machine (Intel(R) Core(TM) i7-6700
+CPU@3.40GHz and 16GB memory), without GPU acceler-
+ation. The per-image average running time of all models are
+shown in Table IV. Despite other slower Matlab implemen-
+tations, it is fair to compare DehazeNet (Pycaffe version)
+and ours[11]. The results illustrate the promising efﬁciency
+of AOD-Net, costing only 1/10 time of DehazeNet per image.
+IV. B EYOND RESTORATION : EVALUATING AND
+IMPROVING DEHAZING ON OBJECT DETECTION
+High-level computer vision tasks, such as object detection
+and recognition, concern visual semantics and have received
+tremendous attentions [26], [43]. However, the performance of
+those algorithms may be largely jeopardized by various degra-
+dations in practical applications. The conventional approach
+resorts to a separate image restoration step before feeding
+into the target task. Recently, [40], [17] validates that a joint
+optimization of the restoration and recognition steps would
+signiﬁcantly boost the performance over the traditional two-
+stage approach. However, previous works [44], [5], [4] mainly
+examined the effects and remedies for common degradations
+such as noise, blur and low resolution, on image classiﬁcation
+tasks only. To our best knowledge, there has been no similar
+work to quantitatively study how the existence of haze would
+affect high-level vision tasks, and how to alleviate its impact
+using joint optimization methods.
+
+========== PAGE 9 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 9
+TABLE V
+THE M AP C OMPARISON ON THE SYNTHETIC HAZY SETS FROM PASCAL VOC 2007 (F: F ASTER R-CNN)
+Training Set Test Set Naive F MSCNN+F Dehazenet+F DCP+F AOD-Net+F Retrained F JAOD-Faster R-CNN
+Heavy Heavy 0.5155 0.5973 0.6138 0.6267 0.5794 0.6756 0.6819
+Medium Medium 0.6046 0.6451 0.6520 0.6622 0.6401 0.6920 0.6931
+Light Light 0.6410 0.6628 0.6628 0.6762 0.6701 0.6959 0.7004
+Heavy - - - - - 0.6631 0.6682
+Multiple Haze Level Medium - - - - - 0.6903 0.6925
+Light - - - - - 0.6962 0.7032
+TABLE VI
+THE M AP COMPARISON WITH THE AUTO -FASTER R-CNN SCHEME ON THE SYNTHETIC HAZY SETS FROM PASCAL VOC 2007
+Training Set Test Set Auto-Faster R-CNN JAOD-Faster R-CNN
+Heavy Heavy 0.6573 0.6819
+Medium Medium 0.6815 0.6931
+Light Light 0.6868 0.7004
+We study the problem of object detection in the presence of
+haze, as an example for how high-level vision tasks can inter-
+act with dehazing. We choose the Faster R-CNN model [26]
+as a strong baseline 4, and test on both synthetic and natural
+hazy images. We then concatenate the AOD-Net model with
+the Faster R-CNN model, to be jointly optimized as a uniﬁed
+pipeline. General conclusions drawn from our experiments are:
+as the haze turns heavier, the object detection becomes less
+reliable. In all haze conditions (light, medium or heavy), our
+jointly tuned model constantly improves detection, surpassing
+both naive Faster R-CNN and non-joint approaches.
+A. Quantitative Results on Pascal-VOC 2007 with Synthetic
+Haze
+We create three synthetic sets from the Pascal VOC 2007
+dataset (referred to as Groundtruth) [6]: Heavy Haze (A =
+1,β = 0.1), Medium Haze (A = 1,β = 0.06), and Light
+Haze (A = 1 ,β = 0 .04). The depth maps are predicted
+via the method described in [18]. Each set is split into non-
+overlapped training set and test set. First we compare ﬁve
+schemes without any network ﬁne-tuning: (1) naive Faster-
+RCNN: directly input with the hazy image using the model
+pretrained on clean Pascal-VOC 2007; (2) DehazeNet + Faster
+R-CNN: ﬁrst dehazing using DehazeNet and then Faster R-
+CNN; (3) MSCNN + Faster R-CNN : ﬁrst dehazing using
+MSCNN and then Faster R-CNN; (4) DCP + Faster R-CNN :
+ﬁrst dehazing using DCP and then Faster R-CNN; (5) AOD-
+Net + Faster R-CNN : AOD-Net concatenated with Faster R-
+CNN, without any joint tuning.
+We calculate the mean average precision (mAP) on the
+three test sets, as shown in the ﬁrst three rows in Table V.
+The mAP on the clean Pascal-VOC 2007 test set is 0.6954.
+We can see that the heavy haze degrades mAP for nearly
+0.18. By ﬁrst dehazing using various dehazing methods before
+detection, the mAP improves a lot. Among them, DCP+Faster
+4We use the VGG16 model pre-trained based on 20 classes of Pascal VOC
+2007 dataset, as provided by the Faster R-CNN authors: https://github.com/
+rbgirshick/py-faster-rcnn
+R-CNN performs the best with 21.57% improvement in the
+heavy haze. Without any joint tuning, AOD-Net+Faster R-
+CNN performs comparable to MSCNN+Faster R-CNN , and
+appears a bit worse than DCP+Faster R-CNN.
+Owing to our all-in-one design, the pipeline of AOD-
+Net+Faster R-CNN can be jointly optimized from end to end
+for improved object detection performance on hazy images.
+We tune AOD-Net+Faster R-CNN for the three hazy training
+sets separately, and call this tuned version JAOD-Faster R-
+CNN. We use a learning rate of 0.0001 for ﬁrst 35, 000
+iterations, and 0.00001 for next 65, 000 iterations, both with
+a momentum of 0.9 and a weight decay of 0.0005. As a
+result of such joint tuning, the mAP increases from 0.5794 to
+0.6819 for the heavy haze case, which shows a major strength
+of such end-to-end optimization and the value of our unique
+design. For comparison, we also re-train Faster R-CNN on
+the hazy data sets as a comparison. We use a learning rate
+of 0.0001 for ﬁne-tuning a pre-trained Faster R-CNN (trained
+on clean natural images). After retraining to be adapted to the
+hazy dataset, the mAP of Retrained Faster R-CNN increases
+from 0.5155 to 0.6756 under heavy haze, while still being
+consistently worse than JAOD-Faster R-CNN.
+Furthermore, since it is practically desirable to obtain one
+uniﬁed model that works for arbitrary haze levels, we generate
+a training set that includes various haze levels withβ randomly
+sampled from [0, 0.1]. We re-tune and evaluate JAOD-Faster
+R-CNN and Retrained Faster R-CNN on this training set,
+whose results are compared in the last row of Table V.
+Although both perform slightly inferior to their “dedicated”
+counterparts trained and applied for a speciﬁc haze level,
+they perform consistently well in all three haze levels, and
+JAOD-Faster R-CNN again outperforms Retrained Faster R-
+CNN. Figure 11 plots the mAP comparisons at every 5, 000
+iterations, between the JAOD-Faster R-CNN and Retrained
+Faster R-CNN schemes, under various haze conditions.
+B. Visualized Results on Natural Hazy Images
+Figure 10 displays a visual comparison of object detection
+results on web-source natural hazy images. Six approaches are
+
+========== PAGE 10 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 10
+(a) Naive Faster R-CNN
+ (b) DehazeNet + Faster R-CNN
+ (c) MSCNN + Faster R-CNN
+(d) AOD-Net + Faster R-CNN
+ (e) Retrained Faster R-CNN
+ (f) JAOD-Faster R-CNN
+Fig. 10. Object detection results on natural hazy images with a conﬁdence threshold of 0.6, displayed on the dehazed results (except (a) (e) where no dehazing
+is performed; for (f), we visualize the output of the tuned AOD-Net part as the dehazed image.). For ﬁne-tuned Faster R-CNN and JAOD-Faster R-CNN, we
+select the model trained with the synthetic light haze.
+compared: (1) naive Faster-RCNN; (2) DehazeNet + Faster R-
+CNN; (3) MSCNN + Faster R-CNN; (4) AOD-Net + Faster R-
+CNN; (5) Fine-tuned Faster R-CNN. (6) JAOD-Faster R-CNN.
+We observe that haze can cause missing detections, inaccurate
+localizations and unconﬁdent category recognitions for Faster
+R-CNN. While AOD-Net + Faster R-CNN already shows vis-
+ible advantages over naive Faster-RCNN, the performance is
+further dramatically improved in JAOD-Faster R-CNN results,
+which surpasses all other alternatives visibly.
+Note that AOD-Net + Faster R-CNN beneﬁts from joint
+optimization in two-folds: the AOD-Net itself jointly estimates
+all parameters in one, and the entire pipeline jointly tunes the
+low-level (dehazing) and high-level (detection and recognition)
+tasks from end to end. The end-to-end pipeline tuning is
+uniquely made possible by AOD-Net, which is designed to
+be the only all-in-one dehazing model so far.
+C. Who is actually helping: the task-speciﬁc dehazing network
+or just adding more parameters?
+While JAOD-Faster R-CNN is arguably the best performer
+as shown above, one question may arise naturally: is it
+just a result of the fact that AOD-Faster R-CNN uses more
+parameters than (Retrained) Faster R-CNN? In this section,
+we show that adding extra layers and parameters, without a
+task-speciﬁc design for dehazing, does not necessarily improve
+the performance of object detection in the haze.
+
+========== PAGE 11 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 11
+Initial 5000 10000 15000 20000 25000 30000 35000 40000 45000 50000 55000 60000 65000 70000 75000 80000
+RF+Heavy 0.5155 0.6403 0.662 0.6673 0.6652 0.6685 0.6662 0.669 0.6756 0.6696 0.6747 0.6728 0.6727 0.6715 0.6718 0.6723 0.6713
+JA+Heavy 0.5794 0.6606 0.669 0.6697 0.6699 0.6754 0.672 0.6819 0.6767 0.677 0.6761 0.677 0.6745 0.6768 0.6723 0.6738 0.6778
+0.51
+0.53
+0.55
+0.57
+0.59
+0.61
+0.63
+0.65
+0.67
+0.69
+MAP
+Iterations
+MAP Trend (
+Heavy Haze)
+RF+Heavy JA+Heavy
+Initial 5000 10000 15000 20000 25000 30000 35000 40000 45000 50000 55000 60000 65000 70000 75000 80000
+RF+Medium 0.6046 0.6785 0.6857 0.6871 0.691 0.6904 0.6905 0.6869 0.6862 0.6878 0.6899 0.6909 0.6873 0.6883 0.6894 0.692 0.6873
+JA+Medium 0.6401 0.6866 0.6879 0.6917 0.6903 0.6876 0.6879 0.6926 0.6921 0.6909 0.6931 0.6903 0.6912 0.6906 0.6894 0.6915 0.6922
+0.6
+0.61
+0.62
+0.63
+0.64
+0.65
+0.66
+0.67
+0.68
+0.69
+0.7
+MAP
+Iterations
+MAP Trend (
+Medium Haze)
+RF+Medium JA+Medium
+Initial 5000 10000 15000 20000 25000 30000 35000 40000 45000 50000 55000 60000 65000 70000 75000 80000
+RF+Light 0.641 0.6804 0.6852 0.6921 0.6923 0.6944 0.6919 0.6922 0.6959 0.6905 0.6955 0.695 0.6935 0.6923 0.6933 0.6946 0.6929
+JA+Light 0.6701 0.6929 0.694 0.6936 0.6954 0.695 0.6945 0.6979 0.7004 0.689 0.6963 0.696 0.6989 0.6971 0.6961 0.6951 0.7001
+0.64
+0.65
+0.66
+0.67
+0.68
+0.69
+0.7
+MAP
+Iterations
+MAP Trend (
+Light Haze)
+RF+Light JA+Light
+Initial 5000 10000 15000 20000 25000 30000 35000 40000 45000 50000 55000 60000 65000 70000 75000 80000
+RF+Heavy 0.5155 0.6308 0.6491 0.6554 0.6413 0.6555 0.6511 0.6605 0.6528 0.66 0.655 0.6562 0.6606 0.6574 0.658 0.656 0.6631
+JA+Heavy 0.5794 0.6429 0.6591 0.6618 0.6604 0.6671 0.6617 0.6618 0.6658 0.666 0.6682 0.6646 0.6666 0.663 0.665 0.6647 0.6661
+RF+Medium 0.6046 0.6678 0.679 0.6807 0.6807 0.6854 0.6833 0.687 0.6883 0.6903 0.6854 0.6856 0.6867 0.6864 0.6887 0.6875 0.6873
+JA+Medium 0.6401 0.6782 0.6852 0.6871 0.6899 0.691 0.6897 0.6906 0.6891 0.6898 0.6901 0.6917 0.689 0.6925 0.6885 0.6882 0.6882
+RF+Light 0.641 0.6794 0.6885 0.694 0.6893 0.6903 0.6944 0.6929 0.6933 0.692 0.6962 0.6939 0.6954 0.6935 0.6946 0.6946 0.6938
+JA+Light 0.6701 0.6902 0.6917 0.6953 0.7032 0.6964 0.6949 0.6901 0.7018 0.6943 0.6899 0.6926 0.6954 0.6928 0.694 0.6923 0.6911
+0.5
+0.55
+0.6
+0.65
+0.7
+MAP
+Models
+MAP Trend (Multilevel Haze Level)
+RF+Heavy JA+Heavy RF+Medium JA+Medium RF+Light JA+Light
+Fig. 11. The mAP over the training process at every 5, 000 iterations, for four training datasets. (a) Training Set: Heavy Haze (Heavy). (b) Training Set:
+Medium Haze(Medium). (c) Training Set: Light Haze(Light). (d) Training Set: Multiple Haze Levels. (RF: Retrained Faster R-CNN, JA: JAOD-Faster R-CNN)
+We designed a new baseline, named Auto-Faster R-CNN,
+that replaces the AOD-Net part in JAOD-Faster R-CNN with
+a plain convolutional auto-encoder. The auto-encoder has ex-
+actly the same amount of parameters with AOD-Net, consist-
+ing of ﬁve convolutional layers with its structure resembling
+the K-estimation module. We pre-train the auto-encoder for
+the dehazing task, using the same training protocol and dataset
+with AOD-Net, and the concatenate it with Faster R-CNN for
+end-to-end tuning. As observed in Table VI, the performance
+of Auto-Faster R-CNN is not on par with AOD-Faster R-
+CNN, and shows even worse than Fine-tuned Faster R-CNN.
+Recall that [26] veriﬁed that directly adding extra layers to
+Faster R-CNN did not necessarily improve the performance
+of object detection in general clean images. Our conclusion is
+its consistent counterpart in the hazy case.
+Besides, it should be noted that although JAOD-Faster R-
+CNN appends AOD-Net before Faster R-CNN, the complexity
+is not increased much, thanks to the light-weight design of
+AOD-Net. The per-image average running time is 0.166s for
+(Re-trained) Faster R-CNN , and 0.192s for JAOD-Faster R-
+CNN, using the NVIDIA GeForce GTX TITAN X GPU.
+V. D ISCUSSION AND CONCLUSIONS
+The paper proposes AOD-Net, an all-in-one pipeline that
+directly reconstructs haze-free images via an end-to-end CNN.
+We compare AOD-Net with a variety of state-of-the-art meth-
+ods, on both synthetic and natural haze images, using both
+objective (PSNR, SSIM) and subjective criteria. Extensive
+experimental results conﬁrm the superiority, robustness, and
+efﬁciency of AOD-Net. Moreover, we also present the ﬁrst-of-
+its-kind study, on how AOD-Net can boost the object detection
+and recognition performance on natural hazy images, by joint
+pipeline optimization. It can be observed that our jointly tuned
+model constantly improves detection in the presence of haze,
+surpassing both naive Faster R-CNN and non-joint approaches.
+Still, as has been mentioned above, the dehazing technique is
+highly correlated with the depth estimation from images, and
+there is room for improving the performance of AOD-Net, by
+incorporating the depth prior knowledge or an elaborate depth
+estimation module.
+REFERENCES
+[1] D. Berman, S. Avidan, et al. Non-local image dehazing. In Proceedings
+of the IEEE conference on computer vision and pattern recognition ,
+pages 1674–1682, 2016.
+[2] D. Berman, T. Treibitz, and S. Avidan. Air-light estimation using haze-
+lines. In IEEE Conf. ICCP , 2017.
+[3] B. Cai, X. Xu, K. Jia, C. Qing, and D. Tao. Dehazenet: An end-to-end
+system for single image haze removal. IEEE Transactions on Image
+Processing, 25(11):5187–5198, 2016.
+[4] B. Cheng, Z. Wang, Z. Zhang, Z. Li, J. Yang, and T. S. Huang. Robust
+emotion recognition from low quality and low bit rate video: A deep
+learning approach. In Proceedings of the 7-th Conference on Affective
+Computing and Intelligent Interaction , 2017.
+[5] S. Diamond, V . Sitzmann, S. Boyd, G. Wetzstein, and F. Heide. Dirty
+pixels: Optimizing image classiﬁcation architectures for raw sensor data.
+arXiv preprint arXiv:1701.06487 , 2017.
+[6] M. Everingham, L. Van Gool, C. K. I. Williams, J. Winn,
+and A. Zisserman. The PASCAL Visual Object Classes
+Challenge 2007 (VOC2007) Results. http://www.pascal-
+network.org/challenges/VOC/voc2007/workshop/index.html.
+
+========== PAGE 12 ==========
+JOURNAL OF LATEX CLASS FILES, VOL. 14, NO. 8, AUGUST 2015 12
+[7] R. Fattal. Single image dehazing. ACM transactions on graphics (TOG),
+27(3):72, 2008.
+[8] R. Fattal. Dehazing using color-lines. ACM Transactions on Graphics
+(TOG), 34(1):13, 2014.
+[9] K. He, J. Sun, and X. Tang. Single image haze removal using dark
+channel prior. IEEE transactions on pattern analysis and machine
+intelligence, 33(12):2341–2353, 2011.
+[10] H. Hirschmuller and D. Scharstein. Evaluation of cost functions for
+stereo matching. In Computer Vision and Pattern Recognition, 2007.
+CVPR’07. IEEE Conference on , pages 1–8. IEEE, 2007.
+[11] Y . Jia, E. Shelhamer, J. Donahue, S. Karayev, J. Long, R. Girshick,
+S. Guadarrama, and T. Darrell. Caffe: Convolutional architecture for
+fast feature embedding. In Proceedings of the 22nd ACM international
+conference on Multimedia , pages 675–678. ACM, 2014.
+[12] J. Kopf, B. Neubert, B. Chen, M. Cohen, D. Cohen-Or, O. Deussen,
+M. Uyttendaele, and D. Lischinski. Deep photo: Model-based pho-
+tograph enhancement and viewing. In ACM transactions on graphics
+(TOG), volume 27, page 116. ACM, 2008.
+[13] L. Kratz and K. Nishino. Factorizing scene albedo and depth from a
+single foggy image. In Computer Vision, 2009 IEEE 12th International
+Conference on, pages 1701–1708. IEEE, 2009.
+[14] B. Li, X. Peng, Z. Wang, J. Xu, and D. Feng. Aod-net: All-in-one
+dehazing network. IEEE International Conference on Computer Vision
+(ICCV), 2017.
+[15] X. Li, Y . Hu, X. Gao, D. Tao, and B. Ning. A multi-frame image
+super-resolution method. Signal Processing, 90(2):405–414, 2010.
+[16] Z. Li, P. Tan, R. T. Tan, D. Zou, S. Zhiying Zhou, and L.-F. Cheong.
+Simultaneous video defogging and stereo reconstruction. In Proceedings
+of the IEEE Conference on Computer Vision and Pattern Recognition ,
+pages 4988–4997, 2015.
+[17] D. Liu, B. Wen, X. Liu, and T. S. Huang. When image denoising
+meets high-level vision tasks: A deep learning approach. arXiv preprint
+arXiv:1706.04284, 2017.
+[18] F. Liu, C. Shen, G. Lin, and I. Reid. Learning depth from single monoc-
+ular images using deep convolutional neural ﬁelds. IEEE transactions
+on pattern analysis and machine intelligence , 38(10):2024–2039, 2016.
+[19] E. J. McCartney. Optics of the atmosphere: scattering by molecules and
+particles. New York, John Wiley and Sons, Inc., 1976. 421 p. , 1976.
+[20] G. Meng, Y . Wang, J. Duan, S. Xiang, and C. Pan. Efﬁcient image
+dehazing with boundary constraint and contextual regularization. In
+Proceedings of the IEEE international conference on computer vision ,
+pages 617–624, 2013.
+[21] S. G. Narasimhan and S. K. Nayar. Chromatic framework for vision
+in bad weather. In Computer Vision and Pattern Recognition, 2000.
+Proceedings. IEEE Conference on , volume 1, pages 598–605. IEEE,
+2000.
+[22] S. G. Narasimhan and S. K. Nayar. Vision and the atmosphere.
+International Journal of Computer Vision , 48(3):233–254, 2002.
+[23] S. G. Narasimhan and S. K. Nayar. Contrast restoration of weather
+degraded images. IEEE transactions on pattern analysis and machine
+intelligence, 25(6):713–724, 2003.
+[24] K. Nishino, L. Kratz, and S. Lombardi. Bayesian defogging. Interna-
+tional journal of computer vision , 98(3):263–278, 2012.
+[25] R. Pascanu, T. Mikolov, and Y . Bengio. On the difﬁculty of training
+recurrent neural networks. ICML (3), 28:1310–1318, 2013.
+[26] S. Ren, K. He, R. Girshick, and J. Sun. Faster r-cnn: Towards real-
+time object detection with region proposal networks. In C. Cortes,
+N. D. Lawrence, D. D. Lee, M. Sugiyama, and R. Garnett, editors,
+Advances in Neural Information Processing Systems 28 , pages 91–99.
+Curran Associates, Inc., 2015.
+[27] W. Ren, S. Liu, H. Zhang, J. Pan, X. Cao, and M.-H. Yang. Single image
+dehazing via multi-scale convolutional neural networks. In European
+Conference on Computer Vision , pages 154–169. Springer, 2016.
+[28] D. Scharstein and C. Pal. Learning conditional random ﬁelds for stereo.
+In Computer Vision and Pattern Recognition, 2007. CVPR’07. IEEE
+Conference on, pages 1–8. IEEE, 2007.
+[29] D. Scharstein and R. Szeliski. High-accuracy stereo depth maps using
+structured light. In Computer Vision and Pattern Recognition, 2003.
+Proceedings. 2003 IEEE Computer Society Conference on , volume 1,
+pages I–I. IEEE, 2003.
+[30] Y . Y . Schechner, S. G. Narasimhan, and S. K. Nayar. Instant dehazing of
+images using polarization. In Computer Vision and Pattern Recognition,
+2001. CVPR 2001. Proceedings of the 2001 IEEE Computer Society
+Conference on, volume 1, pages I–I. IEEE, 2001.
+[31] C. J. Schuler, M. Hirsch, S. Harmeling, and B. Sch ¨olkopf. Learning to
+deblur. IEEE transactions on pattern analysis and machine intelligence ,
+38(7):1439–1451, 2016.
+[32] N. Silberman, D. Hoiem, P. Kohli, and R. Fergus. Indoor segmentation
+and support inference from rgbd images. In European Conference on
+Computer Vision, pages 746–760. Springer, 2012.
+[33] M. Sulami, I. Glatzer, R. Fattal, and M. Werman. Automatic recovery of
+the atmospheric light in hazy images. In Computational Photography
+(ICCP), 2014 IEEE International Conference on , pages 1–11. IEEE,
+2014.
+[34] K. Tang, J. Yang, and J. Wang. Investigating haze-relevant features in
+a learning framework for image dehazing. In Proceedings of the IEEE
+Conference on Computer Vision and Pattern Recognition , pages 2995–
+3000, 2014.
+[35] J.-P. Tarel and N. Hautiere. Fast visibility restoration from a single color
+or gray level image. In Computer Vision, 2009 IEEE 12th International
+Conference on, pages 2201–2208. IEEE, 2009.
+[36] J.-P. Tarel, N. Hautiere, L. Caraffa, A. Cord, H. Halmaoui, and
+D. Gruyer. Vision enhancement in homogeneous and heterogeneous fog.
+IEEE Intelligent Transportation Systems Magazine , 4(2):6–20, 2012.
+[37] M. Tico. Multi-frame image denoising and stabilization. In Signal
+Processing Conference, 2008 16th European , pages 1–4. IEEE, 2008.
+[38] T. Treibitz and Y . Y . Schechner. Polarization: Beneﬁcial for visibility
+enhancement? In Computer Vision and Pattern Recognition, 2009. CVPR
+2009. IEEE Conference on , pages 525–532. IEEE, 2009.
+[39] Z. Wang, A. C. Bovik, H. R. Sheikh, and E. P. Simoncelli. Image
+quality assessment: from error visibility to structural similarity. IEEE
+transactions on image processing , 13(4):600–612, 2004.
+[40] Z. Wang, S. Chang, Y . Yang, D. Liu, and T. S. Huang. Studying very
+low resolution recognition using deep networks. In Proceedings of the
+IEEE Conference on Computer Vision and Pattern Recognition , pages
+4792–4800, 2016.
+[41] Z. Wang, Y . Yang, Z. Wang, S. Chang, W. Han, J. Yang, and T. Huang.
+Self-tuned deep super resolution. In Proceedings of the IEEE Conference
+on Computer Vision and Pattern Recognition Workshops , pages 1–8,
+2015.
+[42] J. Xie, L. Xu, and E. Chen. Image denoising and inpainting with deep
+neural networks. In Advances in Neural Information Processing Systems,
+pages 341–349, 2012.
+[43] J. Yu, Y . Jiang, Z. Wang, Z. Cao, and T. Huang. Unitbox: An
+advanced object detection network. In Proceedings of the 2016 ACM
+on Multimedia Conference , pages 516–520. ACM, 2016.
+[44] H. Zhang, J. Yang, Y . Zhang, N. M. Nasrabadi, and T. S. Huang.
+Close the loop: Joint blind image restoration and recognition with
+sparse representation prior. In Computer Vision (ICCV), 2011 IEEE
+International Conference on , pages 770–777. IEEE, 2011.
+[45] Q. Zhu, J. Mai, and L. Shao. A fast single image haze removal algorithm
+using color attenuation prior. IEEE Transactions on Image Processing ,
+24(11):3522–3533, 2015.

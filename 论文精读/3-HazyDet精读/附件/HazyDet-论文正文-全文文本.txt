@@ -1,0 +1,1145 @@
+
+
+========== PAGE 1 ==========
+GrokCV
+HazyDet: Open-Source Benchmark for Drone-View
+Object Detection with Depth-Cues in Hazy Scenes
+Changfeng Feng1, Zhenyuan Chen2, Xiang Li2,3, Chunping Wang1, Jian Yang2, Ming-Ming Cheng2,3,
+Yimian Dai2,3,†, Qiang Fu1,†
+1Army Engineering University,2VCIP, School of Computer Science, Nankai University,3NKIARI,
+Shenzhen Futian
+†Corresponding Author
+Object detection from aerial platforms under adverse atmospheric conditions, particularly haze, is
+paramount for robust drone autonomy. Yet, this domain remains largely underexplored, primarily
+hindered by the absence of specialized benchmarks. To bridge this gap, we presentHazyDet, the
+first, large-scale benchmark specifically designed for drone-view object detection in hazy conditions.
+Comprising 383,000 real-world instances derived from both naturally hazy captures and synthetically
+hazed scenes augmented from clear images, HazyDet provides a challenging and realistic testbed
+for advancing detection algorithms. To address the severe visual degradation induced by haze, we
+propose the Depth-Conditioned Detector (DeCoDet), a novel architecture that integrates a Depth-
+Conditioned Kernel to dynamically modulate feature representations based on depth cues. The
+practical efficacy and robustness of DeCoDet are further enhanced by its training with a Progressive
+Domain Fine-Tuning (PDFT) strategy to navigate synthetic-to-real domain shifts, and a Scale-
+Invariant Refurbishment Loss (SIRLoss) to ensure resilient learning from potentially noisy depth
+annotations. Comprehensive empirical validation on HazyDet substantiates the superiority of our
+unified DeCoDet framework, which achieves state-of-the-art performance, surpassing the closest
+competitor by a notable +1.5% mAP on challenging real-world hazy test scenarios. Our dataset and
+toolkit are available athttps://github.com/GrokCV/HazyDet.
+Date: May 25, 2025
+Project Page: https://github.com/GrokCV/HazyDet
+1 Introduction
+(a)
+Scale variation
+ Uneven distribution
+Image quality degradation Feature shift
+Figure 1 Challenges faced by drone-view object detection
+under hazy conditions.
+Unmanned Aerial Vehicles (UAVs), or drones, have
+rapidly become indispensable tools in a diverse range of
+applications, due to their low cost and flexibility.
+This widespread adoption is fundamentally underpinned
+by the onboard visual perception, with object detection
+serving as a vital component for environmental under-
+standing. Despite promising progress in recent years,
+ensuring reliable perception in challenging real-world
+conditions remains a significant hurdle. Among various
+factors, adverse atmospheric effects, particularly haze,
+present a persistent obstacle that greatly undermines
+the robustness of drone-based detection systems.
+Even in clear weather, as shown in Fig. 1 (top row),
+object detection from drones presents unique difficulties
+compared to ground-level vision (Yang et al., 2022; Du
+et al., 2023). Most prior efforts in UAV object detection
+have focused on the intrinsic complexities of aerial im-
+1
+arXiv:2409.19833v2  [cs.CV]  26 May 2025
+
+========== PAGE 2 ==========
+ CAPRK         
+ UAVDT        
+ VisDrone      
+ …
+(a) Benchmark taxonomy
+Normal ViewDrone View
+Adverse Weather
+HazyDet（Ours）
+ PASCAL VOC     
+ ImageNet         
+ COCO              
+ …
+（2007）
+（2010）
+（2015）
+（2017）
+（2018）
+（2022）
+ BDD100K    
+ RTTS        
+ Waymo     
+ …
+（2018）
+（2019）
+（2019）
+Samples
+Target Domain
+Samples
+Initialization
+Samples
+Depth
+Training
+Fine-tune
+Backbone
+Source Domain
+Clean normal scene
+Real hazy drone scene
+Detector
+Backbone
+Detector
+Backbone
+Trainable
+Frozen
+(b) Progressive domain fine-tuning 
+Scale 
+variation
+Uneven 
+distribution
+Image quality 
+degradation
+Feature shift
+Source Domain
+Backbone
+Clean normal scene
+Real hazy drone scene
+Trainable
+Frozen
+Fine-tune
+Previous
+Fine-tune
+Fine-tune
+Detector
+Backbone
+Detector
+Backbone
+Detector
+Backbone
+Ours
+Data
+Normal perspective,
+high quality 
+large scale, 
+…….
+Drone perspective,
+low quality,
+samll scale
+…….
+(Scale & Characteristic)
+Characteristic
+Gap
+Scale
+Gap
+Huge Gap
+Domain
+Target Domain
+Method
+Figure 2 Data Landscape and Domain Fine-Tuning Strategy. (a) HazyDet uniquely addresses the critical gap in drone-view
+adverse-weather scenarios. (b) PDFT paradigm bridges the simulated-to-real domain gap.
+agery: (1) Scale Variation : aerial images contain objects at varying scales due to changing altitudes and
+viewpoints, with small objects predominating. Researchers address this through multi-scale feature integration
+using hierarchical networks to aggregate information across different spatial resolutions (Du et al., 2023;
+Jiang et al., 2024).(2) Non-uniform Spatial Distribution : objects tend to be scattered irregularly across the
+scene, unlike the more centered compositions often found in standard datasets. To this end, others have
+explored coarse-to-fine detection pipelines, where initial region proposals are progressively refined to achieve
+precise localization (Deng et al., 2021; Xu et al., 2023). These advances may have robust results under normal
+conditions, yet their effectiveness in the presence of environmental degradations is far less understood.
+In practice, UAVs are mostly deployed in outdoor environments where weather and atmosphere can vary
+dramatically. Haze is especially common, and it introduces two additional challenges: (1) reduced image
+quality due to diminished contrast and color shifts, (2) and a more subtle, yet equally problematic, shift in
+the underlying feature distribution that models rely on for recognition. While some research, mainly from the
+autonomous driving field, has tried to address weather effects by combining detection with image restoration
+(Qin et al., 2020; Huang et al., 2020; Liu et al., 2022b; Li et al., 2023), these solutions are not transferable
+to UAVs due to their reliance on ground-level priors and the conspicuous absence of drone-specific hazy
+benchmarks (Fig. 2 (a)). Furthermore, image restoration can sometimes create artifacts that actually harm
+detection performance (Akhtar et al., 2022). Critically, a fundamental oversight we identified is that most
+current methods don’t effectively use depth information. This is a pivotal cue, given thatobject scale is
+intrinsically tied to depth in aerial views, and haze density is also physically governed by it .
+In this paper, we proposeHazyDet, the first large-scale benchmark dataset created specifically for drone-view
+object detection in hazy conditions, containing 383,000 instances from real-world hazy images and high-fidelity
+synthetic scenes. Motivated by the depth-dependent nature of haze degradation, we further propose theDepth-
+Conditioned Detector (DeCoDet), a novel framework that eschews explicit dehazing and instead leverages
+a dynamic Depth-Conditioned Kernel to adapt feature representations based on estimated depth cues. To
+address the distributional shift between clear, synthetic haze, and real-world haze domains, DeCoDet is trained
+using a Progressive Domain Fine-Tuning (PDFT) strategy jointly with a Scale-Invariant Refurbishment Loss
+(SIRLoss), enabling robust depth-aware learning even from noisy pseudo annotations. This unified framework
+achieves state-of-the-art performance on challenging real-world hazy drone-view scenarios, surpassing the
+second-best method by a notable margin of +1.5% mAP.
+In summary, our contributions are threefold:
+• HazyDet Benchmark: We introduce the first large-scale benchmark dataset for drone-view object detection
+in hazy conditions, containing 383,000 instances.
+• DeCoDet Framework: We propose DeCoDet, a novel detection framework that dynamically leverages
+depth cues in hazy aerial imagery as well as PDFT strategy and SIRLoss, ensuring robust depth-aware
+learning across domain shifts and from noisy depth supervision.
+• State-of-the-Art Performance: Our DeCoDet achieves a notable +1.5% mAP improvement over the
+closest competitor on real-world hazy test-set.
+2
+
+========== PAGE 3 ==========
+2 Related Work
+Table 1 Comparative landscape of relevant datasets. This positions HazyDet as the first large-scale (383K instances)
+drone-view benchmark for object detection under hazy conditions, uniquely providing extensive real-world and high-
+fidelity simulated scenes.
+Dataset Drone-View Detection Hazy Real Sim. #Inst. #Img Venue
+D-HAZE × × ✓ × ✓ × 1,449 ICIP’16
+Dense-HAZE × × ✓ × ✓ × 95 ICIP’19
+RESIDE × × ✓ × ✓ × 13,990 TIP’19
+4KDehaze × × ✓ × ✓ × 8,200 CVPR’21
+RS-Haze × × ✓ × ✓ × 50k TIP’23
+RW-Haze × × ✓ ✓ × × 210 TMM’23
+RTTS × ✓ ✓ ✓ × 41k 4,322 TIP’19
+CAPRK ✓ ✓ × × × 89k 1,448 ICCV’17
+UAVDT ✓ ✓ × × × 842k 37k ECCV’18
+VisDrone ✓ ✓ × × × 343k 10k TPAMI’22
+A2I2 ✓ ✓ ✓ ✓ × 3,898 359 TIP’23
+HazyDet (Ours) ✓ ✓ ✓ ✓ ✓ 383k 11.6k —
+Drone-View Detection & Adverse Weather Restoration Datasets. Over the past decade, as shown in Tab. 1,
+several benchmarks, such as VEDAI (Razakarivony and Jurie, 2016), CARPK (Hsieh et al., 2017), UAVDT (Du
+et al., 2018), and VisDrone (Zhu et al., 2022), have become foundational to drone-view object detection
+research, offering diverse settings and rich annotations. However, a salient limitation pervades these existing
+resources: they are predominantly constructed under clear atmospheric conditions, offering little insight into
+real-world performance when drones operate in degraded environments. In parallel, the image restoration
+community has curated a range of dehazing and foggy datasets (Ancuti et al., 2016, 2019; Li et al., 2019;
+Zheng et al., 2021; Song et al., 2023; Chen et al., 2023), some even capturing authentic haze. However, these
+datasets are invariably designed for image restoration tasks and lack the comprehensive detection annotations
+or the aerial perspectives required for advancing high-level vision in the drone domain. Notably, while datasets
+such as RTTS (Li et al., 2019) and A2I2 (Narayanan et al., 2023) have introduced semantic annotations for
+foggy imagery, they are either confined to non-aerial perspectives or constrained by limited scale and reliance
+on artificial smoke. To the best of our knowledge, HazyDet is the first dataset to bridge this divide, providing
+a large-scale, meticulously labeled benchmark for drone-view object detection in hazy scenes.
+Drone-View Object Detection Methods. To address the variation in object scales, existing approaches have
+converged on multi-scale feature fusion. For instance, CFANet (Zhang et al., 2023) employs cross-layer feature
+aggregation to sharpen the detection of small, scale-diverse targets, while MFFSODNet (Jiang et al., 2024)
+implements multi-branch convolutions with varied kernel sizes to capture features across multiple receptive
+fields. Beyond scale, the non-uniform spatial distribution of objects in drone imagery further necessitates a
+series of coarse-to-fine pipelines. To this end, GLSANet (Deng et al., 2021) incorporates a self-adaptive region
+selection mechanism coupled with local super-resolution to refine densely populated areas, while UFPMP-DET
+(Huang et al., 2022) integrates a unified foreground packing strategy with multi-proxy learning to address
+sparsely distributed targets. ClusDet (Yang et al., 2019) attempts to predict and adaptively resize clustered
+object regions. Despite these advances, the question of how adverse weather conditions fundamentally influence
+the detection capabilities of UAVs remains largely unresolved.
+Object Detection in Adverse Conditions. Object detection in adverse environments presents substantial
+complexities beyond clear-weather scenarios, primarily due to degraded image fidelity and atypical visual cues
+(Xi et al., 2024; Song et al., 2024). Methods addressing this typically adopt either separate or joint optimization.
+Separate paradigms first employ restoration algorithms to enhance image quality before detection; however,
+this often yields insufficient improvement in detection accuracy and can detrimentally suppress high-frequency
+details crucial for discerning small aerial targets (Liu et al., 2020). Conversely, joint optimization frameworks
+integrate restoration and detection, such as AOD-Net (Li et al., 2017), IA-YOLO (Liu et al., 2022b), DSNet
+(Huang et al., 2020), and BAD-Net (Li et al., 2023). Yet, these approaches frequently contend with conflicting
+optimization objectives and a strong dependency on meticulously paired data, which is often scarce.
+Our DeCoDet distinguishes itself by leveraging auxiliary depth information rather than directly coupling
+3
+
+========== PAGE 4 ==========
+detection with image restoration. This strategy enhances perceptual robustness in challenging weather
+conditions while obviating the need for paired datasets, leading to significant improvements in detection
+performance within hazy environments.
+3 HazyDet: A New Benchmark Dataset
+3.1 Dataset Construction
+(a) Dataset construction pipeline
+Semi-automatic 
+Annotation
+Raw 
+Data
+Atmospherical
+Scattering Model
+xml
+HazyDet
+txt
+Depth Estimation
+Data Collection Data Processing
+Normal Weather
+Final Dateset
+(b) Clean images (c) Synthethic hazy (d) Real hazy
+Figure 3 Construction pipeline and representative samples of the HazyDet dataset. (a) Simulated data is generated
+using physics-based simulation based on the Atmospheric Scattering Model (ASM), while semi-automatic annotation
+techniques are employed to improve the accuracy and efficiency of annotations for real-world data. (b) Clean images;
+(c) Synthetically generated hazy images; (d) Real-world hazy images captured in HazyDet.
+Table 2 Statistics of images and instances across different
+dataset subsets. Targets are divided into three size groups:
+small targets have an area-to-image-area ratio of <0.1%,
+medium targets cover 0.1%–1%, and large targets exceed
+1%.
+Split #Image #Instance Class Object Size
+Small Medium Large
+Train 8,000 264,511
+Car 159,491 77,527 5,177
+Truck 4,197 6,262 1,167
+Bus 1,990 7,879 861
+Val 1,000 34,560
+Car 21,051 9,881 630
+Truck 552 853 103
+Bus 243 1,122 125
+Test 2,000 65,322
+Car 38,910 19,860 1,256
+Truck 881 1,409 263
+Bus 473 1,991 279
+Real-world Train 400 13,753
+Car 5,816 6,487 695
+Truck 86 204 57
+Bus 52 256 100
+Real-world Test 200 5,543
+Car 2,351 2,506 365
+Truck 26 86 30
+Bus 17 107 55
+We adopt a dual-track strategy that combines
+physics-driven synthesis with field acquisition of
+real-world data (Fig. 3), addressing the scarcity of
+authentic hazy observations while leveraging sim-
+ulated scene diversity. Stratified sampling is used
+to partition the datasets, with simulated data di-
+vided into training, validation, and test subsets
+at an 8:1:2 ratio, and real-world data split into
+training and test subsets at a 2:1 ratio. Detailed
+distribution statistics are provided in Tab. 2.
+Real hazy image acquisition. To benchmark real-
+world performance, we capture 600 drone images
+under genuine fog across urban, rural, and littoral
+regions with diverse flight altitudes and viewing
+angles.
+Synthetic data generation. To synthesize hazy data,
+we employed the Atmospheric Scattering Model
+(ASM), a physics-driven framework defined as:
+I(x, y) = J(x, y)t(x, y) + A(1 − t(x, y)), t(x, y) = e−βd(x,y). (1)
+where I(x, y) denotes the observed hazy image,J(x, y) the clear scene radiance,A the global atmospheric
+light, β the scattering coefficient, andd(x, y) the scene depth. Departing from prior works that relied on fixed
+or broadly sampled parameters (Li et al., 2019; Chi et al., 2023), we modelA and β with truncated normal
+distributions: A ∼ N(0.8, 0.052) in [0.7, 0.9] and β ∼ N(0.045, 0.022) in [0.02, 0.16], enhancing the realism
+of haze effects. Depthd(x, y) is derived using advanced estimation models, ensuring fidelity in degradation
+simulation. To ensure the authenticity of the simulation in the depth estimation model selection, we organize
+a survey with 280 participants (as shown in Fig. S1).
+4
+
+========== PAGE 5 ==========
+× M
+Channel ConcatenationC
+ReshapeR
+Element Product
+Training & Inference
+Training 
+ 𝑮
+Unfolding
+Head
+·
+Conv
+Module
+DCK 
+Module                  
+S
+Kernel Generation
+ ·
+Skip Connection
+[C]
+[K × K × C/G]
+SIR Loss
+·
+DET Loss
+[K × K]
+Y[i,j]
+D[i,j]
+[H × W × C]
+ C
+Reg.S
+S
+Cls.
+Depth
+Depth Feature Det. Feature
+Backbone Feature Pyramid
+Head
+Head
+Head
+𝑮
+Sum
+Y’[i,j]
+杨婷
+20250514V2
+R
+Element Summation෍
+෍
+Depth Prior Generation
+[H × W × C]
+Figure 4 The framework of DeCoDet. The network comprises a backbone and a feature pyramid network for feature
+extraction. Each detection head incorporates depth-specific convolutional modules to infer depth maps at multiple
+scales, with the scale-invariant restoration loss (SIRLoss) computed with respect to pseudo-depth maps to facilitate
+the generation of depth priors. The intermediate depth features incorporating these depth priors are subsequently
+utilized by the Depth Conditioned Kernel (DCK) module to dynamically generate filter kernels, thereby adaptively
+modulating the detection features.
+3.2 Dataset Statistics and Characteristics
+Authenticity assessment. The objective FID/KID scores (Nunn et al., 2021; Sutherland et al., 2018), together
+with the subjective visual comparisons, consistently indicate that our synthetic images are perceptually and
+statistically closer to real drone haze than prior datasets such as RESIDE-out (Li et al., 2019) or 4KDehaze
+(Zheng et al., 2021) (Fig. S2).
+Category balance and object scale. The benchmark covers cars, trucks, buses, and miscellaneous traffic
+participants. As depicted in Fig. S3, instance sizes span more than four octaves, with a pronounced long tail
+of small objects (64–256 px2), mirroring practical drone missions.
+Depth–size correlation. According to the ASM, distance amplifies the effect of fog on atmospheric transmission,
+making images more blurry, while the aerial viewpoint amplifies perspective cues: objects nearer the camera
+appear markedly larger. Quantitative analysis (Fig. S4) confirms a strong inverse correlation between estimated
+depth and bounding-box area, reinforcing our architectural decision to condition detection on depth.
+Relative to existing synthetic datasets, HazyDet exhibits lower FID/KID scores with respect to real haze,
+higher object density, and explicit depth annotations, constituting an indispensable testbed for designing
+haze-robust aerial detectors. As the first meticulously engineered, depth-aware benchmark for drone-view
+detection in haze, HazyDet supplies the community with a foundation for principled algorithmic progress and
+reproducible evaluation under genuinely challenging conditions.
+4 DeCoDet: Depth-Conditioned Detector
+4.1 Depth-Aware Representation Learning
+At the core of our DeCoDet lies the insight that haze-induced visual ambiguities in aerial imagery are
+fundamentally governed by scene depth, which modulates both the severity of degradation and the apparent
+scale of objects. Rather than treating depth as an auxiliary prediction or an isolated task, we architect
+DeCoDet to treat depth as an intrinsic modality, seamlessly woven into the detection pipeline. First, we develop
+a lightweight depth estimation module that generates multi-scale depth priors without computational overhead.
+Second, we design dynamic depth modulation kernels that exploit these geometric cues for haze-resilient
+detection. The specific network details are shown in Fig. 4.
+5
+
+========== PAGE 6 ==========
+Depth Prior Generation: We reformulate depth estimation as an auxiliary task through multi-scale depth
+prediction. Unlike conventional encoder-decoder architectures requiring dedicated upsampling branches (Li
+et al., 2023), our DeCoDet directly operates on the backbone’s pyramidal featuresP = {P3, P4, ..., P7}. At
+each scale n, we applyM depth-specific convolutions:
+Dm = ReLU(BN(Convm3×3(Dm−1))), (m = 1, 2, · · ·, M) , (2)
+where D0n = Pn for each scale n ∈ {3, 4, . . . ,7}. The final features DMn at each scale are then processed
+through a 1 × 1 convolution to generate the corresponding depth maps{D3, . . . , D7}, capturing geometric
+structures across scales. The Mmulti-Scale Depth Prior (MSDP) design effectively handles extreme scale
+variations in drone imagery while remaining computationally efficient.
+Depth-Conditioned Feature Modulation: Building upon the estimated depth priors, we introduce Depth-
+Conditioned Kernel (DCK) to adaptively modulate detection features. The DCKK ∈RK×K×G at position
+(i, j) of detection featureY ∈ RH×W ×C is generated by:
+Ki,j = W2 · σ(W1 · D[i, j]). (3)
+Here, K indicates the kernel size related to spatial modulation range,G is the number of groups sharing
+a kernel, and W1 ∈ RC/r×C, W2 ∈ R(K2G)×C/r form a bottleneck structure with reduction ratior for
+efficiency. The functionσ denotes batch normalization and a non-linear activation function, which enhances
+expressiveness. The modulated featureY′ is computed via depth-adaptive kernel:
+Y′i,j,g = X
+(u,v)∈∆K
+Ki,j,u+⌊K/2⌋,v+⌊K/2⌋,⌈gG/C ⌉ ⊙ Yi+u,j+v,g . (4)
+Here, ∆K = [−⌊K/2⌋, . . . ,⌊K/2⌋] × [−⌊K/2⌋, . . . ,⌊K/2⌋] ⊂ Z2 refers to the set of offsets in the neighborhood
+when applying the kernel centered at a position (× indicates Cartesian product here). g ∈ {1, 2, . . . , G}
+represents the group number.
+This architecture establishes three critical properties: 1) Geometric awareness through explicit depth condi-
+tioning, 2) Spatial adaptivity via position-specific kernels, and 3) Scale consistency through pyramidal feature
+alignment.
+4.2 Progressive Domain Fine-Tuning with Scale-Invariant Supervision
+Training a robust object detector for real-world hazy drone imagery presents a significant challenge due to
+the inherent discrepancies between clear, simulated hazy, and real hazy data distributions. While fine-tuning
+on synthetic data may not generalize well to real-world scenarios, training solely on limited real-world hazy
+data often leads to overfitting. To bridge the synthetic-to-real domain gap, we propose a Progressive Domain
+Fine-Tuning (PDFT), as conceptually outlined in Algorithm 1 and visually depicted in Fig. 2 (b).
+Algorithm 1: Progressive Domain Fine-tuning
+Require: Pre-trained model Mθ0 from source Ds, intermediate domainDm, target domainDt, learning rateη1, epochs E1, E2, decay γ
+Ensure: Domain-adapted model Mθt
+1: Stage 1: normal → simulated haze (intermediate domain)
+2: Initialize θm ← θ0, freeze θ1m (first backbone stage)
+3: for epoch = 1to E1 do
+4: for batch bm in Dm do
+5: Compute Lm = Ltask(Mθm (bm))
+6: Update: θm\θ1m ← θm\θ1m − η1 · ∇Lm
+7: end for
+8: end for
+9: Intermediate domain model: Mθm
+10: Stage 2: simulated → real haze (target domain)
+11: Initialize θt ← θm, freeze {θ1t , θ2:kt } (first & middle stages)
+12: Set learning rateη2 = η1 · γ (γ <1)
+13: for epoch = 1to E2 do
+14: for batch bt in Dt do
+15: Compute Lt = Ltask(Mθt (bt))
+16: Update: θt\{θ1t , θ2:kt } ←θt\{θ1t , θ2:kt } −η2 · ∇Lt
+17: end for
+18: end for
+19: return Mθt
+1) Preliminary Adaptation : We initialize our model
+with weights pre-trained on ImageNet and fine-tune
+it on our synthetic hazy datasetDs while freezing
+only the initial backbone layer. This allows the net-
+work to adapt its intermediate-level representations
+to the characteristics of simulated adverse weather
+conditions, bridging the gap between the source
+(ImageNet) and the intermediate (simulated haze)
+domains.
+2) Progressive Adaptation: We further fine-tune the
+model on our real-world hazy drone datasetDt, this
+time freezing both the early and middle backbone
+layers responsible for extracting low and mid-level
+features. We also employ a reduced learning rate
+in this stage. This targeted fine-tuning allows the
+6
+
+========== PAGE 7 ==========
+Table 3 Comparison of the performance of different SOTA detectors on the HazyDet dataset. Bold indicates the highest
+performance, and underline highlights the second highest. Rankings are across all models.
+Type Model Epoch FPS Para (M) GFLOPs AP on Synthetic Test-Set AP on Real-World Test-Set
+mAP Car Truck Bus mAP Car Truck Bus
+Specified
+IAYOLO (Liu et al., 2022b) 273 22.7 61.80 37.30 38.3 44.1 22.2 48.6 22.4 41.9 8.0 17.3
+TogetherNet (Wang et al., 2022) 300 49.5 69.2 19.71 44.6 53.4 25.4 55.0 25.2 48.2 11.3 16.15
+MS-DAYOLO (Hnewa and Radha, 2021) 300 57.9 40.0 44.20 48.3 59.4 28.5 57.0 36.5 51.1 21.0 37.4
+One-Stage
+YOLOv3 (Redmon and Farhadi, 2018) 273 68.1 61.63 20.19 35.0 36.1 21.4 47.5 30.7 52.3 12.2 27.5
+GFL (Li et al., 2021) 12 51.1 32.26 198.65 36.8 50.3 11.5 48.5 32.5 50.9 15.6 31.0
+YOLOX (Ge et al., 2021) 300 71.2 8.94 13.32 42.3 53.1 23.0 51.2 35.4 52.9 19.9 33.5
+FCOS (Tian et al., 2019) 12 60.6 32.11 191.48 45.9 54.4 27.1 56.2 32.7 50.7 16.0 31.4
+VFNet (Zhang et al., 2021) 12 59.9 32.71 184.32 49.5 58.2 30.8 59.4 35.6 52.5 18.4 36.0
+ATTS (Zhang et al., 2020) 12 49.6 32.12 195.58 50.4 58.5 32.2 60.4 36.4 52.4 19.5 37.2
+DDOD (Chen et al., 2021) 12 47.6 32.20 173.05 50.7 59.5 32.1 60.4 37.1 51.8 21.0 38.5
+TOOD (Feng et al., 2021) 12 48.0 32.02 192.51 51.4 58.4 33.6 62.2 36.7 52.5 20.0 37.6
+Two-Stage
+Sparse RCNN (Sun et al., 2023) 12 47.1 108.54 147.45 27.7 33.0 14.2 35.6 20.8 31.0 10.4 21.0
+Faster RCNN (Ren et al., 2017) 12 46.4 41.35 201.72 48.7 56.3 30.5 59.3 33.4 54.2 12.5 33.5
+Libra RCNN (Pang et al., 2019) 12 44.7 41.62 209.92 49.0 57.3 30.4 59.3 34.5 54.5 14.5 34.6
+Grid RCNN (Lu et al., 2019) 12 47.2 64.46 317.44 50.5 58.1 32.8 50.7 35.2 54.3 18.6 32.8
+Cascade RCNN (Cai and Vasconcelos, 2018) 12 42.9 69.15 230.40 51.6 59.0 34.2 61.7 37.2 54.8 19.0 37.9
+End2End
+Conditional DETR (Meng et al., 2021) 50 40.3 43.55 94.17 30.5 42.1 12.6 36.8 25.8 46.0 10.1 21.3
+DAB DETR (Liu et al., 2022a) 50 41.7 43.70 97.02 31.3 36.8 15.1 42.3 27.2 47.4 12.2 22.0
+Deform DETR (Zhu et al., 2021) 50 50.9 40.01 203.11 51.5 58.4 33.9 62.3 36.9 52.1 21.1 37.5
+⋆ DeCoDet (Ours) 12 59.7 34.62 225.37 52.0 60.5 34.0 61.9 38.7 55.0 21.9 39.2
+network to adapt its higher-level features to the nuances of real-world haze, effectively transferring knowledge
+from the simulated to the target (real haze) domain while preserving the learned feature extraction capabilities
+and mitigating overfitting on the smaller real-world dataset.
+3) Depth-Consistent Robust Learning : To ensure effective learning of depth information, we employ a loss
+function that integrates both detection and depth estimation objectives. For stable depth learning, particularly
+from potentially noisy pseudo-depth maps, we propose theScale Invariant Refurbishment Loss (SIRLoss), which
+utilizes a scale-invariant error metric (Eigen et al., 2014) applied to logarithmically transformed depth values.
+To mitigate the impact of erroneous pseudo-labels, we incorporate a label refurbishment strategy, where the
+refurbished depth label is computed as a weighted average of the predictiony and a pseudo labely∗ (obtained
+through techniques like temporal averaging or ensembling, with a confidence factorα = 0.7). The SIRLoss is
+then defined as:
+LDep = 1n Xi (∆di)2 − 1n2 (Xi ∆di)2 (5)
+where ∆di = log(yi) − log(αy∗i + (1 − α)yi), with α controlling pseudo-label confidence.
+5 Experiments
+5.1 Implementation Details
+Our DeCoDet architecture adopts VFNet (Zhang et al., 2021) with an ImageNet-pretrained ResNet-50
+backbone as the baseline. During training, we apply random horizontal flipping (50% probability) and
+normalize inputs to a resolution of1333 × 800. The network is optimized via Stochastic Gradient Descent
+(SGD) over 12 epochs, beginning with an initial learning rate of 0.02 (a constant warmup followed by10×
+reductions at epochs 8 and 11), a batch size of 2, a momentum of 0.938, and a weight decay of 0.0001. All
+experiments are conducted using PyTorch 2.0 on NVIDIA RTX 3090 GPUs.
+In Algorithm 1,γ is specified as 0.1, andk is set to 3. The depth maps for DeCoDet are generated as described
+in Sec. 3 and have been anonymously released to facilitate the reproduction of results. Detection accuracy
+is measured via mean Average Precision (mAP) and Average Precision (AP), while efficiency is gauged by
+Giga Floating-Point Operations (GFLOPs), model parameters, and frames per second (FPS). Additionally, to
+evaluate the dehazing method’s performance, we employ two widely recognized image restoration metrics:
+Peak Signal-to-Noise Ratio (PSNR) and Structural Similarity Index Measure (SSIM).
+5.2 Benchmark
+Detector Benchmark As shown in Tab. 3, we benchmark 19 leading object detection algorithms for foggy drone
+detection using our HazyDet dataset. Fog-specialized detectors (Liu et al., 2022b; Wang et al., 2022; Hnewa
+and Radha, 2021) maintain their original protocols, while all other models employ our progressive fine-tune
+7
+
+========== PAGE 8 ==========
+Table 4 Ablation study results. The baseline is VFNet. Progressive: progressive fine-tune; MSDP: multi-scale depth
+prior generation; DCK: depth-conditioned kernel module; SIRLoss: scale invariant refurbishment loss; M: number
+of depth-specific convolutions; Kernel: DCK kernel size; Group: DCK group size;β: SIRLoss weight. mAP–Test
+and mAP–Real denote average precision on synthetic Test-set and real-world Test-set. Bold indicates the highest
+performance.
+Method Progressive MSDP DCK SIRLoss M Kernel Group weight β Para(M) GFLOPs mAP–Test mAP–Real
+DeCoDet
+- - - - - - - - 32.71 184.32 49.5 25.6
+✓ - - - - - - - 32.71 184.32 49.5 35.6
+✓ ✓ - - 3 - - - 34.59 221.14 49.8 35.8
+✓ ✓ ✓ - 3 7 16 - 34.61 230.41 50.6 36.9
+✓ ✓ - ✓ 3 - - 0.2 34.59 221.14 50.0 35.9
+✓ ✓ ✓ ✓ 3 7 16 0.2 34.61 230.41 52.0 38.0
+Ablation
+Study ✓ ✓ ✓ ✓
+1 7 16 0.2 31.39 156.68 50.1 35.6
+2 7 16 0.2 33.16 202.75 50.6 36.0
+3 3 16 0.2 34.53 224.26 42.9 31.2
+3 5 16 0.2 34.57 226.31 49.6 35.9
+3 9 16 0.2 34.68 237.38 51.4 37.3
+3 7 1 0.2 34.52 224.46 49.2 34.3
+3 7 4 0.2 35.54 226.31 51.0 36.8
+3 7 64 0.2 34.92 249.86 51.6 37.2
+3 7 16 0.05 34.61 230.41 48.2 34.9
+3 7 16 0.1 34.61 230.41 50.3 36.8
+3 7 16 0.2 34.61 230.41 52.0 38.0
+3 7 16 1.0 34.61 230.41 50.1 36.9
+approach from Algorithm 1, which involves training intermediate models on simulated data before real-world
+fine-tuning. We ensure fair comparison through consistent data augmentation protocols, with exceptions only
+for methods requiring specific augmentation techniques (e.g., DAB-DETR (Liu et al., 2022a) and Deformable
+DETR (Zhu et al., 2021)).
+Consistent performance trends between simulated and real-world environments validate our dataset. Our
+DeCoDet method outperforms all competitors with model achieving 52.0% mAP on simulated data and 38.7%
+on real-world data, while maintaining higher speed (59.7 FPS) and efficiency (34.62M parameters), making it
+ideal for deployment in challenging foggy environments.
+Table 5 Performance comparison of SOTA dehazing methods on HazyDet.
+mAP–Test and mAP–Real denote average precision on synthetic Test-
+set and real-world Test-set.
+Method PSNR ↑ SSIM↑ mAP-Test mAP-Real
+Faster RCNN (Ren et al., 2017) - - 39.5 21.5
+GridDehaze (Liu et al., 2019) 12.66 0.713 38.9 (-0.6) 19.6 (-1.9)
+MixDehazeNet (Lu et al., 2023) 15.52 0.743 39.9 (+0.4) 21.2 (-0.3)
+DSANet (Cui and Knoll, 2024) 19.01 0.751 40.8 (+1.3) 22.4 (+0.9)
+FF A (Qin et al., 2020) 19.25 0.798 41.2 (+1.7) 22.0 (+0.5)
+DehazeFormer (Song et al., 2023) 17.53 0.802 42.5 (+3.0) 21.9 (+0.4)
+gUNet (Song et al., 2022) 19.49 0.822 42.7 (+3.2) 22.2 (+0.7)
+C2PNet (Zheng et al., 2023) 21.31 0.832 42.9 (+3.4) 22.4 (+0.9)
+DCP (He et al., 2009) 16.98 0.824 44.0 (+4.5) 20.6 (-0.9)
+RIDCP (Wu et al., 2023) 16.15 0.718 44.8 (+5.3) 24.2 (+2.7)
+Dehazing Benchmark A systematic eval-
+uation of several dehazing models is
+conducted on HazyDet. Faster R-
+CNN (Ren et al., 2017) is adopted as the
+baseline detector, which is trained ex-
+clusively on clear drone images. During
+testing, hazy images are first dehazed
+before being fed into the detector, and
+image quality metrics, including SSIM
+and PSNR, are computed with respect
+to the corresponding clear reference im-
+ages.
+As shown in Tab. 5, most dehazing mod-
+els yield only marginal improvements in image quality and frequently fail to enhance, or may even diminish,
+detection accuracy, especially on real-world data. This limitation may be attributed to insufficient adaptation
+to drone perspectives. Only a few models, such as RIDCP (Wu et al., 2023), achieve significant gains in
+detection performance. Furthermore, higher PSNR and SSIM scores do not necessarily translate to improved
+detection accuracy, highlighting the complex relationship between restoration quality and detection perfor-
+mance. Even the best-performing dehazing models are unable to match the accuracy of detectors trained
+directly on hazy images, emphasizing the importance of domain-specific training for UAV detection in hazy
+environments. Qualitative dehazing results from different models are also visualized in Fig. S7.
+5.3 Ablation Study
+Tab. 4 presents our ablation studies validating DeCoDet’s components and parameter settings. Progressive
+fine-tuning leads to a substantial boost in real-world performance. Introducing multi-scale depth priors gives
+8
+
+========== PAGE 9 ==========
+C5C4C3C2
+Baseline
+DeCoDet
+GT
+D5D3
+ D4 D6
+(a) Feature visualization(b) Depth visualization
+Depth Map
+Prediction
+30
+20
+10
+15
+25
+5
+0
+Noise Level: 25 Noise Level: 50 Noise Level: 75 Noise Level: 100Noise Level: 0
+mAP-Test: 49.3 (-2.7)
+mAP-Real: 38.7 (-3.9)
+mAP-Test: 52.0
+mAP-Real: 38.7
+mAP-Test: 47.2 (-4.8)
+mAP-Real: 34.1 (-4.6)
+mAP-Test: 44.3 (-7.7)
+mAP-Real: 32.3 (-6.4)
+mAP-Test: 43.5 (-8.5)
+mAP-Real: 31.4 (-7.3)
+(c) Noise visualization
+Figure 5 Network visualization and robustness analysis. (a) Feature visualization comparing baseline and DeCoDet models
+under foggy conditions, displaying ground truth (left) alongside Grad-CAM (Selvaraju et al., 2017) activation maps
+across backbone layers C2-C5. (b) Depth estimation visualization across network layers, showing original ground
+truth (left) and corresponding depth maps at different level(right). The upper row presents learned depth maps while
+the lower row shows network predictions. Color bar indicates depth in meters. (c) Network robustness verification.
+The left columns show the original ground truth, while the right columns present the depth maps used for DeCoDet
+training. The noise level denotes the variance of the added Gaussian noise, with 0 indicating no noise. Values at the
+bottom reflect the network’s performance with noise-aware labels on both simulated and real-world data.
+VFNet (Zhang et al., 2021) moderate improvements (+0.3% mAP on the test set,+0.2% on real data). The
+combination of DCK and MSDP produces significant gains (+0.8% test, +1.1% real), while SIRLoss offers
+only limited benefits (+0.2% test, +0.1% real). The complete model, integrating all components, achieves the
+best results (52.0% mAP on the test set,38.0% on real data), indicating their complementary effects.
+Parameter optimization shows that using three depth-specific convolutional layers (M = 3) in the detection
+head balances performance and computational cost. DCK performs best with a7 × 7 kernel and 16 groups,
+capturing sufficient contextual information without introducing noise. In contrast, smaller kernels (3 × 3) lead
+to large drops in accuracy (−9.1% test, −6.8% real), and excessive grouping brings only marginal gains at
+higher cost. The optimal SIRLoss weight isβ = 0.2; setting β lower (0.05) causes underfitting (−3.8% test,
+−3.1% real), and higher (1.0) reduces accuracy (−1.9% test, −1.1% real).
+5.4 Visualization and Robustness Analysis
+Feature visualization. Fig. 5 (a) compares backbone feature heatmaps between baseline and DeCoDet under
+foggy conditions. DeCoDet precisely identifies potential target regions, focusing network attention more
+effectively. This targeted focus improves detection accuracy in challenging foggy environments where traditional
+models struggle. By incorporating depth information, DeCoDet enhances feature discrimination while reducing
+haze interference, demonstrating robust performance in adverse weather.
+Depth-Cue Visualization. Fig. 5 (b) reveals the depth information learned by DeCoDet. Conventional depth
+estimation yields smooth outputs but misses small targets. DeCoDet aligns depth globally at high levels while
+emphasizing detection cues locally, boosting sensitivity to tiny, haze-obscured objects and improving detection
+in low visibility.
+9
+
+========== PAGE 10 ==========
+Robustness Verification. We assess DeCoDet’s robustness by adding varying levels of gaussian noise to training
+depth maps. As illustrated in Fig. 5 (c), network performance declines with increasing noise, especially at
+higher levels. These results highlight the importance of high-quality depth labels for learning accurate depth
+cues and stable training, suggesting that enhancing depth estimation accuracy is vital for future performance
+improvements.
+6 Conclusion
+In this work, we addressed the critical challenge of drone-view object detection in hazy environments by
+introducing HazyDet, the first large-scale benchmark of its kind, amalgamating extensive real-world and
+high-fidelity synthetic hazy imagery. We further proposed the DeCoDet framework, a novel detector that
+innovatively leverages depth cues via a Depth-Conditioned Kernel, thereby eschewing explicit dehazing.
+DeCoDet’s robustness is significantly enhanced through a Progressive Domain Fine-Tuning strategy and
+a Scale-Invariant Refurbishment Loss, enabling effective learning across domain shifts and from imperfect
+depth supervision. Our comprehensive experiments demonstrate that this unified framework establishes a new
+state-of-the-art on HazyDet, achieving a notable +1.5% mAP improvement over prior methods on challenging
+real-world hazy data.
+Data Availability Statement
+We confirm that data supporting the results of this study can be obtained from (Li et al., 2019), (Zheng et al.,
+2021) and HazyDet.
+7 Acknowledgements
+The authors would like to thank the editor and the anonymous reviewers for their critical and constructive
+comments and suggestions. This research is supported by the National Natural Science Foundation of China
+(Grant No. 62301261, 62206134, U24A20330, 62361166670) and the Fellowship of China Postdoctoral Science
+Foundation (Grant No. 2021M701727). We acknowledge the Tianjin Key Laboratory of Visual Computing
+and Intelligent Perception (VCIP) for their essential resources. We extend our profound gratitude to Professor
+Pengfei Zhu and the dedicated AISKYEYE team from Tianjin University, whose invaluable data support has
+been instrumental to our research.
+10
+
+========== PAGE 11 ==========
+References
+Naveed Akhtar, Mohammad A. A. K. Jalwana, Mohammed Bennamoun, and Ajmal Mian. Attack to fool and explain
+deep networks.IEEE Transactions on Pattern Analysis and Machine Intelligence, 44(10):5980–5995, 2022. 2
+Cosmin Ancuti, Codruta O. Ancuti, and Christophe De Vleeschouwer. D-hazy: A dataset to evaluate quantitatively
+dehazing algorithms. In2016 IEEE International Conference on Image Processing (ICIP), pages 2226–2230, 2016. 3
+Codruta O. Ancuti, Cosmin Ancuti, Mateu Sbert, and Radu Timofte. Dense-haze: A benchmark for image dehazing
+with dense-haze and haze-free images. In2019 IEEE International Conference on Image Processing (ICIP), pages
+1014–1018, 2019. 3
+Shariq Farooq Bhat, Reiner Birkl, Diana Wofk, Peter Wonka, and Matthias Müller. Zoedepth: Zero-shot transfer by
+combining relative and metric depth, 2023. 17, 18
+Zhaowei Cai and Nuno Vasconcelos. Cascade R-CNN: delving into high quality object detection. In2018 IEEE
+Conference on Computer Vision and Pattern Recognition, CVPR 2018, Salt Lake City, UT, USA, June 18-22, 2018,
+pages 6154–6162, 2018. 7
+Jiyou Chen, Gaobo Yang, Shengchun Wang, Dewang Wang, and Xin Liao. Image dehazing assessment: A real-world
+dataset and a haze density-aware criteria.IEEE Transactions on Multimedia, 2023. 3
+Zehui Chen, Chenhongyi Yang, Qiaofei Li, Feng Zhao, Zheng-Jun Zha, and Feng Wu. Disentangle your dense object
+detector. In Proceedings of the 29th ACM International Conference on Multimedia, page 4939–4948, New York, NY,
+USA, 2021. Association for Computing Machinery. 7
+Kaichen Chi, Yuan Yuan, and Qi Wang. Trinity-net: Gradient-guided swin transformer-based remote sensing image
+dehazing and beyond.IEEE Transactions on Geoscience and Remote Sensing, 61:1–14, 2023. 4
+Yuning Cui and Alois Knoll. Dual-domain strip attention for image restoration.Neural Networks, 171:429–439, 2024.
+8, 19
+Sutao Deng, Shuai Li, Ke Xie, Wenfeng Song, Xiao Liao, Aimin Hao, and Hong Qin. A Global-Local Self-Adaptive
+Network for Drone-View Object Detection.IEEE Transactions on Image Processing, 30:1556–1569, 2021. 2, 3
+Bowei Du, Yecheng Huang, Jiaxin Chen, and Di Huang. Adaptive Sparse Convolutional Networks with Global Context
+Enhancement for Faster Object Detection on Drone Images. InIEEE/CVF Conference on Computer Vision and
+Pattern Recognition, CVPR 2023, Vancouver, BC, Canada, June 17-24, 2023, pages 13435–13444, 2023. 1, 2
+Dawei Du, Yuankai Qi, Hongyang Yu, Yifan Yang, Kaiwen Duan, Guorong Li, Weigang Zhang, Qingming Huang, and
+Qi Tian. The unmanned aerial vehicle benchmark: Object detection and tracking. InProceedings of the European
+Conference on Computer Vision (ECCV), 2018. 3
+David Eigen, Christian Puhrsch, and Rob Fergus. Depth map prediction from a single image using a multi-scale deep
+network. InProceedings of the 27th International Conference on Neural Information Processing Systems - Volume 2,
+page 2366–2374, Cambridge, MA, USA, 2014. MIT Press. 7
+Chengjian Feng, Yujie Zhong, Yu Gao, Matthew R. Scott, and Weilin Huang. TOOD: Task-aligned one-stage object
+detection. In 2021 IEEE/CVF International Conference on Computer Vision, ICCV 2021, Montreal, QC, Canada,
+October 10-17, 2021, pages 3490–3499, 2021. 7
+Zheng Ge, Songtao Liu, Feng Wang, Zeming Li, and Jian Sun. Yolox: Exceeding yolo series in 2021, 2021. 7
+Kaiming He, Jian Sun, and Xiaoou Tang. Single image haze removal using dark channel prior. In2009 IEEE Conference
+on Computer Vision and Pattern Recognition, pages 1956–1963, 2009. 8, 19
+Mazin Hnewa and Hayder Radha. Multiscale domain adaptive yolo for cross-domain object detection. In2021 IEEE
+International Conference on Image Processing (ICIP), pages 3323–3327, 2021. 7
+Meng-Ru Hsieh, Yen-Liang Lin, and Winston H. Hsu. Drone-based object counting by spatially regularized regional
+proposal network. InIEEE International Conference on Computer Vision, ICCV 2017, Venice, Italy, October 22-29,
+2017, pages 4145–4153, 2017. 3
+Mu Hu, Wei Yin, Chi Zhang, Zhipeng Cai, Xiaoxiao Long, Hao Chen, Kaixuan Wang, Gang Yu, Chunhua Shen, and
+Shaojie Shen. Metric3d v2: A versatile monocular geometric foundation model for zero-shot metric depth and
+surface normal estimation.IEEE Transactions on Pattern Analysis and Machine Intelligence, 46(12):10579–10596,
+2024. 15, 16, 17, 18
+11
+
+========== PAGE 12 ==========
+Shih-Chia Huang, Trung-Hieu Le, and Da-Wei Jaw. DSNet: Joint Semantic Learning for Object Detection in Inclement
+Weather Conditions.IEEE Transactions on Pattern Analysis and Machine Intelligence, pages 1–1, 2020. 2, 3
+Yecheng Huang, Jiaxin Chen, and Di Huang. UFPMP-Det:Toward Accurate and Efficient Object Detection on Drone
+Imagery. In Thirty-Sixth AAAI Conference on Artificial Intelligence, AAAI 2022, pages 1026–1033, 2022. 3
+Lingjie Jiang, Baoxi Yuan, Jiawei Du, Boyu Chen, Hanfei Xie, Juan Tian, and Ziqi Yuan. Mffsodnet: Multiscale
+feature fusion small object detection network for uav aerial images.IEEE Transactions on Instrumentation and
+Measurement, 73:1–14, 2024. 2, 3
+Boyi Li, Xiulian Peng, Zhangyang Wang, Jizheng Xu, and Dan Feng. AOD-Net: All-in-One Dehazing Network. In
+2017 IEEE International Conference on Computer Vision (ICCV), pages 4780–4788, Venice, 2017. IEEE. 3
+Boyi Li, Wenqi Ren, Dengpan Fu, Dacheng Tao, Dan Feng, Wenjun Zeng, and Zhangyang Wang. Benchmarking
+Single-Image Dehazing and Beyond.IEEE Transactions on Image Processing, 28:492–505, 2019. 3, 4, 5, 10, 15, 16
+Chengyang Li, Heng Zhou, Yang Liu, Caidong Yang, Yongqiang Xie, Zhongbo Li, and Liping Zhu. Detection-Friendly
+Dehazing: Object Detection in Real-World Hazy Scenes.IEEE Transactions on Pattern Analysis and Machine
+Intelligence, 45(7):1–12, 2023. 2, 3, 6
+Xiang Li, Wenhai Wang, Xiaolin Hu, Jun Li, Jinhui Tang, and Jian Yang. Generalized focal loss v2: Learning reliable
+localization quality estimation for dense object detection. In2021 IEEE/CVF Conference on Computer Vision and
+Pattern Recognition (CVPR), pages 11627–11636, 2021. 7
+Ce Liu, Suryansh Kumar, Shuhang Gu, Radu Timofte, and Luc Van Gool. VA-depthnet: A variational approach to
+single image depth prediction. InInternational Conference on Learning Representations (ICLR), 2023. 17, 18
+Ding Liu, Bihan Wen, Jianbo Jiao, Xianming Liu, Zhangyang Wang, and Thomas S. Huang. Connecting Image
+Denoising and High-Level Vision Tasks via Deep Learning.IEEE Transactions on Image Processing, 29:3695–3706,
+2020. 3
+Shilong Liu, Feng Li, Hao Zhang, Xiao Yang, Xianbiao Qi, Hang Su, Jun Zhu, and Lei Zhang. DAB-DETR: Dynamic
+anchor boxes are better queries for DETR. InInternational Conference on Learning Representations (ICLR), 2022a.
+7, 8
+Wenyu Liu, Gaofeng Ren, Runsheng Yu, Shi Guo, Jianke Zhu, and Lei Zhang. Image-Adaptive YOLO for Object
+Detection in Adverse Weather Conditions. InThirty-Sixth AAAI Conference on Artificial Intelligence, AAAI 2022,
+pages 1792–1800, Vancouver, Canada, 2022b. 2, 3, 7
+Xiaohong Liu, Yongrui Ma, Zhihao Shi, and Jun Chen. Griddehazenet: Attention-based multi-scale network for image
+dehazing. In 2019 IEEE/CVF International Conference on Computer Vision, ICCV 2019, Seoul, Korea (South),
+October 27 - November 2, 2019, pages 7313–7322, 2019. 8, 19
+LiPing Lu, Qian Xiong, DuanFeng Chu, and BingRong Xu. Mixdehazenet : Mix structure block for image dehazing
+network, 2023. 8, 19
+Xin Lu, Buyu Li, Yuxin Yue, Quanquan Li, and Junjie Yan. Grid r-cnn. In2019 IEEE/CVF Conference on Computer
+Vision and Pattern Recognition (CVPR), pages 7355–7364, 2019. 7
+Depu Meng, Xiaokang Chen, Zejia Fan, Gang Zeng, Houqiang Li, Yuhui Yuan, Lei Sun, and Jingdong Wang. Conditional
+DETR for fast training convergence. In2019 IEEE/CVF International Conference on Computer Vision, ICCV
+2019, Seoul, Korea (South), October 27 - November 2, 2019, pages 3651–3660, 2021. 7
+Priya Narayanan, Xin Hu, Zhenyu Wu, Matthew D. Thielke, John G. Rogers, Andre V. Harrison, John A. D’Agostino,
+James D. Brown, Long P. Quang, James R. Uplinger, Heesung Kwon, and Zhangyang Wang. A Multi-purpose
+Realistic Haze Benchmark with Quantifiable Haze Levels and Ground Truth.IEEE Transactions on Image Processing,
+32:3481–3492, 2023. 3
+Eric J. Nunn, Pejman Khadivi, and Shadrokh Samavi. Compound frechet inception distance for quality assessment of
+GAN created images, 2021. 5, 16
+Jiangmiao Pang, Kai Chen, Jianping Shi, Huajun Feng, Wanli Ouyang, and Dahua Lin. Libra R-CNN: towards
+balanced learning for object detection. InIEEE Conference on Computer Vision and Pattern Recognition, CVPR
+2019, Long Beach, CA, USA, June 16-20, 2019, pages 821–830, 2019. 7
+Luigi Piccinelli, Yung-Hsu Yang, Christos Sakaridis, Mattia Segu, Siyuan Li, Luc Van Gool, and Fisher Yu. Unidepth:
+Universal monocular metric depth estimation. In2024 IEEE/CVF Conference on Computer Vision and Pattern
+Recognition (CVPR), pages 10106–10116, 2024. 15, 17
+12
+
+========== PAGE 13 ==========
+Xu Qin, Zhilin Wang, Yuanchao Bai, Xiaodong Xie, and Huizhu Jia. FFA-Net: Feature Fusion Attention Network for
+Single Image Dehazing. InThirty-Fourth AAAI Conference on Artificial Intelligence, AAAI 2020, pages 11908–11915,
+Hilton New York Midtown, New York, USA, 2020. 2, 8, 19
+Sebastien Razakarivony and Frederic Jurie. Vehicle detection in aerial imagery : A small target detection benchmark.
+Journal of Visual Communication and Image Representation, 34(C):187–203, 2016. 3
+Joseph Redmon and Ali Farhadi. Yolov3: An incremental improvement, 2018. 7
+Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. Faster R-CNN: Towards Real-Time Object Detection with
+Region Proposal Networks.IEEE Transactions on Pattern Analysis and Machine Intelligence, 39(6):1137–1149,
+2017. 7, 8
+Ramprasaath R. Selvaraju, Michael Cogswell, Abhishek Das, Ramakrishna Vedantam, Devi Parikh, and Dhruv Batra.
+Grad-CAM: Visual explanations from deep networks via gradient-based localization. In2017 IEEE International
+Conference on Computer Vision (ICCV), pages 618–626, 2017. 9
+Shuwei Shao, Zhongcai Pei, Xingming Wu, Zhong Liu, Weihai Chen, and Zhengguo Li. IEBins: Iterative elastic bins
+for monocular depth estimation. InAdvances in Neural Information Processing Systems, pages 53025–53037. Curran
+Associates, Inc., 2023. 15, 17
+Kechen Song, Xiaotong Xue, Hongwei Wen, Yingying Ji, Yunhui Yan, and Qinggang Meng. Misaligned Visible-Thermal
+Object Detection: A Drone-based Benchmark and Baseline.IEEE Transactions on Intelligent Vehicles, pages 1–12,
+2024. 3
+Yuda Song, Yang Zhou, Hui Qian, and Xin Du. Rethinking performance gains in image dehazing networks, 2022. 8
+Yuda Song, Zhuqing He, Hui Qian, and Xin Du. Vision Transformers for Single Image Dehazing.IEEE Transactions
+on Image Processing, 32:1927–1941, 2023. 3, 8, 19
+Peize Sun, Rufeng Zhang, Yi Jiang, Tao Kong, Chenfeng Xu, Wei Zhan, Masayoshi Tomizuka, Zehuan Yuan, and Ping
+Luo. Sparse R-CNN: An end-to-end framework for object detection.IEEE Transactions on Pattern Analysis and
+Machine Intelligence, 45(12):15650–15664, 2023. 7
+JD Sutherland, Michael Arbel, and Arthur Gretton. Demystifying mmd gans. InInternational Conference for Learning
+Representations (ICLR), pages 1–36, 2018. 5, 16
+Zhi Tian, Chunhua Shen, Hao Chen, and Tong He. FCOS: Fully Convolutional One-Stage Object Detection. In
+2019 IEEE/CVF International Conference on Computer Vision, ICCV 2019, Seoul, Korea (South), October 27 -
+November 2, 2019, pages 9626–9635, 2019. 7
+Yongzhen Wang, Xuefeng Yan, Kaiwen Zhang, Lina Gong, Haoran Xie, Fu Lee Wang, and Mingqiang Wei. Togethernet:
+Bridging image restoration and object detection together via dynamic enhancement learning.Computer Graphics
+Forum, 41(7):465–476, 2022. 7
+Rui-Qi Wu, Zheng-Peng Duan, Chun-Le Guo, Zhi Chai, and Chongyi Li. RIDCP: Revitalizing real image dehazing via
+high-quality codebook priors. InIEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2023,
+Vancouver, BC, Canada, June 17-24, 2023, pages 22282–22291, 2023. 8, 19
+Yue Xi, Wenjing Jia, Qiguang Miao, Junmei Feng, Jinchang Ren, and Heng Luo. Detection-Driven Exposure-Correction
+Network for Nighttime Drone-View Object Detection.IEEE Transactions on Geoscience and Remote Sensing, 62:
+1–14, 2024. 3
+Jingtao Xu, Ya-Li Li, and Shengjin Wang. AdaZoom: Towards Scale-Aware Large Scene Object Detection.IEEE
+Transactions on Multimedia, 25:4598–4609, 2023. 2
+Chenhongyi Yang, Zehao Huang, and Naiyan Wang. QueryDet: Cascaded Sparse Query for Accelerating High-
+Resolution Small Object Detection. InIEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR
+2022, New Orleans, LA, USA, June 18-24, 2022, pages 13658–13667, 2022. 1
+Fan Yang, Heng Fan, Peng Chu, Erik Blasch, and Haibin Ling. Clustered Object Detection in Aerial Images. InIEEE
+Conference on Computer Vision and Pattern Recognition, CVPR 2019, Long Beach, CA, USA, June 16-20, 2019,
+pages 8311–8320, Seoul, Korea (South), 2019. arXiv. 3
+Haoyang Zhang, Ying Wang, Feras Dayoub, and Niko Sünderhauf. Varifocalnet: An iou-aware dense object detector.
+In 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), pages 8510–8519, 2021. 7, 9
+13
+
+========== PAGE 14 ==========
+Shifeng Zhang, Cheng Chi, Yongqiang Yao, Zhen Lei, and Stan Z. Li. Bridging the gap between anchor-based and
+anchor-free detection via adaptive training sample selection. In2020 IEEE/CVF Conference on Computer Vision
+and Pattern Recognition (CVPR), pages 9756–9765, 2020. 7
+Yunzuo Zhang, Cunyu Wu, Wei Guo, Tian Zhang, and Wei Li. CFANet: Efficient Detection of UAV Image Based on
+Cross-Layer Feature Aggregation.IEEE Transactions on Geoscience and Remote Sensing, 61:1–11, 2023. 3
+Yu Zheng, Jiahui Zhan, Shengfeng He, Junyu Dong, and Yong Du. Curricular contrastive regularization for physics-
+aware single image dehazing. InIEEE/CVF Conference on Computer Vision and Pattern Recognition, CVPR 2023,
+Vancougridver, BC, Canada, June 17-24, 2023, pages 5785–5794, 2023. 8, 19
+Zhuoran Zheng, Wenqi Ren, Xiaochun Cao, Xiaobin Hu, Tao Wang, Fenglong Song, and Xiuyi Jia. Ultra-high-definition
+image dehazing via multi-guided bilateral learning. In2021 IEEE/CVF Conference on Computer Vision and Pattern
+Recognition (CVPR), pages 16180–16189, 2021. 3, 5, 10, 15, 16
+Pengfei Zhu, Longyin Wen, Dawei Du, Xiao Bian, Heng Fan, Qinghua Hu, and Haibin Ling. Detection and Tracking
+Meet Drones Challenge.IEEE Transactions on Pattern Analysis and Machine Intelligence, 44(11):7380–7399, 2022.
+3
+Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai. Deformable DETR: deformable transformers
+for end-to-end object detection. In9th International Conference on Learning Representations, ICLR 2021, Virtual
+Event, Austria, May 3-7, 2021. OpenReview.net, 2021. 7, 8
+14
+
+========== PAGE 15 ==========
+Appendix
+The appendix presents a detailed analysis of the dataset used, provides comprehensive ablation studies and
+visualizations, and concludes with a discussion of broader implications and safeguards.
+A Dataset Details
+A.1 Dataset Construction Details
+Metric3D
+IEBins
+(a) Simulation effects of different depth models.
+(b)
+(b) Survey results of simulation effects involving 280 people.
+Figure S1 Haze simulation effect comparison. (a) Subjective visual comparisons among outputs from various depth
+estimation models under identical ASM parameters. (b) A large-scale questionnaire-based assessment, where the
+horizontal axis enumerates different test cases and the vertical axis shows the percentage of participant votes.
+Following the approach in (Li et al., 2019; Zheng et al., 2021), we obtain the scene depth required for the
+simulation through a depth estimation model. However, the models used in the aforementioned papers
+exhibit poor generalization ability under unseen drone perspectives. After evaluating state-of-the-art depth
+estimation methods, we select three models that demonstrate excellent zero-shot learning performance and
+better generalize to unknown domains (Hu et al., 2024; Piccinelli et al., 2024; Shao et al., 2023). The simulation
+results are shown in Fig. S1 (a). To evaluate the effect of fog simulation under no-reference metrics, we conduct
+15
+
+========== PAGE 16 ==========
+a questionnaire survey of 280 university students and experts to assess the realism, brightness distribution,
+and fog consistency of the synthesized images across 18 scenes. Fig. S1 (b) shows that the images generated
+using (Hu et al., 2024) closely resemble real-world scenes.
+A.2 Dataset Authenticity.
+RESIDE-OUT4KDehaze HazyDet-365KURHI
+RESIDE-OUT4KDehaze HazyDetURHI
+FID: 96.69FID: 125.62FID: 134.89FID: 156.74
+KID: 0.0254KID: 0.0401KID: 0.0434KID: 0.0681
+Figure S2 Similarity comparison between datasets and real
+drone-perspective hazy scenes. The upper section presents
+objective metrics (↓ indicates lower values are better),
+while the lower section displays sample visualizations from
+each dataset. The metric calculation is conducted between
+the mentioned datasets and the real-world data collected
+in HazyDet.
+To evaluate the authenticity of our synthetic data
+objectively, we use the Fréchet Inception Distance
+(FID) (Nunn et al., 2021) and Kernel Inception Dis-
+tance (KID) (Sutherland et al., 2018) to test the
+similarity between the synthetic hazy data and the
+real data distribution. Fig. S2 reveals that HazyDet
+offers closer approximations to real drone-captured
+foggy conditions than datasets like RESIDE-Out
+(Li et al., 2019) and 4KDehaze (Zheng et al., 2021).
+Even compared to the real data within URHI (Li
+et al., 2019) dataset, our approach excels due to
+its alignment with drone perspectives. While FID
+and KID indices offer some insight into the quality
+of synthesized haze images, they share limitations
+with other blind quality assessment methods, as
+predicted scores may not always align with human
+perception. To address this, we conduct a subjec-
+tive visual comparison of our dataset with existing
+mainstream datasets, illustrated in Fig. S2. The re-
+sults clearly indicate that HazyDet more accurately
+mirrors real foggy conditions across different haze
+levels.
+A.3 Statistics and Characteristics of Instances
+HazyDet-365K
+Car
+Bus
+Truck
+Syn-train
+ Syn-val
+ Syn-test
+ Real
+Car
+Truck
+Bus
+Train Test Val Real-word
+2 4 6 10 8 12 2 4 6 10 8 122 4 6 10 8 12 4 6 8 10 12
+4 6 8 10 12
+4 6 8 10 122 4 6 10 8 12
+2 4 6 10 8 12
+2 4 6 10 8 12
+2 4 6 10 8 12
+2 4 6 10 8 12
+2 4 6 10 8 12
+Figure S3 Statistical distribution of instacnes at different scales in HazyDet . In the bar chart, the horizontal axis represents
+the logarithmic value (base 2) of the number of pixels occupied by that category of target in the subset, and the
+vertical axis represents the frequency count.
+Tab. 2 provides a systematic presentation of image distribution and instance statistics across subsets in the
+16
+
+========== PAGE 17 ==========
+Object scale
+125 × 170
+Depth value
+15 meters
+Object scale
+49 × 45
+Depth value
+45 meters
+(a)
+Figure S4 Depth correlation visualization in HazyDet. The left figure shows that haze affects images to varying degrees at
+different depths. At the same time, the same object exhibits significant size differences at different depths, which is
+related to the depth of the scene in which the object is located.
+HazyDet dataset. Comprising 11,000 synthesized images with 365,000 annotated instances, the dataset is
+partitioned into training, validation, and testing subsets in a stratified 8:1:2 ratio, encompassing multiple
+object categories including Car, Truck, and Bus. To complete dataset, we have incorporated 600 annotated
+real-world foggy scene images adhering to the same annotation protocols as synthetic data. This synthetic-real
+bimodal data framework with high object density establishes an ideal benchmark for robust evaluation of
+detection models. Fig. S3 illustrates the distribution of object scales within the dataset. While the distribution
+remains relatively consistent across different subsets of simulated data, notable differences exist between
+simulated and real datasets due to image resolution disparities. Regarding object categories, cars and trucks
+exhibit a distribution skewed toward smaller scales compared to buses. The majority of objects have scale
+measurements concentrated between 26 (64 pixels) and 210 (1024 pixels), indicating that small objects
+constitute the predominant portion of instances throughout the dataset.
+A.4 Depth-related Characteristics.
+Drone object detection in adverse weather conditions has broader associations with depth information. ASM
+(Equation 1) shows that under the same atmospheric parameters, there is an exponential correlation between
+pixel degradation intensity and scene depth cues, indicating that depth maps are closely related to foggy scene
+distribution. Additionally, the unique flight altitude and shooting angle of drones enhance the perspective
+effect in images, highlighting the clear relationship between target size and depth. Targets at closer distances
+appear larger, as shown in Fig. S4 (a), which is consistent with intuitive expectations. Objective statistics
+on data in HazyDet also demonstrate this, as shown in Fig. S4 (b). These depth-related insights provide
+important background information for interpreting drone images in foggy environments and are expected to
+support various scene interpretation tasks.
+B Additional Experiments
+B.1 Comparative Experiments
+Table S1 Comparative experiments of different settings in DeCoDet. Bold values indicate the highest performance.
+mAP–Test and mAP–Real denote average precision on synthetic Test-set and real-world Test-set.
+Loss function mAP–Test mAP–Real
+L1 loss 43.2 30.2
+SmoothL1 48.9 34.3
+MSE Loss 49.9 36.0
+SIR Loss 52.0 38.7
+(a) Effectiveness of different depth losses.
+Model mAP–Test mAP–Real
+VA-DepthNet (Liu et al., 2023) 43.2 30.2
+ZoeDepth (Bhat et al., 2023) 47.3 32.3
+IEBins (Shao et al., 2023) 48.5 32.1
+UniDepth (Piccinelli et al., 2024) 49.3 34.3
+Metric3D (Hu et al., 2024) 52.0 38.7
+(b) Effectiveness of different depth maps.
+We analyze how different experimental setups in DeCoDet affect performance to better understand the role
+and mechanisms of depth cues.
+Effectiveness of Depth Loss. Tab. S1 outlines the performance impacts of various depth estimate loss functions.
+Traditional loss functions like SmoothL1 and MSE focus on absolute differences, making them susceptible to
+noise in pseudo-labels and thus limiting effective depth-cue utilization for condition. In contrast, SIRLoss
+maintains scale invariance and enhances label refurbishment, yielding superior mAP scores.
+17
+
+========== PAGE 18 ==========
+(a) Different fine-tuning methods to obtain detectors on real-world hazy scenes
+Source Domain
+Backbone
+Trainable
+Frozen
+Fine-tune
+ Fine-tune
+Fine-tune
+Detector
+Backbone
+Detector
+Backbone
+Detector
+Backbone
+Data
+Target Domain
+Real-data only
+Backbone
+Fine-tune
+Detector
+Backbone
+Backbone
+Maintain
+Detector
+Backbone
+Syn-data only PDFT (ours)
+(b) mAP of different models on real-world test-set
+Inference
+Clean normal scene
+Real hazy drone scene
+Figure S5 Performance comparison of different fine-tuning methods in real-world drone hazy scenarios. (a) We compare
+three different methods: the first fine-tunes only on the real dataset, the second fine-tunes only on simulated data, and
+the third method (PDFT) uses simulated data as a bridge to implement progressive fine-tuning. (b) Performance
+comparison of different fine-tuning methods shows that PDFT improves the detection performance of all model groups
+in real UAV hazy scenarios.
+Effectiveness of Depth Map. We conduct experiments to evaluate the impact of depth maps generated by
+various estimation models on DeCoDet’s performance. Beyond the models discussed in Sec. 3, we include
+VA-DepthNet (Liu et al., 2023) and ZoeDepth (Bhat et al., 2023). Tab. S1 demonstrates that prediction of
+Metric3D (Hu et al., 2024) achieved superior results, attributed to its exceptional depth estimation accuracy
+and generalization capacity in novel environments. These results underscore the critical necessity of accurate
+depth maps for enhancing detection capabilities.
+Effectiveness of PDFT. As illustrated in Fig. S5, we conduct experiments to evaluate the impact of different
+fine-tuning strategies on model performance in real-world hazy scenarios. Direct fine-tuning on real-world
+data, however, consistently encounters severe domain shift and overfitting due to significant semantic and scale
+discrepancies, resulting in suboptimal performance across all models. In contrast, fine-tuning with simulated
+data leads to notable improvements, indicating that simulated datasets provide beneficial semantic features
+for drone-view detection under hazy conditions and sufficient scale to mitigate overfitting. Building on this
+observation, our proposed PDFT method utilizes simulated data as a bridging domain, effectively alleviating
+these challenges. As a result, our approach consistently delivers performance gains across all evaluated models.
+B.2 Detection Result Visualizations
+Detection resultsGT
+(b) Simulated hazy scenes
+Detection resultsGT
+(a) Real-world hazy scenes
+Figure S6 Challenging detection scenarios for DeCoDet in foggy drone imagery. (a) Missed detections due to background
+occlusion despite depth information. (b) Detection failures of small-scale targets from elevated drone perspectives in
+hazy conditions. (c) False positives triggered by fog-induced feature distortion.
+Fig. S6 presents the visualization of our network detection results. While our method demonstrates excellent
+performance in reducing missed detections, false positives, and improving localization accuracy across various
+complex scenes and fog densities, certain limitations remain. The figure illustrates several representative
+failure scenarios:
+• The first rows of Fig. S6 (a) and (b) show that perspective and scene geometry cause background
+18
+
+========== PAGE 19 ==========
+（a）Clean images （b)Synthetic hazy images
+（c）GridDehaze （d）MixDehazenet
+（e）DSANet
+（g）DehazeFormer
+（f）FFANet
+（i）DCP
+（h）C2PNet
+（j）RIDCP
+Figure S7 Image dehazing results on HazyDet test-set. From (a) to (j): (a) and (b) show a reference clean image and
+the corresponding synthetic hazy image, respectively; (c) to (j) are the dehazing outcomes of (c) GridDehaze (Liu
+et al., 2019), (d) MixDehazeNet (Lu et al., 2023), (e) DSANet (Cui and Knoll, 2024), (f) FFANet (Qin et al., 2020),
+(g) DehazeFormer (Song et al., 2023), (h) C2PNet (Zheng et al., 2023), (i) DCP (He et al., 2009), (j) RIDCP (Wu
+et al., 2023), respectively.
+occlusion, distorting target features; even with depth integration, severe occlusion in fog leads to missed
+detections.
+• The second rows of Fig. S6 (a) and (b) show that a drone’s elevated viewpoint shrinks targets, making
+subtle features indiscernible in fog and resulting in detection failures.
+• The third rows of Fig. S6 (a) and (b) show that fog’s scattering induces fading and blurring, distorting
+critical features and triggering false positives.
+B.3 Dehazing Result Visualizations
+Fig. S7 displays dehazing results from different models. Most dehazing models provided only marginal
+improvements in objects’ clarity and visibility, likely due to inadequate design considerations for UAV
+perspectives. The relationship between restoration metrics and detection accuracy is complex; higher clarity
+or subjective image quality, as determined by PSNR and SSIM, does not necessarily improve detection
+capabilities. Detection models appear to benefit more from preprocessing methods that enhance visual quality
+while preserving or improving critical features for object detection.
+19
+
+========== PAGE 20 ==========
+C Limitations and Future Work
+In our research, we have identified the considerable potential of simulation data to enhance performance on
+few-shot visual tasks, particularly for scarce datasets such as drone images captured under adverse conditions,
+where UAV operation is more challenging than ground vehicle deployment. Following a comprehensive
+review of existing simulation methods, we proposed a more realistic simulation pipeline. However, inherent
+distribution differences between simulated and real data persist, potentially affecting model performance
+in real-world scenarios. In future work, we aim to explore more efficient simulation approaches and extend
+their application to broader scenarios—such as motion blur and low-light conditions, as well as additional
+downstream tasks. Furthermore, this paper presents a practical and effective method that leverages depth
+information as an auxiliary tool for detection tasks. Nonetheless, the performance of the current approach is
+limited by the accuracy of pseudo-depth labels. Future efforts will focus on incorporating more precise depth
+data and designing dedicated network architectures to enhance drone object detection under adverse weather
+conditions.
+Broader Impacts
+Our progressive fine-tuning approach for adapting visual models from normal to hazy environments offers
+significant societal benefits by enhancing safety-critical systems’ reliability in adverse weather conditions. By
+bridging the gap between simulated and real-world hazy data, this method substantially reduces the need for
+expensive and time-consuming collection of real-world hazy imagery, democratizing access to weather-robust
+AI technologies for research teams with limited resources. The framework’s adaptability extends beyond
+haze to other adverse conditions (fog, rain, snow) and potentially to adjacent fields facing domain gaps
+such as medical imaging and industrial inspection. While acknowledging potential limitations regarding
+dataset biases and simulation fidelity, the methodology’s contribution to more reliable visual perception
+systems in challenging environments represents a valuable advancement for autonomous vehicles, surveillance
+systems, and intelligent infrastructure deployments that must maintain consistent performance regardless of
+environmental conditions.
+Safeguards
+Our paper employs the ImageNet-21K dataset for pretraining in an open-source multimodal model. Potential
+security concerns may arise from biases in the pretraining of open-source data and multimodal models. Please
+be mindful of biases in the original data and model, as well as the security of the model.
+20
