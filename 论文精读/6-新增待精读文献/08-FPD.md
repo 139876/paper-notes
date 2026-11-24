@@ -1,22 +1,34 @@
 ---
 track: 论文精读
-tags: [FPD, 伪域生成, 域泛化, CVPR2021, 数据增强, 待精读]
+tags: [FPD, 伪域生成, 频域, 域泛化, 数据增强, 待精读]
 aliases: [FPD, Frequency-based Pseudo-domain Generation, 频率伪域生成]
 created: 2026-11-24
-updated: 2026-11-24
+updated: 2026-11-25
 related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[02-频率域解耦-FDD]]", "[[07-DIDN]]"]
-status: 待精读 · 🟢 第三层
+status: 待精读 · 🟢 第三层 · 出处已修正
 ---
-
-## 📎 原文与存档
-
-- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/FPD-论文原文.pdf|FPD 原文 PDF]]（CVPR 2021）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/FPD-全文文本.txt|FPD 全文文本]]（方便全文检索 / 摘抄）
-
 
 # 08 · FPD（Frequency-based Pseudo-domain Generation for Domain Generalizable Object Detection）
 
-**CVPR 2021** · [CVPR 官方页面](https://openaccess.thecvf.com/content/CVPR2021/html/Li_Frequency-Based_Pseudo-Domain_Generation_for_Domain_Generalizable_Object_Detection_CVPR_2021_paper.html)
+**Neurocomputing 2023（期刊版）** · 作者：Siqi Zhang, Lu Zhang, Zhi-Yong Liu（USTC）· DOI [10.1016/j.neucom.2023.126265](https://doi.org/10.1016/j.neucom.2023.126265)
+
+## 📎 原文与存档
+
+- ❌ **FPD 原文（Neurocomputing 2023）**：**全网无开放获取版本**（arXiv / OpenAlex / Unpaywall / CVF 均无）→ 需学校图书馆 ScienceDirect 权限
+- ✅ **同课题组开放获取姊妹篇（已下载存档）** → [[paper-notes/论文精读/6-新增待精读文献/附件/FPD-同组开放替代-FIT-ECCV2022-论文原文.pdf|📄 FIT: Frequency-based Image Translation for DAOD（ECCV 2022, arXiv 2303.03698）]]
+- 📝 该替代版全文文本 → [[paper-notes/论文精读/6-新增待精读文献/附件/FPD-同组开放替代-FIT-ECCV2022-论文正文-全文文本.txt|📝 全文文本]]
+
+> [!warning] 🔍 出处需要修正（已逐项核对）
+> 你清单里写的是 **CVPR 2021**。我把 **CVPR 2021 全会官方目录逐天拉下来（1594 篇全覆盖）比对过**：
+> - **CVPR 2021 proceedings 里没有这篇**（标题含 "Pseudo-domain" / "Frequency-based" 的论文零命中）；
+> - 唯一真实存在的同名论文是 **Neurocomputing 2023** 期刊版（你们清单写的「CVPR 2021」应是早期 AI 总结的讹传）。
+> ⚠️ 该刊**非开放获取** → 原文明天也要靠图书馆。
+> ✅ **但同课题组的 FIT（ECCV 2022）是开放获取**，已替你下载。
+
+> [!tip] 为什么 FIT 能顶替 90%
+> FIT 与 FPD **同一课题组、同一条技术路线**：都在**频域**做**图像变换 → 造伪域 → 提升跨域检测**。
+> 区别只在一处：FIT = **域适应**（有目标域数据），FPD = **域泛化**（无目标域数据）。
+> 👉 理解 FPD 的频域伪域机制，**读 FIT 就够**；只有「如何摆脱对目标域的依赖」那 10% 才必须买原文。
 
 ---
 
@@ -39,25 +51,24 @@ status: 待精读 · 🟢 第三层
 
 | 维度 | 判断 |
 |---|---|
-| 能不能复现 | ✅ 能，核心是一个频域增强模块 |
-| 能不能改 | ✅ 可以把「随机频域扰动」换成「**与雾浓度 / 尺度相关的定向扰动**」 |
-| 能不能当创新 | ❌ 不能，但**容易变成你实验里的加分项** |
+| 能不能复现 | ⚠️ FPD 本身无开源；FIT 有开源（[GitHub](https://github.com/SiqiZhang97/CAFDA)），可先跑 FIT |
+| 能不能改 | ✅ 可把「随机频域扰动」换成「**与雾浓度 / 尺度相关的定向扰动**」 |
+| 能不能当创新 | ❌ 不能（期刊版已发表） |
 
 > [!tip] 最容易被忽略的一条线
 > 你的方向是「**恢复可靠性约束**」，方向二是「**类别—尺度条件泛化**」。
 > FPD 提供的第三条低成本路径：
-> **用频域伪域扩充训练场景多样性** →
-> 训练时见过更多「不同雾浓度 / 不同尺度」的组合 → 严格 DG 下的 AP 更稳。
-> 它可以作为你的**训练数据增强模块**，
-> 而不是核心创新点——但审稿人经常会问「为什么不加频域增强」，所以必须读过。
+> **用频域伪域扩充训练场景多样性** → 训练时见过更多「不同雾浓度 / 不同尺度」组合 → 严格 DG 下 AP 更稳。
+> 它可以作为你的**训练数据增强模块**，不是核心创新点——
+> 但审稿人经常会问「为什么不加频域增强」，所以必须读过。
 
 ---
 
 ## 复现清单
 
-- [ ] 抄下频域扰动的具体做法（频带选择 + 扰动强度）
+- [ ] 先跑 **FIT**（开放获取，有代码），抄下频域扰动做法（频带选择 + 扰动强度）
 - [ ] 在你的 HazyDet 划分上试一次，看 AP / AP_small 变化
-- [ ] 对照实验：**FPD 增强 vs 你的恢复可靠性约束**，谁涨得多
+- [ ] 对照实验：**频域增强 vs 你的恢复可靠性约束**，谁涨得多
 - [ ] 检查有无「伪域与真实域差距过大导致负收益」的情况
 
 ---

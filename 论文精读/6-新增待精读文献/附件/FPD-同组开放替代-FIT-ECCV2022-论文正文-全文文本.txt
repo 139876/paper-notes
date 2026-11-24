@@ -1,0 +1,633 @@
+
+
+========== PAGE 1 ==========
+FIT: Frequency-based Image Translation for
+Domain Adaptive Object Detection ⋆
+Siqi Zhang1,2, Lu Zhang 1, Zhiyong Liu 1,2(B), and Hangtao Feng 1,2
+1 State Key Laboratory of Management and Control for Complex Systems,
+Institute of Automation, Chinese Academy of Sciences,
+Beijing 100190, China
+{zhangsiqi2020, lu.zhang, zhiyong.liu, fenghangtao2018 }@ia.ac.cn
+2 School of Artiﬁcial Intelligence, University of Chinese Academy of Sciences,
+Beijing 100190, China
+Abstract. Domain adaptive object detection (DAOD) aims to adapt
+the detector from a labelled source domain to an unlabelled target do-
+main. In recent years, DAOD has attracted massive attention since it
+can alleviate performance degradation due to the large shift of data
+distributions in the wild. To align distributions between domains, ad-
+versarial learning is widely used in existing DAOD methods. However,
+the decision boundary for the adversarial domain discriminator may be
+inaccurate, causing the model biased towards the source domain. To
+alleviate this bias, we propose a novel Frequency-based Image Trans-
+lation (FIT) framework for DAOD. First, by keeping domain-invariant
+frequency components and swapping domain-speciﬁc ones, we conduct
+image translation to reduce domain shift at the input level. Second, hi-
+erarchical adversarial feature learning is utilized to further mitigate the
+domain gap at the feature level. Finally, we design a joint loss to train the
+entire network in an end-to-end manner without extra training to obtain
+translated images. Extensive experiments on three challenging DAOD
+benchmarks demonstrate the eﬀectiveness of our method.
+Keywords: Unsupervised Domain Adaptation · Object Detection · Fre-
+quency Domain · Image Translation · Adversarial Learning
+1 Introduction
+In recent years, object detectors [1–3] based on deep convolutional neural net-
+works have demonstrated outstanding performance on a variety of datasets. How-
+ever, existing object detection models still face serious challenges when deployed
+in practice such as autonomous driving and robotic manipulation, due to var-
+ious changes in weather, illumination, object appearance, etc. These changes
+may lead to domain gaps between the training and testing data, which has been
+⋆ This work was supported in part by the National Key Research and Development
+Plan of China under Grant 2020AAA0108902 and the Strategic Priority Research
+Program of Chinese Academy of Science under Grant XDB32050100.
+arXiv:2303.03698v1  [cs.CV]  7 Mar 2023
+
+========== PAGE 2 ==========
+2 S. Zhang et al.
+(a)
+ (b)
+ (c)
+Fig. 1. Visualization of frequency decomposition of source image: (a), (b) and (c) show
+original image, low-pass and high-pass ﬁltered image.
+observed to cause dramatic drops in the performance of the trained detector [6].
+Although we can annotate for each new data to mitigate the problem, it is costly
+and even infeasible because of the countless situations in the real world. There-
+fore, adaptive object detectors that can bridge the domain gap from the source
+to the target domain are highly desirable.
+Domain adaptive object detection (DAOD), which trains with labelled source
+datasets and unlabelled target datasets, aims to tackle domain shift to get better
+performance on the visually distinct target domain. Many previous works [4, 6,
+7, 20, 22–24] attempt to utilize adversarial feature learning [8] to align feature
+distributions to extract domain-invariant features. But the adversarial training
+process could be unstable [22,24], which makes the decision boundary for the ad-
+versarial domain discriminator inaccurate, causing the model biased towards the
+source domain. To alleviate this problem, some methods [5, 9, 16, 21] utilize the
+image translation model GANs, like CycleGAN [10] to translate source images
+to target-like images or vice versa to further mitigate the domain gap and make
+the detector perform better on the target datasets. However, GANs for domain
+adaption object detection have two following limitations. First, GANs could fail
+to keep semantic consistency and tend to lose important structural characteris-
+tics [25]. Second, GANs-based methods need extra training to prepare translated
+images before training the adaptive detector, which is time-consuming.
+To address the above limitations, we propose a novel Frequency-based Im-
+age Translation method to mitigate the input-level domain gap without extra
+time-consuming training. Inspired by digital signal processing theories [17], we
+exploit the frequency information to translate the image style and maintain se-
+mantic consistency. Intuitively, the low-frequency component largely captures
+domain-speciﬁc information, such as colours and illuminations [26], while the
+high-frequency component mainly obtains domain-invariant information, such as
+edges and shapes, which are important details of objects [19], as shown in Fig.1.
+Motivated by this, we present the Frequency-based Image Translation (FIT)
+module, which decomposes the image into multiple frequency components, keeps
+
+========== PAGE 3 ==========
+Frequency-based Image Translation for Domain Adaptive Object Detection 3
+Aggregated 
+Context V ector
+Source Image 𝑿𝒔
+Target Image 𝑿𝒕
+Target-like Image 𝑿𝒔→𝒕
+GRL 𝑫𝒍 𝑫𝒈
+𝑭𝟏 𝑭𝟐
+RPN
+FC
+Classification
+Regression
+Local Feature Global Feature
+GRL
+𝑣2
+Features of 
+each region Concat
+FIT
+(b) Hierarchical Adversarial Learning 
+Fourier 
+Decompose Inverse Fourier
+Transform
+Source Image 𝑿𝑺
+Target Image 𝑿𝒕
+(a) FIT: Frequency-based Image Translation 
+Target-like Image 𝑿𝒔→𝒕
+Source Flow Target Flow Target-like Flow
+GRL Gradient Reversal Layer
+Element-wise Addition Element-wise Subtraction 
+Context V ector
+Feature Extractors𝑭𝟏,𝟐
+𝑣1 Concat
+ROI Pooling
+Frequency 
+Mask
+Fig. 2. Overview of the proposed framework. (a) illustrates Frequency-based Image
+Translation (FIT) module, where green arrows represent the ﬂow of source data and
+orange arrows represent the ﬂow of target data. The overall pipeline is illustrated in
+(b). The source Xs and target Xt images are fed into FIT to obtain target-like images
+Xs→t, and Xs→t and Xt are as the inputs for the object detector. We align the local
+and global feature by a local domain classiﬁer Dl and a global domain classiﬁer Dg.
+F1 and F2 denote the diﬀerent level feature extractors. The context vectors v1,2 are
+extracted by the domain classiﬁers and concatenated with features of regions before
+the ﬁnal fully connected layer.
+domain-invariant frequency components unchanged and swaps domain-speciﬁc
+ones. Moreover, a novel module called Frequency Mask is designed to identify
+whether the frequency component is domain-speciﬁc in FIT. Then, hierarchical
+adversarial feature learning is utilized to further boost the performance. The
+entire network can be optimized in an end-to-end manner under the supervision
+of a joint loss function. The contributions of this work can be summarized as
+follows:
+– A novel Frequency-based Image Translation (FIT) method is presented for
+DAOD, which leverages frequency information to mitigate the domain shift
+at the input level. To further boost the adaptation performance, we introduce
+hierarchical adversarial learning to align distributions at the feature level.
+– Diﬀerent from traditional GANs-based methods, the entire network can be
+trained in an end-to-end manner without extra time-consuming training,
+since the proposed frequency-based image translation is embedded as a mod-
+ule in the detection network.
+– We conduct extensive experiments on three challenging DAOD benchmarks
+and our FIT achieves favorable performance under various domain-shift sce-
+narios, demonstrating the eﬀectiveness of the proposed method.
+
+========== PAGE 4 ==========
+4 S. Zhang et al.
+2 Proposed Method
+2.1 Overview
+Problem Deﬁnition. The domain adaptation [8] task typically considers two
+domains: the source domain S and target domain T . Speciﬁcally, we have ac-
+cess to a labelled source dataset Ds ={(xsi,ysi )}nsi=1 and a target dataset Dt ={
+xtj}ntj=1 with no ground-truth annotations. Here, xsi denotes ith source image,
+ysi denotes the corresponding label and ns denotes the number of source images.
+Similarly,xtj denotes jth target image and nt denotes the number of target im-
+ages. The source and target domains with diﬀerent data distributions share the
+same label space, and the goal of domain adaptive object detection is to train an
+detector withDs andDt, which performs well on the target dataset Dt. Follow-
+ing the mainstream domain adaptive object detection methods [4,6,7,20,22–24],
+the proposed method is based on the Faster RCNN [1] framework.
+Overall framework. The overall framework of the proposed method is shown
+in Fig. 2. We ﬁrst transform source images Xs to target-like images Xs→t via
+frequency-based image translation (FIT), as shown in Fig.2(a). The key idea
+is to decompose the image into multiple frequency components and then feed
+them to the Frequency Mask to identify domain-speciﬁc frequency components.
+Then we replace the domain-speciﬁc components of the source image with the
+corresponding ones of the target image and get the target-like image Xs→t via
+the Inverse Fourier Transform. Afterwards, we put target-like images Xs→t and
+target images Xt into object detector and align the local and global feature by
+hierarchical adversarial learning, as shown in Fig.2(b). Through this framework,
+the domain gap at both input and feature level can be mitigated. The details of
+the proposed method are given in the following sections.
+2.2 Frequency-based Image Translation
+In order to mitigate the domain gap at the input level, a novel frequency-based
+image translation is presented to obtain translated images without changing
+their semantic structures. The framework of frequency-based image translation
+is shown in Fig.2(a).
+First, Fourier transformF(·) is performed on the image x of size H×W :
+F(x)(a,b ) =
+H−1∑
+h=0
+W−1∑
+w=0
+x(h,w )e−i2π·( haH + wbW ), (1)
+for a = 0,...,H − 1, b= 0,...,W − 1.
+Then, we decompose the frequency space representation F(x) of the image
+into N components
+{
+x1,x 2,...,x N} of equal bandwidth via band-pass ﬁlter
+B(·;·):
+xfs =B(F(x);N) ={x1,x 2,...,x N−1,xN}, (2)
+xn =
+{
+F(x)(i,j ), if n−1N <d ((i,j ), (ci,cj))< nN
+0, otherwise , (3)
+
+========== PAGE 5 ==========
+Frequency-based Image Translation for Domain Adaptive Object Detection 5
+Frequency Mask Element-wise Multiplication
+Average Pool Conv 1 × 1, N Conv 1 × 1, 2N Gumbel Softmax
+Fig. 3. Structure of Frequency Mask.
+whereci andcj denote the image centroid,d(·,·) denotes the Euclidean distance,
+and N is the number of components. In our experiments, we set N = 64.
+To identify which frequency component is domain-speciﬁc, we design a mod-
+ule called Frequency Mask and its structure is shown in Fig.3. Motivated by
+the Squeeze-and-Excitation Networks [15], which model the interdependencies
+between the channels and recalibrate the channel-wise feature responses adap-
+tively, we design similar structure and add Gumbel-Softmax [18] to make the
+value close to one-hot vector. ’1’ means the frequency component is domain-
+speciﬁc, while ’0’ denotes it is domain-invariant. By Frequency Mask, we ﬁnd
+the domain-speciﬁc components DS(xfss ):
+DS(xfss ) =M(xfss )·xfss , (4)
+where M(xfss ) represents the output of Gumbel-Softmax in Fig.3. Then, we re-
+place the domain-speciﬁc components of the source image with the corresponding
+ones of the target image:
+ˆxfss→t =xfss −DS(xfss ) +DS(xfst ), (5)
+After replacing components, we combine all frequency components and per-
+form Inverse Fourier transformF−1(·). Finally, we obtain the target-like image:
+xs→t =F−1
+(∑
+ˆxfss→t
+)
+. (6)
+In order to keep the consistency of semantic information, we regulate the
+reconstruction loss:
+Lrec(X) =
+‖‖‖H(X)−H( ˆX)‖‖‖
+1
+, (7)
+whereX and ˆX represent the original and translated image. H(·) represents the
+band-pass ﬁlter that extracts the middle and high-frequency components, which
+largely capture the semantic information.
+2.3 Hierarchical Adversarial Feature Learning
+After the frequency-based image translation, we put target-like and target images
+into the object detector and further mitigate the feature-level domain gap by the
+domain classiﬁer and gradient reversal layer (GRL) [8]. Since diﬀerent domains
+could have distinct scene layouts, fully matching the entire distributions of source
+
+========== PAGE 6 ==========
+6 S. Zhang et al.
+and target images at the global image-level may fail [4,20]. Therefore, we adopt
+diﬀerent strategies on the local and global features.
+The global feature alignment module consists of a global domain classiﬁer
+Dg and a GRL. The GRL connects the global domain classiﬁer and the back-
+bone, which reverses the gradients that ﬂow through the backbone, as shown
+in Fig.2(b). It means that the global domain classiﬁer Dg aims to distinguish
+which domain the global feature comes from, whereas the backbone attempts to
+confuse the classiﬁer. Here, the source images are given the domain label d = 0
+and the label is 1 for the target images. The loss of the global feature alignment
+module is calculated as follows,
+Lglbs =− 1ns
+ns∑
+i=1
+Dg (F2(F1 (xsi )))γ· log (1−Dg (F2(F1 (xsi )))), (8)
+Lglbt =− 1nt
+nt∑
+i=1
+(
+1−Dg
+(
+F2
+(
+F1
+(
+xti))))γ· log(Dg(F2(F1(xti)))), (9)
+Lglb = 12 (Lglbs +Lglbt), (10)
+where ns and nt represent the number of source and target images, xs and xt
+are the target-like and target images, and F1 and F2 denotes the ﬁrst seven
+convolutional layers of the backbone VGG16 and the rest convolutional layers.
+The detailed structure of global domain classiﬁer Dg is shown in Fig.4(a).
+Similar with the adversarial training in global alignment, the local domain
+classiﬁerDl and shallow layers of the backbone are connected by the GRL. The
+loss function of local alignment can be written as:
+Llocs = 1nsHW
+ns∑
+i=1
+W∑
+w=1
+H∑
+h=1
+Dl (F1 (xsi ))2wh, (11)
+Lloct = 1ntHW
+nt∑
+i=1
+W∑
+w=1
+H∑
+h=1
+(
+1−Dl
+(
+F1
+(
+xti))wh)2, (12)
+Lloc = 12 (Llocs +Lloct), (13)
+where Dl (F1 (xi))wh represents the output of the local domain classiﬁer Dl in
+each location. The detailed structure of local domain classiﬁer Dl is shown in
+Fig.4(b).
+To achieve better adaptation, we regularize the domain discriminator. Previ-
+ous work has shown that it is eﬀective for stabilizing the adversarial training by
+regularizing the domain classiﬁer with the segmentation loss in domain adaptive
+segmentation [27].Similar with this approach, we regularize the domain discrimi-
+nator with the detection loss. Formally, we extract the diﬀerent levels of context
+vectors v1 and v2 from the middle layers of the domain classiﬁers Dl snd Dg
+respectively. Each context vector has 128 dimensions. Then, we concatenate the
+
+========== PAGE 7 ==========
+Frequency-based Image Translation for Domain Adaptive Object Detection 7
+Global Domain Classifier
+Conv 3 ×3, 512
+Batch Normalization
+ReLU
+Dropout
+Conv 3 ×3, 128
+Batch Normalization
+ReLU
+Dropout
+FC
+Average Pool
+Softmax
+Conv 3 ×3, 128
+Batch Normalization
+ReLU
+Dropout
+Local Domain Classifier
+Conv 1 ×1, 256
+ReLU
+Conv 1 ×1, 128
+ReLU
+Sigmoid
+Conv 1 ×1, 1
+Global Feature Domain Label Local Feature
+Domain Label
+(a) Global Domain Classiﬁer Dg
+Global Domain Classifier
+Conv 3 ×3, 512
+Batch Normalization
+ReLU
+Dropout
+Conv 3 ×3, 128
+Batch Normalization
+ReLU
+Dropout
+FC
+Average Pool
+Softmax
+Conv 3 ×3, 128
+Batch Normalization
+ReLU
+Dropout
+Local Domain Classifier
+Conv 1 ×1, 256
+ReLU
+Conv 1 ×1, 128
+ReLU
+Sigmoid
+Conv 1 ×1, 1
+Global Feature Domain Label Local Feature
+Domain Label (b) Local Domain Classiﬁer Dl
+Fig. 4. Structure of Domain Classiﬁers.
+vectors to obtain the aggregated context vector and all region-wise features are
+concatenated with the aggregated context to train the domain classiﬁers to min-
+imize the detection loss and domain classiﬁcation loss, as illustrated in Fig.2(b).
+2.4 Overall Objective
+We denote the loss of Faster RCNN [1] as Ldet and the overall loss function
+Ltotal can be summarized as:
+Ltotal =Ldet +Lrec +λ(Lglb +Lloc), (14)
+whereλ is the hyper-parameter to balance the detection, reconstruction loss and
+hierarchical alignment losses.
+3 Experiments
+3.1 Datasets
+We extensively evaluate our approach on three challenging domain adaptive
+object detection tasks with distinct domain shifts, including adaptation under
+diﬀerent weather (Cityscapes [11]→ Foggy Cityscapes [12]), adaptation from the
+synthetic to the real scene (Sim10K [13] → Cityscapes) and adaptation under
+diﬀerent cameras (KITTI [14] → Cityscapes). Cityscapes [11] is a dataset of
+urban street scenes with 8 categories captured with on-board cameras, which
+has 2975 training images and 500 validating images. Foggy Cityscapes [12] is the
+synthetic foggy version of Cityscapes. Sim10K [13] is a virtual dataset including
+
+========== PAGE 8 ==========
+8 S. Zhang et al.
+T able 1.Results (%) on the adaptation from Cityscapes to Foggy Cityscapes. ‘No DA’
+indicates the model is only trained with the source images and directly tested on the
+target images without any domain adaptation. The best results are in bold, and the
+second best results are underlined .
+Methods person rider car truck bus train moto bicycle mAP
+No DA 23.3 27.9 32.8 11.4 23.5 9.3 12.2 25.2 20.7
+DA [6]CVPR’2018 25.0 31.0 40.5 22.1 35.3 20.2 20.0 27.1 27.6
+DivMatch [9]CVPR’2019 30.8 40.5 44.3 27.2 38.4 34.5 28.4 32.2 34.6
+SWDA [4]CVPR’2019 29.9 42.3 43.5 24.5 36.2 32.6 30.0 35.3 34.3
+HTCN [5]CVPR’2020 33.2 47.5 47.9 31.6 47.4 40.9 32.3 37.1 39.8
+CDN [7]ECCV’2020 35.8 45.7 50.9 30.1 42.5 29.8 30.8 36.5 36.6
+ATF [20]ECCV’2020 34.6 47.0 50.0 23.7 43.3 38.7 33.4 38.8 38.7
+Progressive [16]WACV’2020 36.0 45.5 54.4 24.3 44.1 25.8 29.1 35.9 36.9
+VDD [22]ICCV’2021 33.4 44.0 51.7 33.9 52.0 34.7 34.2 36.8 40.0
+CDTD [21]IJCV’2021 31.6 44.0 44.8 30.4 41.8 40.7 33.6 36.2 37.9
+RPA [23]CVPR’2021 33.4 44.3 50.1 29.9 44.8 39.1 29.9 36.3 38.5
+DDF [24]TMM’2022 37.2 46.3 51.9 24.7 43.9 34.2 33.5 40.8 39.1
+FIT-DA (Ours) 36.6 45.8 52.2 32.2 48.1 34.6 34.7 37.2 40.2
+10000 images generated by the Grand Theft Auto gaming engine. KITTI [14]
+is an autonomous driving dataset that has 7481 images, which is captured by a
+standard station wagon with two high-resolution video cameras. In the test, we
+use mean average precision (mAP) metrics for evaluation.
+3.2 Implementation Details
+Our detector is original Faster R-CNN [1] without extra modules. We adopt
+VGG-16 [28] pre-trained on ImageNet [29] as our backbone. In our experiments,
+the shorter side of the image is resized to 600. Each batch is composed of one
+source image and one target image. The networks are trained with a learning
+rate of 0.001 for 50K iterations, then with a learning rate of 0.0001 for 20K more
+iterations. We use a momentum of 0.9 and a weight decay of 0.0005. N is 64 in
+Eq.(2). For Sim10K→ Cityscapes, we set λ = 0.1 in Eq.(14). For the rest two
+tasks, we set λ = 1. Our method is implemented with PyTorch.
+3.3 Comparison Experiments
+Adaptation under Diﬀerent Weather. Table 1 shows the performance of
+our method on Cityscapes → Foggy Cityscapes. We can see that our method
+alleviates the domain gap across diﬀerent weather conditions and outperforms
+all competitors in Table 1. Compared with GANs-based methods: DivMatch [9],
+Progressive [16] and CDTD [21], our method improves the result by +5.6%,
++3.3% and +2.3% in mAP, which demonstrates the advantage of the proposed
+Frequency-based Image Translation for domain adaptive object detection.
+
+========== PAGE 9 ==========
+Frequency-based Image Translation for Domain Adaptive Object Detection 9
+T able 2. Sim10K to Cityscape.
+Methods mAP
+Source Only 34.2
+DA [6]CVPR’2018 39.0
+SWDA [4]CVPR’2019 40.1
+HTCN [5]CVPR’2020 42.5
+ATF [20]ECCV’2020 42.8
+CDTD [21]IJCV’2021 42.6
+RPA [23]CVPR’2021 45.7
+DDF [24]TMM’2022 44.3
+FIT-DA (Ours) 48.6
+T able 3. KITTI to Cityscapes.
+Methods mAP
+Source Only 32.2
+DA [6]CVPR’2018 38.5
+SWDA [4]CVPR’2019 43.1
+CDN [7]ECCV’2020 44.9
+ATF [20]ECCV’2020 42.1
+Progressive [16]WACV’2020 43.9
+DDF [24]TMM’2022 46.0
+FIT-DA (Ours) 46.3
+T able 4. Ablation analysis of our method. LA is local feature alignment and GA
+is global feature alignment. CTV represents the context vector and FIT denotes the
+frequency-based image translation.
+Methods LA GA CTV FIT C→ F S→ C
+Source Only 20.7 34.2
+FIT-DA ✓ 31.8 40.5
+FIT-DA ✓ ✓ ✓ 38.5 46.4
+FIT-DA ✓ ✓ ✓ 35.7 42.2
+FIT-DA ✓ ✓ ✓ 37.4 44.3
+FIT-DA ✓ ✓ ✓ 34.5 40.3
+FIT-DA (Ours) ✓ ✓ ✓ ✓ 40.2 48.6
+Adaptation from the Synthetic to Real Scene. We evaluate the detection
+performance on car on Sim10K to Cityscapes benchmark. As we can see the
+results in Table 2, our method has a signiﬁcant performance boost over other
+methods, further indicating the eﬀectiveness of our method.
+Adaptation under Diﬀerent Cameras. There exists a domain gap between
+datasets captured through diﬀerent cameras due to the diversity of hardware
+devices. We conduct the cross-camera adaptation from KITTI to Cityscapes. The
+results are presented in Table 3, and our method has competitive performance
+among all the comparison methods.
+3.4 Ablation Study
+Eﬀectiveness of each component. We conduct the ablation experiments on
+Cityscapes→ Foggy Cityscapes (C → F) and Sim10K → Cityscapes (S→ C)
+to validate the eﬀectiveness of each module in our framework. The results in
+Table 4 show that all the modules contribute to the performance improvement
+(especially FIT module), which indicates the eﬀectiveness of each component in
+our method.
+
+========== PAGE 10 ==========
+10 S. Zhang et al.
+30
+35
+40
+45
+50
+16 32 64 96
+mAP (%)
+Value of N in Eq.(2)
+Cityscapes to Foggy Cityscapes
+SIM10k to Cityscapes
+KITTI to Cityscapes
+Fig. 5. Detection performances on the three benchmarks with diﬀerent values of N.
+T able 5.Performances with diﬀerent choices of domain-speciﬁc frequency components.
+Settings Choice C→ F S→ C
+Non-learnable
+FC[1] 38.3 44.2
+FC[1, 2] 37.3 45.9
+FC[1, 2, 3] 36.1 41.8
+FC[1, 2, 3, 4] 33.9 40.0
+Learnable Frequency Mask 40.2 48.6
+Method of choosing domain-speciﬁc frequency components. In FIT
+framework, Frequency Mask is the core module, which choose the domain-
+speciﬁc frequency component in a learnable way. We compare the adaptation
+performance of using Frequency Mask with using ﬁxed low-frequency compo-
+nents to determine domain-speciﬁc components in Table 5. The results suggest
+the Frequency Mask captures the domain-speciﬁc information better. Although
+low-frequency components largely captures domain-speciﬁc information, the dis-
+tributions of domain-speciﬁc components are not completely consistent for im-
+ages from diﬀerent domains, making it diﬃcult to capture these components
+preciously just using ﬁxed low-frequency components.
+Value of N in Eq.2. N is the number of frequency components after Fourier
+decomposing. Fig.5 shows the inﬂuence on adaptation performance with diﬀerent
+N. AsN is related to the division of frequency bands, which is critical for ﬁnding
+domain-speciﬁc frequency components, it aﬀects the quality of translated images.
+In our experiments, N = 64 is the best choice considering the performance on
+the three benchmarks.
+
+========== PAGE 11 ==========
+Frequency-based Image Translation for Domain Adaptive Object Detection 11
+C→ F
+ C→ F
+ S→ C
+ S→ C
+Fig. 6. Example results on Cityscapes to Foggy Cityscapes (C → F) and Sim10K to
+Cityscapes (S → C). The ﬁst row is the results of SWDA and the second row is the
+results of our FIT-DA. The class and score predictions are at the top left corner of the
+bounding box. Zoom in to visualize the details.
+3.5 Visualization
+Fig.6 illustrates some examples of detection results on on Cityscapes to Foggy
+Cityscapes and Sim10K to Cityscapes. Obviously, our method produces more
+accurate bounding box predictions and has a stronger ability to detect obscured
+instances.
+4 CONCLUSION
+In this paper, a novel Frequency-based Image Translation (FIT) method for
+DAOD is presented to reduce domain shift at the input level. Compared to
+other image translation methods for DAOD, it is embedded in the detection
+network and does not need extra time-consuming training. Additionally, we in-
+troduce hierarchical adversarial feature learning to further mitigate the domain
+gap at the feature level. Meanwhile, a joint loss function is designed to opti-
+mize the entire network in an end-to-end manner. Extensive experiments on
+three challenging DAOD benchmarks validate the eﬀectiveness of our method.
+In the future, we will utilize the frequency information in the feature space to
+investigate the feature augmentation for DAOD.
+Acknowledgements This work was supported in part by the National Key
+Research and Development Plan of China under Grant 2020AAA0108902 and
+the Strategic Priority Research Program of Chinese Academy of Science under
+Grant XDB32050100.
+References
+1. Ren, S., He, K., Girshick, R., Sun, J.: Faster r-cnn: Towards real-time object de-
+tection with region proposal networks. Advances in Neural Information Processing
+Systems 28, 91–99 (2015)
+
+========== PAGE 12 ==========
+12 S. Zhang et al.
+2. Redmon, J., Divvala, S., Girshick, R., Farhadi, A.: You only look once: Uniﬁed,
+real-time object detection. In: Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition. pp. 779–788 (2016)
+3. Tian, Z., Shen, C., Chen, H., He, T.: Fcos: Fully convolutional one-stage object de-
+tection. In: Proceedings of the IEEE International Conference on Computer Vision.
+pp. 9627–9636 (2019)
+4. Saito, K., Ushiku, Y., Harada, T., Saenko, K.: Strong-weak distribution alignment
+for adaptive object detection. In: Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition. pp. 6956–6965 (2019)
+5. Chen, C., Zheng, Z., Ding, X., Huang, Y., Dou, Q.: Harmonizing transferability
+and discriminability for adapting object detectors. In: Proceedings of the IEEE
+Conference on Computer Vision and Pattern Recognition. pp. 8869–8878 (2020)
+6. Chen, Y., Li, W., Sakaridis, C., Dai, D., Van Gool, L.: Domain adaptive faster r-
+cnn for object detection in the wild. In: Proceedings of the IEEE Conference on
+Computer Vision and Pattern Recognition. pp. 3339–3348 (2018)
+7. Su, P., Wang, K., Zeng, X., Tang, S., Chen, D., Qiu, D., Wang, X.: Adapting ob-
+ject detectors with conditional domain normalization. In: European Conference on
+Computer Vision. pp. 403–419. Springer (2020)
+8. Ganin, Y., Lempitsky, V.: Unsupervised domain adaptation by backpropagation.
+In: International Conference on Machine Learning. pp. 1180–1189. PMLR (2015)
+9. Kim, T., Jeong, M., Kim, S., Choi, S., Kim, C.: Diversify and match: A domain
+adaptive representation learning paradigm for object detection. In: Proceedings of
+the IEEE Conference on Computer Vision and Pattern Recognition. pp. 12456–
+12465 (2019)
+10. Zhu, J.Y., Park, T., Isola, P., Efros, A.A.: Unpaired image-to-image translation us-
+ing cycle-consistent adversarial networks. In: Proceedings of the IEEE International
+Conference on Computer Vision. pp. 2223–2232 (2017)
+11. Cordts, M., Omran, M., Ramos, S., Rehfeld, T., Enzweiler, M., Benenson, R.,
+Franke, U., Roth, S., Schiele, B.: The cityscapes dataset for semantic urban scene
+understanding. In: Proceedings of the IEEE Conference on Computer Vision and
+Pattern Recognition. pp. 3213–3223 (2016)
+12. Sakaridis, C., Dai, D., Van Gool, L.: Semantic foggy scene understanding with
+synthetic data. International Journal of Computer Vision 126(9), 973–992 (2018)
+13. Johnson-Roberson, M., Barto, C., Mehta, R., Sridhar, S.N., Rosaen, K., Vasude-
+van, R.: Driving in the matrix: Can virtual worlds replace human-generated anno-
+tations for real world tasks? In: 2017 IEEE International Conference on Robotics
+and Automation. pp. 746–753. IEEE (2017)
+14. Geiger, A., Lenz, P., Stiller, C., Urtasun, R.: Vision meets robotics: The kitti
+dataset. The International Journal of Robotics Research 32(11), 1231–1237 (2013)
+15. Hu, J., Shen, L., Sun, G.: Squeeze-and-excitation networks. In: Proceedings of
+the IEEE Conference on Computer Vision and Pattern Recognition. pp. 7132–7141
+(2018)
+16. Hsu, H.K., Yao, C.H., Tsai, Y.H., Hung, W.C., Tseng, H.Y., Singh, M., Yang,
+M.H.: Progressive domain adaptation for object detection. In: Proceedings of the
+IEEE Winter Conference on Applications of Computer Vision. pp. 749–757 (2020)
+17. Oppenheim, A.V.: Discrete-time signal processing. Pearson Education India (1999)
+18. Jang, E., Gu, S., Poole, B.: Categorical reparameterization with gumbel-softmax.
+arXiv preprint arXiv:1611.01144 (2016)
+19. Li, J., Duan, L.Y., Chen, X., Huang, T., Tian, Y.: Finding the secret of image
+saliency in the frequency domain. IEEE Transactions on Pattern Analysis and Ma-
+chine Intelligence 37(12), 2428–2440 (2015)
+
+========== PAGE 13 ==========
+Frequency-based Image Translation for Domain Adaptive Object Detection 13
+20. He, Z., Zhang, L.: Domain adaptive object detection via asymmetric tri-way faster-
+rcnn. In: European Conference on Computer Vision. pp. 309–324. Springer (2020)
+21. Shen, Z., Huang, M., Shi, J., Liu, Z., Maheshwari, H., Zheng, Y., Xue, X., Sav-
+vides, M., Huang, T.S.: Cdtd: A large-scale cross-domain benchmark for instance-
+level image-to-image translation and domain adaptive object detection. Interna-
+tional Journal of Computer Vision 129(3), 761–780 (2021)
+22. Wu, A., Liu, R., Han, Y., Zhu, L., Yang, Y.: Vector-decomposed disentanglement
+for domain-invariant object detection. In: Proceedings of the IEEE International
+Conference on Computer Vision. pp. 9342–9351 (2021)
+23. Zhang, Y., Wang, Z., Mao, Y.: Rpn prototype alignment for domain adaptive
+object detector. In: Proceedings of the IEEE Conference on Computer Vision and
+Pattern Recognition. pp. 12425–12434 (2021)
+24. Liu, D., Zhang, C., Song, Y., Huang, H., Wang, C., Barnett, M., Cai, W.: Decom-
+pose to adapt: Cross-domain object detection via feature disentanglement. IEEE
+Transactions on Multimedia (2022)
+25. Chen, Y., Li, G., Jin, C., Liu, S., Li, T.: Ssd-gan: Measuring the realness in the
+spatial and spectral domains. In: Proceedings of the AAAI Conference on Artiﬁcial
+Intelligence. vol. 35, pp. 1105–1112 (2021)
+26. Piotrowski, L.N., Campbell, F.W.: A demonstration of the visual importance and
+ﬂexibility of spatial-frequency amplitude and phase. Perception 11(3), 337–346
+(1982)
+27. Sankaranarayanan, S., Balaji, Y., Jain, A., Lim, S.N., Chellappa, R.: Learning from
+synthetic data: Addressing domain shift for semantic segmentation. In: Proceedings
+of the IEEE Conference on Computer Vision and Pattern Recognition. pp. 3752–
+3761 (2018)
+28. Simonyan, K., Zisserman, A.: Very deep convolutional networks for large-scale
+image recognition. arXiv preprint arXiv:1409.1556 (2014)
+29. Deng, J., Dong, W., Socher, R., Li, L.J., Li, K., Fei-Fei, L.: Imagenet: A large-scale
+hierarchical image database. In: Proceedings of the IEEE Conference on Computer
+Vision and Pattern Recognition. pp. 248–255. Ieee (2009)

@@ -3,26 +3,63 @@ track: 论文精读
 tags: [MOC, 论文精读, 文献地图, 待精读, UAV, 雾, 域泛化]
 aliases: [新增待精读, 6-新增待精读文献, 待精读文献集]
 created: 2026-11-24
-updated: 2026-11-24
+updated: 2026-11-25
 related: ["[[paper-notes/论文精读/文献地图-四层优先级]]", "[[paper-notes/论文精读/00-总索引-五篇论文]]"]
-status: 进行中 · 6 篇全部待读
+status: 进行中 · 8 篇全部待读 · 原文已存档 9 份
 ---
 
-# 📑 第三批 · 新增待精读文献（6 篇）· 索引 MOC
+# 📑 第三批 · 新增待精读文献（8 篇）· 索引 MOC
 
 > [!abstract] 这一批是什么
 > [[paper-notes/论文精读/文献地图-四层优先级|四层优先级文献地图]] 里
-> **还没在仓库建过精读笔记**的论文，共 6 篇。
+> **还没在仓库建过精读笔记**的论文，共 8 篇。
 > 前两篇已精读（CCFA-Net、HazyDet）**不在这里**，直接回主索引。
 
-| # | 论文 | 层级 | 角色 | 卡片 | 状态 |
-|---|---|---|---|---|---|
-| 01 | **DehazeFormer**（TIP 2023） | 第一层 | 去雾对照基线 | [[01-DehazeFormer]] | ⬜ 待读 |
-| 02 | **Frequency Domain Disentanglement**（CVPR 2023） | 第一层 / 第三层 | 严格域泛化基线 | [[02-频率域解耦-FDD]] | ⬜ 待读 |
-| 03 | **UDN**（AAAI 2022） | 第二层 | 恢复可靠性 | [[03-UDN-不确定性驱动去雾]] | ⬜ 待读 |
-| 04 | **FriendNet**（2024） | 第二层 | 感知友好去雾 | [[04-FriendNet]] | ⬜ 待读 |
-| 05 | **CSDA**（ICCV 2023） | 第二层 / 第三层 | 类别—尺度条件学习 | [[05-CSDA]] | ⬜ 待读 |
-| 06 | **AOD-Net**（ICCV 2017） | 第二层 | 大气散射模型与经典基线 | [[06-AOD-Net]] | ⬜ 待读 |
+| # | 论文 | 层级 | 角色 | 卡片 | 原文 | 状态 |
+|---|---|---|---|---|---|---|
+| 01 | **DehazeFormer**（TIP 2023） | 第一层 | 去雾对照基线 | [[01-DehazeFormer]] | ✅ 13p | ⬜ 待读 |
+| 02 | **Frequency Domain Disentanglement**（CVPR 2023） | 第一层 / 第三层 | 严格域泛化基线 | [[02-频率域解耦-FDD]] | ✅ 10p | ⬜ 待读 |
+| 03 | **UDN**（AAAI 2022） | 第二层 | 恢复可靠性 | [[03-UDN-不确定性驱动去雾]] | ✅ 8p | ⬜ 待读 |
+| 04 | **FriendNet**（2024） | 第二层 | 感知友好去雾 | [[04-FriendNet]] | ⚠️ 已撤稿 | ⬜ 待读 |
+| 05 | **CSDA**（ICCV 2023） | 第二层 / 第三层 | 类别—尺度条件学习 | [[05-CSDA]] | ✅ 10p | ⬜ 待读 |
+| 06 | **AOD-Net**（ICCV 2017） | 第二层 | 大气散射模型与经典基线 | [[06-AOD-Net]] | ✅ 12p | ⬜ 待读 |
+| 07 | **DIDN**（ICCV 2021） | 第三层 | 域不变/域特定解耦 | [[07-DIDN]] | ✅ 10p | ⬜ 待读 |
+| 08 | **FPD**（Neurocomputing 2023） | 第三层 | 频域伪域生成 | [[08-FPD]] | ❌ 无 OA | ⬜ 待读 |
+
+---
+
+## 📦 原文存档总表
+
+> 全部在 `6-新增待精读文献/附件/`，每份 PDF 都配了一份 **纯文本**（方便全文检索 / 摘抄）。
+> 另外 [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC|HazyDet]] 与 [[paper-notes/论文精读/5-TDRE精读/00-索引 MOC|TDRE]] 各自目录里也已有原文。
+
+| 文件 | 论文 | 页数 |
+|---|---|---|
+| `附件/DehazeFormer-论文原文.pdf` | DehazeFormer（TIP 2023） | 13 |
+| `附件/FDD-论文原文.pdf` | Generalized UAV Object Detection via FDD（CVPR 2023） | 10 |
+| `附件/UDN-论文原文.pdf` | Uncertainty-Driven Dehazing Network（AAAI 2022） | 8 |
+| `附件/FriendNet-论文原文.pdf` | FriendNet **v1（已撤稿）** | 13 |
+| `附件/CSDA-论文原文.pdf` | CSDA（ICCV 2023） | 10 |
+| `附件/AOD-Net-论文原文.pdf` | AOD-Net（ICCV 2017） | 12 |
+| `附件/DIDN-论文原文.pdf` | DIDN（ICCV 2021） | 10 |
+| `附件/FPD-同组开放替代-FIT-ECCV2022-论文原文.pdf` | FIT（ECCV 2022，FPD 同组替代） | 13 |
+
+---
+
+## ⚠️ 三条必须知道的核对结果
+
+> [!danger] 1. FriendNet **已被作者撤稿**（2025-04）
+> arXiv:2403.04443 作者自述理论框架有根本性缺陷。**别引用、别复现**。
+> 详见 [[04-FriendNet]]。
+
+> [!warning] 2. FPD 的出处是 **Neurocomputing 2023**，不是 CVPR 2021
+> 已核对 CVPR 2021 全会 1594 篇官方目录，无此篇；且期刊版**非开放获取**。
+> 已下载同组开放获取姊妹篇 **FIT（ECCV 2022）** 顶替。详见 [[08-FPD]]。
+
+> [!warning] 3. CCFA-Net 原文**拿不到**（Elsevier 非 OA）
+> DOI [10.1016/j.isprsjprs.2026.04.020](https://doi.org/10.1016/j.isprsjprs.2026.04.020)，
+> Unpaywall / OpenAlex 均确认 `is_oa: false`，ScienceDirect 对爬虫 403。
+> 👉 **你是作者之一，走图书馆 / 作者稿通道取。**
 
 ---
 
@@ -47,13 +84,13 @@ status: 进行中 · 6 篇全部待读
 ```
 DehazeFormer（第 3 阶段要跑）
    ↓
-UDN → FriendNet（方向一：恢复可靠性）
+UDN → AOD-Net（方向一：恢复可靠性 + 物理模型）
    ↓
-CSDA + FDD（第 5 阶段：严格域泛化协议）
+CSDA + FDD + DIDN（第 5 阶段：严格域泛化协议）
    ↓
-AOD-Net（随时补物理模型，用于解释误差来源）
+FIT/FPD（训练数据增强）
 ```
 
 ---
 
-**返回** → [[paper-notes/论文精读/文献地图-四层优先级|文献地图]] ｜ [[paper-notes/论文精读/00-索引 MOC|总入口]]
+**返回** → [[paper-notes/论文精读/文献地图-四层优先级|文献地图]] ｜ [[paper-notes/论文精读/00-总索引-五篇论文|总入口]]
