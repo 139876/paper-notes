@@ -23,9 +23,12 @@ status: 进行中
 | **3** | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC\|00-索引 MOC]] |
 | **4** | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance<br>[IEEE TGRS 2026, DOI 10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332) | 理论 | [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC\|00-索引 MOC]] |
 | **5** | **TDRE**: Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather<br>[ISPRS JPRS 2026, DOI 10.1016/j.isprsjprs.2026.08.041](https://doi.org/10.1016/j.isprsjprs.2026.08.041) | **方法 · 对照组** | [[paper-notes/论文精读/5-TDRE精读/00-索引 MOC\|00-索引 MOC]] |
+| **M** | 📚 **文献地图 · 四层优先级**（基线 / 创新支撑 / 域泛化专项 / 补充） | **路线图** | [[paper-notes/论文精读/文献地图-四层优先级\|文献地图]] |
+| **N** | 📖 **新增待精读文献**（DehazeFormer · FDD · UDN · FriendNet · CSDA · AOD-Net） | **待读清单** | [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC\|00-索引 MOC]] |
 | **6** | 📐 **图论综合应用报告**：基于图论的重庆大学虎溪校区快递配送路径优化研究 | 独立课题 | [[paper-notes/图论综合应用报告/00-索引 MOC\|00-索引 MOC]] |
 
 > 📌 五篇**统一放在** `paper-notes/论文精读/` 下，按 **1 / 2 / 3 / 4 / 5** 编号排序。
+> 🗺️ **不知道该读哪篇 → 看 [[paper-notes/论文精读/文献地图-四层优先级|四层优先级文献地图]]**（含精读模板与五阶段排期）。
 > 目录结构、互链关系、选题线索 → [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]]
 
 ---
