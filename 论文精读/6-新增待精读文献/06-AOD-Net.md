@@ -11,7 +11,7 @@ status: 待快速阅读 · ⚪ 第二层
 ## 📎 原文与存档
 
 - 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/AOD-Net-论文原文.pdf|AOD-Net 原文 PDF]]（ICCV 2017）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/AOD-Net-全文文本.txt|AOD-Net 全文文本]]（方便全文检索 / 摘抄）
+- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/AOD-Net-论文正文-全文文本.txt|AOD-Net 全文文本]]（方便全文检索 / 摘抄）
 
 
 # 06 · AOD-Net（All-in-One Dehazing Network）

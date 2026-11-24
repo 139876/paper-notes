@@ -11,7 +11,7 @@ status: 待精读 · 🔴 第一层
 ## 📎 原文与存档
 
 - 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/FDD-论文原文.pdf|FDD 原文 PDF]]（CVPR 2023）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/FDD-全文文本.txt|FDD 全文文本]]（方便全文检索 / 摘抄）
+- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/FDD-论文正文-全文文本.txt|FDD 全文文本]]（方便全文检索 / 摘抄）
 
 
 # 02 · Generalized UAV Object Detection via Frequency Domain Disentanglement
