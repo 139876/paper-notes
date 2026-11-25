@@ -74,6 +74,6 @@ status: 待精读 · ⚪ 第三层 · 条件触发
 
 - [[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类|域泛化机制精讲]]
 - [[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/03-域适应域泛化与测试时适应|域适应域泛化与测试时适应]]
-- [[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE|UAV 研究方案（Refined）]]
+- [[UAV_Research_Plan_Refined_CCFA_TDRE|UAV 研究方案（Refined）]]
 
 **返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

@@ -144,7 +144,7 @@ status: 进行中
 
 - [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]] —— **主索引**（目录结构 + 互链图 + 选题线索 + **检测器三段式与五篇落点**）
 - [[TVT_UAV_跨场景泛化检测_研究方案|TVT_UAV 研究方案]] —— 课题方向文档（未编号）
-- [[面向雾天无人机小目标检测的可靠性引导跨场景域泛化研究|雾天 UAV 可靠性引导跨场景域泛化]] —— **当前研究执行总纲 · 权威版**（方法路线与科学问题；P0–P3 与 8 周排期见 [[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE|UAV_Research_Plan_Refined_CCFA_TDRE]]）
+- [[面向雾天无人机小目标检测的可靠性引导跨场景域泛化研究|雾天 UAV 可靠性引导跨场景域泛化]] —— **当前研究执行总纲 · 权威版**（方法路线与科学问题；P0–P3 与 8 周排期见 [[UAV_Research_Plan_Refined_CCFA_TDRE|UAV_Research_Plan_Refined_CCFA_TDRE]]）
 - [[paper-notes/论文精读/README|README]] —— 仓库说明
 
 ---

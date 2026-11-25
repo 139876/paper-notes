@@ -16,7 +16,7 @@ updated: 2026-11-25
 related:
   - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
   - "[[文献地图-四层优先级]]"
-  - "[[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE]]"
+  - "[[UAV_Research_Plan_Refined_CCFA_TDRE]]"
 status: 待精读 · 🔴 第二层 · 创新候选一核心
 ---
 
@@ -80,7 +80,7 @@ status: 待精读 · 🔴 第二层 · 创新候选一核心
 
 ## 关联
 
-- 方向一 → [[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE#方向一：检测任务驱动的恢复信息可信度建模|方向一 · 恢复信息可信度建模]]
+- 方向一 → [[UAV_Research_Plan_Refined_CCFA_TDRE#方向一：检测任务驱动的恢复信息可信度建模|方向一 · 恢复信息可信度建模]]
 - 配套方法 → [[04-FriendNet|04-FriendNet]]
 
 **返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]
