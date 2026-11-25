@@ -1,17 +1,29 @@
 ---
 track: 论文精读
-tags: [UDN, 不确定性, 去雾, AAAI, 方向一, 待精读]
-aliases: [UDN, Uncertainty-Driven Dehazing Network, 不确定性驱动去雾]
+tags:
+  - UDN
+  - 不确定性
+  - 去雾
+  - AAAI
+  - 方向一
+  - 待精读
+aliases:
+  - UDN
+  - Uncertainty-Driven Dehazing Network
+  - 不确定性驱动去雾
 created: 2026-11-24
-updated: 2026-11-24
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE]]"]
-status: 待精读 · 🔴 第二层 · 方向一核心
+updated: 2026-11-25
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE]]"
+status: 待精读 · 🔴 第二层 · 创新候选一核心
 ---
 
 ## 📎 原文与存档
 
-- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/UDN-论文原文.pdf|UDN 原文 PDF]]（AAAI 2022）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/UDN-论文正文-全文文本.txt|UDN 全文文本]]（方便全文检索 / 摘抄）
+- 📄 **论文 PDF 原文** → [[UDN-论文原文.pdf|UDN 原文 PDF]]（AAAI 2022）
+- 📝 **全文纯文本** → [[UDN-论文正文-全文文本.txt|UDN 全文文本]]（方便全文检索 / 摘抄）
 
 
 # 03 · UDN（Uncertainty-Driven Dehazing Network）
@@ -71,4 +83,4 @@ status: 待精读 · 🔴 第二层 · 方向一核心
 - 方向一 → [[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE#方向一：检测任务驱动的恢复信息可信度建模|方向一 · 恢复信息可信度建模]]
 - 配套方法 → [[04-FriendNet|04-FriendNet]]
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

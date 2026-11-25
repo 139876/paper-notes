@@ -22,14 +22,14 @@ status: 进行中
 | **2** | Cross-Modal Object Detection via UAV ([DOI](https://doi.org/10.1109/TVT.2023.3262129)) | 方法 | [[paper-notes/论文精读/2-Cross-Modal-UAV精读/00-索引 MOC\|00-索引 MOC]] |
 | **3** | HazyDet: Open-Source Benchmark for Drone-View Object Detection With Depth Cues in Hazy Scenes | 数据 | [[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC\|00-索引 MOC]] |
 | **4** | Cross-Domain Hyperspectral Image Generalization Based on Joint Variable Consistency and Anchor Structure Invariance<br>[IEEE TGRS 2026, DOI 10.1109/TGRS.2026.3710332](https://doi.org/10.1109/TGRS.2026.3710332) | 理论 | [[paper-notes/论文精读/4-跨域高光谱精读/00-索引 MOC\|00-索引 MOC]] |
-| **5** | **TDRE**: Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather<br>[ISPRS JPRS 2026, DOI 10.1016/j.isprsjprs.2026.08.041](https://doi.org/10.1016/j.isprsjprs.2026.08.041) | **方法 · 对照组** | [[paper-notes/论文精读/5-TDRE精读/00-索引 MOC\|00-索引 MOC]] |
-| **M** | 📚 **文献地图 · 四层优先级**（基线 / 创新支撑 / 域泛化专项 / 补充） | **路线图** | [[paper-notes/论文精读/文献地图-四层优先级\|文献地图]] |
+| **5** | **TDRE**: Bridging the domain gap: A transferable dynamic routing enhancer for robust aerial detection under adverse weather<br>[ISPRS JPRS 2026, DOI 10.1016/j.isprsjprs.2026.08.041](https://doi.org/10.1016/j.isprsjprs.2026.08.041) | **方法主线**（研究计划的方法起点） | [[paper-notes/论文精读/5-TDRE精读/00-索引 MOC\|00-索引 MOC]] |
+| **M** | 📚 **文献地图 · 四层优先级**（基线 / 创新支撑 / 域泛化专项 / 补充） | **路线图** | [[文献地图-四层优先级\|文献地图]] |
 | **N** | 📖 **新增待精读文献**（DehazeFormer · FDD · UDN · FriendNet · CSDA · AOD-Net） | **待读清单** | [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC\|00-索引 MOC]] |
 | **6** | 📐 **图论综合应用报告**：基于图论的重庆大学虎溪校区快递配送路径优化研究 | 独立课题 | [[paper-notes/图论综合应用报告/00-索引 MOC\|00-索引 MOC]] |
-| **P** | 📋 **雾天 UAV 小目标检测 · 可靠性引导跨场景域泛化**（TDRE 动态增强主线 · 先复现、再诊断、后创新 · 严格 DG 协议） | **执行总纲（权威版）** | [[paper-notes/论文精读/面向雾天无人机小目标检测的可靠性引导跨场景域泛化研究\|研究计划 · 权威版]] |
+| **P** | 📋 **雾天 UAV 小目标检测 · 可靠性引导跨场景域泛化**（TDRE 动态增强主线 · 先复现、再诊断、后创新 · 严格 DG 协议） | **执行总纲（权威版）** | [[面向雾天无人机小目标检测的可靠性引导跨场景域泛化研究\|研究计划 · 权威版]] |
 
 > 📌 五篇**统一放在** `paper-notes/论文精读/` 下，按 **1 / 2 / 3 / 4 / 5** 编号排序。
-> 🗺️ **不知道该读哪篇 → 看 [[paper-notes/论文精读/文献地图-四层优先级|四层优先级文献地图]]**（含精读模板与五阶段排期）。
+> 🗺️ **不知道该读哪篇 → 看 [[文献地图-四层优先级|四层优先级文献地图]]**（含精读模板与五阶段排期）。
 > 目录结构、互链关系、选题线索 → [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]]
 
 ---
@@ -144,7 +144,7 @@ status: 进行中
 
 - [[paper-notes/论文精读/00-总索引-五篇论文|五篇论文总索引]] —— **主索引**（目录结构 + 互链图 + 选题线索 + **检测器三段式与五篇落点**）
 - [[TVT_UAV_跨场景泛化检测_研究方案|TVT_UAV 研究方案]] —— 课题方向文档（未编号）
-- [[paper-notes/论文精读/面向雾天无人机小目标检测的可靠性引导跨场景域泛化研究|雾天 UAV 可靠性引导跨场景域泛化]] —— **当前研究执行总纲 · 权威版**（方法路线与科学问题；P0–P3 与 8 周排期见 [[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE|UAV_Research_Plan_Refined_CCFA_TDRE]]）
+- [[面向雾天无人机小目标检测的可靠性引导跨场景域泛化研究|雾天 UAV 可靠性引导跨场景域泛化]] —— **当前研究执行总纲 · 权威版**（方法路线与科学问题；P0–P3 与 8 周排期见 [[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE|UAV_Research_Plan_Refined_CCFA_TDRE]]）
 - [[paper-notes/论文精读/README|README]] —— 仓库说明
 
 ---

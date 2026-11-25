@@ -1,10 +1,26 @@
 ---
-tags: [HazyDet, PDFT, 域适应, 微调, 域间隙, 消融实验, 复现, 研究生]
-aliases: [PDFT 精读, HazyDet 4.2, 渐进域微调, Progressive Domain Fine-Tuning]
+tags:
+  - HazyDet
+  - PDFT
+  - 域适应
+  - 微调
+  - 域间隙
+  - 消融实验
+  - 复现
+  - 研究生
+aliases:
+  - PDFT 精读
+  - HazyDet 4.2
+  - 渐进域微调
+  - Progressive Domain Fine-Tuning
 created: 2026-11-12
 stage: 2 · 模型原理
 series: HazyDet 精读 · 第 06 篇
-related: ["[[00-索引 MOC]]", "[[05-DeCoDet原理精读]]", "[[04-复现必查项与坑]]", "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/04-深度监督三件套与SiLog尺度性质]]"]
+related:
+  - "[[paper-notes/论文精读/3-HazyDet精读/00-索引 MOC]]"
+  - "[[05-DeCoDet原理精读]]"
+  - "[[04-复现必查项与坑]]"
+  - "[[paper-notes/论文精读/0-公共基础知识/03-训练与优化/04-深度监督三件套与SiLog尺度性质]]"
 track: HazyDet
 ---
 

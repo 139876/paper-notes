@@ -1,17 +1,29 @@
 ---
 track: 论文精读
-tags: [DIDN, 域泛化, 目标检测, ICCV2021, 待精读]
-aliases: [DIDN, Domain-Invariant Disentangled Network, 域不变解耦网络]
+tags:
+  - DIDN
+  - 域泛化
+  - 目标检测
+  - ICCV2021
+  - 待精读
+aliases:
+  - DIDN
+  - Domain-Invariant Disentangled Network
+  - 域不变解耦网络
 created: 2026-11-24
-updated: 2026-11-24
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[02-频率域解耦-FDD]]", "[[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类]]"]
-status: 待精读 · 🟡 第三层
+updated: 2026-11-25
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[02-频率域解耦-FDD]]"
+  - "[[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类]]"
+status: 待精读 · ⚪ 第三层 · 条件触发
 ---
 
 ## 📎 原文与存档
 
-- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/DIDN-论文原文.pdf|DIDN 原文 PDF]]（ICCV 2021）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/DIDN-论文正文-全文文本.txt|DIDN 全文文本]]（方便全文检索 / 摘抄）
+- 📄 **论文 PDF 原文** → [[DIDN-论文原文.pdf|DIDN 原文 PDF]]（ICCV 2021）
+- 📝 **全文纯文本** → [[DIDN-论文正文-全文文本.txt|DIDN 全文文本]]（方便全文检索 / 摘抄）
 
 
 # 07 · DIDN（Domain-Invariant Disentangled Network for Generalizable Object Detection）
@@ -66,4 +78,4 @@ status: 待精读 · 🟡 第三层
 - [[02-频率域解耦-FDD|02 · 频率域解耦（FDD）]]
 - [[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类|域泛化机制精讲]]
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

@@ -1,11 +1,23 @@
 ---
 track: 论文精读
-tags: [CSDA, 域适应, 类别尺度, 域泛化, ICCV, 待精读]
-aliases: [CSDA, 类别尺度联合特征, Category-Scale Joint Feature]
+tags:
+  - CSDA
+  - 域适应
+  - 类别尺度
+  - 域泛化
+  - ICCV
+  - 待精读
+aliases:
+  - CSDA
+  - 类别尺度联合特征
+  - Category-Scale Joint Feature
 created: 2026-11-24
-updated: 2026-11-24
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类]]"]
-status: 待精读 · 🔴 第二层 · 方向二核心
+updated: 2026-11-25
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类]]"
+status: 待精读 · ⚪ 第三层 · 条件触发
 ---
 
 # 05 · CSDA（Learning Category-Scale Joint Feature for Domain Adaptive Object Detection）
@@ -65,4 +77,4 @@ status: 待精读 · 🔴 第二层 · 方向二核心
 - [[02-频率域解耦-FDD|02-频率域解耦-FDD]]（严格 DG 的另一条腿）
 - 机制底座 → [[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类|域泛化机制精讲]]
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

@@ -1,17 +1,29 @@
 ---
 track: 论文精读
-tags: [AOD-Net, 去雾, 大气散射模型, ICCV, 经典基线, 待精读]
-aliases: [AOD-Net, All-in-One Dehazing Network, 全合一去雾]
+tags:
+  - AOD-Net
+  - 去雾
+  - 大气散射模型
+  - ICCV
+  - 经典基线
+  - 待精读
+aliases:
+  - AOD-Net
+  - All-in-One Dehazing Network
+  - 全合一去雾
 created: 2026-11-24
 updated: 2026-11-24
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/01-第1讲-去雾物理模型与DCP]]"]
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/01-第1讲-去雾物理模型与DCP]]"
 status: 待快速阅读 · ⚪ 第二层
 ---
 
 ## 📎 原文与存档
 
-- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/AOD-Net-论文原文.pdf|AOD-Net 原文 PDF]]（ICCV 2017）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/AOD-Net-论文正文-全文文本.txt|AOD-Net 全文文本]]（方便全文检索 / 摘抄）
+- 📄 **论文 PDF 原文** → [[AOD-Net-论文原文.pdf|AOD-Net 原文 PDF]]（ICCV 2017）
+- 📝 **全文纯文本** → [[AOD-Net-论文正文-全文文本.txt|AOD-Net 全文文本]]（方便全文检索 / 摘抄）
 
 
 # 06 · AOD-Net（All-in-One Dehazing Network）
@@ -60,4 +72,4 @@ status: 待快速阅读 · ⚪ 第二层
 
 ---
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

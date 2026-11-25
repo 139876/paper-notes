@@ -1,17 +1,26 @@
 ---
 track: 论文精读
-tags: [DehazeFormer, 去雾, TIP, 待精读, 对照基线]
-aliases: [DehazeFormer]
+tags:
+  - DehazeFormer
+  - 去雾
+  - TIP
+  - 待精读
+  - 对照基线
+aliases:
+  - DehazeFormer
 created: 2026-11-24
 updated: 2026-11-24
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/01-图像复原谱系-从DCP到DehazeFormer]]"]
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/01-图像复原谱系-从DCP到DehazeFormer]]"
 status: 待精读 · 🔴 第一层
 ---
 
 ## 📎 原文与存档
 
-- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/DehazeFormer-论文原文.pdf|DehazeFormer 原文 PDF]]（arxiv:2204.03883）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/DehazeFormer-论文正文-全文文本.txt|DehazeFormer 全文文本]]（方便全文检索 / 摘抄）
+- 📄 **论文 PDF 原文** → [[DehazeFormer-论文原文.pdf|DehazeFormer 原文 PDF]]（arxiv:2204.03883）
+- 📝 **全文纯文本** → [[DehazeFormer-论文正文-全文文本.txt|DehazeFormer 全文文本]]（方便全文检索 / 摘抄）
 
 
 # 01 · DehazeFormer
@@ -65,4 +74,4 @@ status: 待精读 · 🔴 第一层
 - [[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/01-图像复原谱系-从DCP到DehazeFormer|图像复原谱系（含 DehazeFormer）]]
 - [[paper-notes/论文精读/1-CCFA-Net精读/01-论文精读/10-第9讲-数据集与实验设置|第 9 讲 · 数据集与实验设置]]
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

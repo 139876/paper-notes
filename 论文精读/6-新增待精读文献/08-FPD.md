@@ -1,11 +1,24 @@
 ---
 track: 论文精读
-tags: [FPD, 伪域生成, 频域, 域泛化, 数据增强, 待精读]
-aliases: [FPD, Frequency-based Pseudo-domain Generation, 频率伪域生成]
+tags:
+  - FPD
+  - 伪域生成
+  - 频域
+  - 域泛化
+  - 数据增强
+  - 待精读
+aliases:
+  - FPD
+  - Frequency-based Pseudo-domain Generation
+  - 频率伪域生成
 created: 2026-11-24
 updated: 2026-11-25
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[02-频率域解耦-FDD]]", "[[07-DIDN]]"]
-status: 待精读 · 🟢 第三层 · 出处已修正
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[02-频率域解耦-FDD]]"
+  - "[[07-DIDN]]"
+status: 待精读 · ⚪ 第三层 · 条件触发 · 出处已修正
 ---
 
 # 08 · FPD（Frequency-based Pseudo-domain Generation for Domain Generalizable Object Detection）
@@ -15,8 +28,8 @@ status: 待精读 · 🟢 第三层 · 出处已修正
 ## 📎 原文与存档
 
 - ❌ **FPD 原文（Neurocomputing 2023）**：**全网无开放获取版本**（arXiv / OpenAlex / Unpaywall / CVF 均无）→ 需学校图书馆 ScienceDirect 权限
-- ✅ **同课题组开放获取姊妹篇（已下载存档）** → [[paper-notes/论文精读/6-新增待精读文献/附件/FPD-同组开放替代-FIT-ECCV2022-论文原文.pdf|📄 FIT: Frequency-based Image Translation for DAOD（ECCV 2022, arXiv 2303.03698）]]
-- 📝 该替代版全文文本 → [[paper-notes/论文精读/6-新增待精读文献/附件/FPD-同组开放替代-FIT-ECCV2022-论文正文-全文文本.txt|📝 全文文本]]
+- ✅ **同课题组开放获取姊妹篇（已下载存档）** → [[FPD-同组开放替代-FIT-ECCV2022-论文原文.pdf|📄 FIT: Frequency-based Image Translation for DAOD（ECCV 2022, arXiv 2303.03698）]]
+- 📝 该替代版全文文本 → [[FPD-同组开放替代-FIT-ECCV2022-论文正文-全文文本.txt|📝 全文文本]]
 
 > [!warning] 🔍 出处需要修正（已逐项核对）
 > 你清单里写的是 **CVPR 2021**。我把 **CVPR 2021 全会官方目录逐天拉下来（1594 篇全覆盖）比对过**：
@@ -78,4 +91,4 @@ status: 待精读 · 🟢 第三层 · 出处已修正
 - [[02-频率域解耦-FDD|02 · 频率域解耦（FDD）]]
 - [[07-DIDN|07 · DIDN]]
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

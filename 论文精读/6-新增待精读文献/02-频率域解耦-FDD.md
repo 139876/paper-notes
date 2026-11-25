@@ -1,17 +1,28 @@
 ---
 track: 论文精读
-tags: [域泛化, CVPR2023, UAV检测, 频率域, 待精读]
-aliases: [FDD, Frequency Domain Disentanglement, 频率域解耦]
+tags:
+  - 域泛化
+  - CVPR2023
+  - UAV检测
+  - 频率域
+  - 待精读
+aliases:
+  - FDD
+  - Frequency Domain Disentanglement
+  - 频率域解耦
 created: 2026-11-24
-updated: 2026-11-24
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类]]"]
-status: 待精读 · 🔴 第一层
+updated: 2026-11-25
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[paper-notes/论文精读/0-公共基础知识/09-域泛化与不变学习/01-域泛化机制精讲-MMD-GRL-IRM与偏移三分类]]"
+status: 待精读 · ⚪ 第三层 · 条件触发
 ---
 
 ## 📎 原文与存档
 
-- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/FDD-论文原文.pdf|FDD 原文 PDF]]（CVPR 2023）
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/FDD-论文正文-全文文本.txt|FDD 全文文本]]（方便全文检索 / 摘抄）
+- 📄 **论文 PDF 原文** → [[FDD-论文原文.pdf|FDD 原文 PDF]]（CVPR 2023）
+- 📝 **全文纯文本** → [[FDD-论文正文-全文文本.txt|FDD 全文文本]]（方便全文检索 / 摘抄）
 
 
 # 02 · Generalized UAV Object Detection via Frequency Domain Disentanglement
@@ -65,4 +76,4 @@ status: 待精读 · 🔴 第一层
 - [[paper-notes/论文精读/0-公共基础知识/07-方向知识脉络/03-域适应域泛化与测试时适应|域适应域泛化与测试时适应]]
 - [[paper-notes/论文精读/UAV_Research_Plan_Refined_CCFA_TDRE|UAV 研究方案（Refined）]]
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]

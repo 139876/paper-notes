@@ -1,11 +1,21 @@
 ---
 track: 论文精读
-tags: [FriendNet, 感知友好去雾, 检测友好, 撤稿, 待精读]
-aliases: [FriendNet, Detection-Friendly Dehazing Network]
+tags:
+  - FriendNet
+  - 感知友好去雾
+  - 检测友好
+  - 撤稿
+  - 待精读
+aliases:
+  - FriendNet
+  - Detection-Friendly Dehazing Network
 created: 2026-11-24
 updated: 2026-11-25
-related: ["[[00-索引 MOC]]", "[[paper-notes/论文精读/文献地图-四层优先级]]", "[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]"]
-status: ⚠️ 已撤稿 · 仅作思路参考
+related:
+  - "[[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]"
+  - "[[文献地图-四层优先级]]"
+  - "[[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC]]"
+status: ⚠️ 已撤稿 · 仅作思路参考 · 第二层 · 创新候选二对照
 ---
 
 # 04 · FriendNet（Detection-Friendly Dehazing Network）
@@ -14,8 +24,8 @@ status: ⚠️ 已撤稿 · 仅作思路参考
 
 ## 📎 原文与存档
 
-- 📄 **论文 PDF 原文** → [[paper-notes/论文精读/6-新增待精读文献/附件/FriendNet-论文原文.pdf|FriendNet 原文 PDF（v1）]]
-- 📝 **全文纯文本** → [[paper-notes/论文精读/6-新增待精读文献/附件/FriendNet-论文正文-全文文本.txt|FriendNet 全文文本]]
+- 📄 **论文 PDF 原文** → [[FriendNet-论文原文.pdf|FriendNet 原文 PDF（v1）]]
+- 📝 **全文纯文本** → [[FriendNet-论文正文-全文文本.txt|FriendNet 全文文本]]
 
 > [!danger] ⚠️ 该论文已被作者**主动撤稿**（arXiv:2403.04443 withdrawn，2025-04-02 修订）
 > 作者原话：*「We identified a fundamental flaw in the theoretical framework of this submission, rendering the main argument unsound. To maintain academic rigor, we request withdrawal and will submit a revised version after thorough validation.」*
@@ -71,8 +81,8 @@ status: ⚠️ 已撤稿 · 仅作思路参考
 
 ## 相关笔记
 
-- [[paper-notes/论文精读/文献地图-四层优先级|四层优先级文献地图]]
+- [[文献地图-四层优先级|四层优先级文献地图]]
 - [[paper-notes/论文精读/1-CCFA-Net精读/00-索引 MOC|CCFA-Net 精读索引]]
 - [[03-UDN-不确定性驱动去雾|03 · UDN（不确定性驱动去雾）]]
 
-**返回** → [[00-索引 MOC]]
+**返回** → [[paper-notes/论文精读/6-新增待精读文献/00-索引 MOC]]
